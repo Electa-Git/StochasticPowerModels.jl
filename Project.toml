@@ -1,0 +1,13 @@
+name = "StochasticPowerModels"
+uuid = "50afc394-810e-406f-916c-f931837647ce"
+authors = ["Tom Van Acker", "Arpan Kiorala"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
