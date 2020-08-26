@@ -32,7 +32,7 @@ cg = 4.0 .+ 10*[1.0,2.0]                                                        
 pgmin, pgmax = zeros(Ng), 10*ones(Ng)                                           # Generator limits
 pbmin, pbmax = -10*ones(Nb), 10*ones(Nb)                                        # Branch limits
 
-# PolyChaos definition of the stochastic variables
+# PolyChaos definition of the stochastic variables - Uniform
 deg = 1
 opq = [Uniform01OrthoPoly(deg, Nrec=5*deg), Uniform01OrthoPoly(deg, Nrec=5*deg)]
 mop = MultiOrthoPoly(opq, deg)
@@ -41,6 +41,16 @@ K   = mop.dim
 pd   = zeros(Nd,K)
 pd[1,[1,2]] = convert2affinePCE(1.0, 0.1, mop.uni[1], kind="μσ")
 pd[2,[1,3]] = convert2affinePCE(2.0, 0.2, mop.uni[2], kind="μσ")
+
+# # PolyChaos definition of the stochastic variables
+# deg = 2
+# opq = [GaussOrthoPoly(deg, Nrec=5*deg), GaussOrthoPoly(deg, Nrec=5*deg)]
+# mop = MultiOrthoPoly(opq, deg)
+# K   = mop.dim
+
+# pd   = zeros(Nd,K)
+# pd[1,[1,2]] = convert2affinePCE(1.0, 0.1, mop.uni[1])
+# pd[2,[1,3]] = convert2affinePCE(2.0, 0.2, mop.uni[2])
 
 # Second-order cone definition
 function buildSOC(x::Vector, mop::MultiOrthoPoly)
@@ -133,3 +143,5 @@ Pb2 = value.(pb)
 
 @assert isapprox(Pg1,Pg2, atol = 1e-6)
 @assert isapprox(Pb1,Pb2, atol = 1e-6)
+
+
