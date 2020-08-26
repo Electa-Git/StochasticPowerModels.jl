@@ -3,6 +3,12 @@ uuid = "50afc394-810e-406f-916c-f931837647ce"
 authors = ["Tom Van Acker", "Arpan Kiorala"]
 version = "0.1.0"
 
+[deps]
+JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+MosekTools = "1ec41992-ff65-5c91-ac43-2df89e9693a4"
+PolyChaos = "8d666b04-775d-5f6e-b778-5ac7c70f65a3"
+
 [compat]
 julia = "1"
 
