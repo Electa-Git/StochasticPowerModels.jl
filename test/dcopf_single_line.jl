@@ -1,3 +1,7 @@
+using PowerModels
+
+
+
 # Load the necessary Pkgs
 using JuMP
 using LinearAlgebra
@@ -94,10 +98,10 @@ n = Model(with_optimizer(Mosek.Optimizer))
                                                                                 # Power Balance
 @constraint(n, [i in 1:Nn, j in 1:K], sum(pg[k,j] for k in Kg[i]) + sum(pb[k,j] for k in Ki[i]) ==
                                       sum(pd[k,j] for k in Kd[i]) + sum(pb[k,j] for k in Ko[i]))
-                                                                                # Branch power flow 
+                                                                                # Branch power flow
 @constraint(n, [x in B, j in 1:K], pb[x[1],j] == Bb[x[1],x[1]]*(an[x[3],j]-an[x[2],j]))
                                                                                 # Generator power limits
-@constraint(n, [i in 1:Ng], [1/λg[i]*(pgmax[i] - mean(pg[i,:],mop)); buildSOC(pg[i,:],mop)] in SecondOrderCone())
+@constraint(n, [i in 1:Ng, j in 1:K], [1/λg[i]*(pgmax[i] - mean(pg[i,k],mop)); buildSOC(pg[i,k],mop)] in SecondOrderCone())
 @constraint(n, [i in 1:Ng], [1/λg[i]*(mean(pg[i,:],mop) - pgmin[i]); buildSOC(pg[i,:],mop)] in SecondOrderCone())
                                                                                 # Branch power limits
 @constraint(n, [i in 1:Nb], [1/λb[i]*(pbmax[i] - mean(pb[1,:],mop)); buildSOC(pb[i,:],mop)] in SecondOrderCone())
