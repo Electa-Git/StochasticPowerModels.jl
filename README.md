@@ -17,10 +17,9 @@ uncertainty in Steady-State Power Network Optimization.
 ## Core Network Formulation
 
 - PowerModels.jl Formulation
-    - ACP
-    - DC 'linearized'
+    - IVR
 - PowerModelsDistribution.jl Formulation
-    - ACP
+    - IVR
 
 ## Core Stochastic Specification
 
