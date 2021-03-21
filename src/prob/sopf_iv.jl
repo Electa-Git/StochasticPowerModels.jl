@@ -61,5 +61,5 @@ function build_sopf_iv(pm::AbstractPowerModel)
         constraint_branch_series_current_squared_cc_limit(pm, b)
     end
 
-    objective_min_expected_fuel_and_flow_cost(pm)
+    objective_min_expected_fuel_cost(pm)
 end
