@@ -50,8 +50,7 @@ In order to test whether the package works, run:
 ## Acknowledgements
 
 This code has been developed at KU Leuven (University of Leuven). The primary
-developers are Tom Van Acker ([@timmyfaraday](https://github.com/timmyfaraday))
-and Arpan Koirala ([@arpkoirala](https://github.com/arpkoirala))
+developer is Tom Van Acker ([@timmyfaraday](https://github.com/timmyfaraday)).
 
 ## License
 

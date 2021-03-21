@@ -15,7 +15,6 @@ import InfrastructureModels
 import JuMP
 import LinearAlgebra
 import PolyChaos
-import PMD4W
 import PowerModels
 import PowerModelsDistribution
 
@@ -24,7 +23,6 @@ import PowerModelsDistribution
 const _DST = Distributions
 const _IMs = InfrastructureModels
 const _PCE = PolyChaos
-const _PM4 = PMD4W
 const _PMs = PowerModels
 const _PMD = PowerModelsDistribution
 
