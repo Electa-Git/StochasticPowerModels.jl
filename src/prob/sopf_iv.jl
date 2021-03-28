@@ -9,7 +9,7 @@
 
 ""
 function run_sopf_iv(file, model_constructor, optimizer; kwargs...)
-    return run_model(file, model_constructor, optimizer, build_sopf_iv; kwargs...)
+    return _PMs.run_model(file, model_constructor, optimizer, build_sopf_iv; multinetwork=true, kwargs...)
 end
 
 ""
@@ -17,18 +17,21 @@ function build_sopf_iv(pm::AbstractPowerModel)
     for (n, network) in nws(pm) 
         variable_bus_voltage(pm, nw=n, bounded=false)
         variable_branch_current(pm, nw=n, bounded=false)
+        _PMs.variable_dcline_current(pm, nw=n, bounded=false)
 
         variable_load_current(pm, nw=n, bounded=false)
         variable_gen_current(pm, nw=n, bounded=false)
         variable_gen_power(pm, nw=n, bounded=false)
+    end
 
+    for (n, network) in nws(pm)
         for i in ids(pm, :ref_buses)
             _PMs.constraint_theta_ref(pm, i, nw=n)
         end
 
         for i in ids(pm, :bus)
             constraint_current_balance(pm, i, nw=n)
-            constraint_gp_squared_bus_voltage(pm, i, nw=n)
+            constraint_gp_bus_voltage_squared(pm, i, nw=n)
         end
 
         for b in ids(pm, :branch)
@@ -37,7 +40,11 @@ function build_sopf_iv(pm::AbstractPowerModel)
 
             _PMs.constraint_voltage_drop(pm, b, nw=n)
 
-            constraint_gp_squared_branch_current(pm, b, nw=n)
+            constraint_gp_branch_series_current_squared(pm, b, nw=n)
+        end
+
+        for d in ids(pm, :dcline)
+            _PMs.constraint_dcline_power_losses(pm, d, nw=n)
         end
 
         for g in ids(pm, :gen)
@@ -61,5 +68,9 @@ function build_sopf_iv(pm::AbstractPowerModel)
         constraint_branch_series_current_squared_cc_limit(pm, b)
     end
 
-    objective_min_expected_fuel_cost(pm)
+    # for d in ids(pm, :dcline)                                                 # needs to be implemented, similar to constraint_branch_series_current_squared_cc_limit
+    #     constraint_dcline_current_squared_cc_limit(pm, d)
+    # end
+
+    # objective_min_expected_fuel_cost(pm)                                      # needs to be implemented, based on expectation.
 end

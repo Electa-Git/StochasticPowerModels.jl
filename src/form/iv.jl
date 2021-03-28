@@ -6,6 +6,8 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
+sorted_nw_ids(pm) = sort(collect(nw_ids(pm)))
+
 # variables
 ""
 function variable_bus_voltage(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
@@ -49,8 +51,8 @@ function constraint_current_balance(pm::AbstractIVRModel, n::Int, i, bus_arcs, b
     vr = var(pm, n, :vr, i)
     vi = var(pm, n, :vi, i)
 
-    cr =  var(pm, n, :cr)
-    ci =  var(pm, n, :ci)
+    cr = var(pm, n, :cr)
+    ci = var(pm, n, :ci)
     crdc = var(pm, n, :crdc)
     cidc = var(pm, n, :cidc)
 
@@ -78,147 +80,148 @@ end
 ""
 function constraint_gp_bus_voltage_squared(pm::AbstractIVRModel, n::Int, i, T2, T3)
     vs  = var(pm, n, :vs, i)
-    vr  = Dict(nw => var(pm, nw, :vr, i) for nw in nws(pm))
-    vi  = Dict(nw => var(pm, nw, :vi, i) for nw in nws(pm))
+    vr  = Dict(nw => var(pm, nw, :vr, i) for nw in nw_ids(pm))
+    vi  = Dict(nw => var(pm, nw, :vi, i) for nw in nw_ids(pm))
 
-    JuMP.@constraint(pm.model,  T2.get([n,n]) * vs 
+    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * vs 
                                 ==
-                                sum(T3.get([n1,n2,n]) * 
+                                sum(T3.get([n1-1,n2-1,n-1]) * 
                                     (vr[n1] * vr[n2] + vi[n1] * vi[n2]) 
-                                    for n1 in nws(pm), n2 in nws(pm))
+                                    for n1 in nw_ids(pm), n2 in nw_ids(pm))
                     )
 end
 
 ""
 function constraint_gp_branch_series_current_squared(pm::AbstractIVRModel, n::Int, i, T2, T3)
     css  = var(pm, n, :css, i)
-    csr = Dict(nw => var(pm, nw, :csr, i) for nw in nws(pm))
-    csi = Dict(nw => var(pm, nw, :csi, i) for nw in nws(pm))
+    csr = Dict(nw => var(pm, nw, :csr, i) for nw in nw_ids(pm))
+    csi = Dict(nw => var(pm, nw, :csi, i) for nw in nw_ids(pm))
 
-    JuMP.@constraint(pm.model,  T2.get([n,n]) * cs
+    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * css
                                 ==
-                                sum(T3.get([n1,n2,n]) * 
+                                sum(T3.get([n1-1,n2-1,n-1]) * 
                                     (csr[n1] * csr[n2] + csi[n1] * csi[n2]) 
-                                    for n1 in nws(pm), n2 in nws(pm))
+                                    for n1 in nw_ids(pm), n2 in nw_ids(pm))
                     )
 end
 
 ""
 function constraint_gp_gen_power_real(pm::AbstractIVRModel, n::Int, i, g, T2, T3)
-    vr  = Dict(nw => var(pm, nw, :vr, i) for nw in nws(pm))
-    vi  = Dict(nw => var(pm, nw, :vi, i) for nw in nws(pm))
+    vr  = Dict(nw => var(pm, nw, :vr, i) for nw in nw_ids(pm))
+    vi  = Dict(nw => var(pm, nw, :vi, i) for nw in nw_ids(pm))
     
-    crg = Dict(nw => var(pm, nw, :crg, g) for nw in nws(pm))
-    cig = Dict(nw => var(pm, nw, :cig, g) for nw in nws(pm))
+    crg = Dict(nw => var(pm, nw, :crg, g) for nw in nw_ids(pm))
+    cig = Dict(nw => var(pm, nw, :cig, g) for nw in nw_ids(pm))
 
     pg  = var(pm, n, :pg, g)
     
-    JuMP.@constraint(pm.model,  T2.get([n,n]) * pg
+    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * pg
                                 ==
-                                sum(T3.get([n1,n2,n]) * 
+                                sum(T3.get([n1-1,n2-1,n-1]) * 
                                     (vr[n1] * crg[n2] + vi[n1] * cig[n2])
-                                    for n1 in nws(pm), n2 in nws(pm))
+                                    for n1 in nw_ids(pm), n2 in nw_ids(pm))
                     )
 end
 
 ""
 function constraint_gp_gen_power_imaginary(pm::AbstractIVRModel, n::Int, i, g, T2, T3)
-    vr  = Dict(nw => var(pm, nw, :vr, i) for nw in nws(pm))
-    vi  = Dict(nw => var(pm, nw, :vi, i) for nw in nws(pm))
+    vr  = Dict(nw => var(pm, nw, :vr, i) for nw in nw_ids(pm))
+    vi  = Dict(nw => var(pm, nw, :vi, i) for nw in nw_ids(pm))
     
-    crg = Dict(nw => var(pm, nw, :crg, g) for nw in nws(pm))
-    cig = Dict(nw => var(pm, nw, :cig, g) for nw in nws(pm))
+    crg = Dict(nw => var(pm, nw, :crg, g) for nw in nw_ids(pm))
+    cig = Dict(nw => var(pm, nw, :cig, g) for nw in nw_ids(pm))
 
     qg  = var(pm, n, :qg, g)
     
-    JuMP.@constraint(pm.model,  T2.get([n,n]) * qg
+    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * qg
                                 ==
-                                sum(T3.get([n1,n2,n]) *
+                                sum(T3.get([n1-1,n2-1,n-1]) *
                                     (vi[n1] * crg[n2] - vr[n1] * cig[n2])
-                                    for n1 in nws(pm), n2 in nws(pm))
+                                    for n1 in nw_ids(pm), n2 in nw_ids(pm))
                     )
 end
 
 ""
 function constraint_gp_load_power_real(pm::AbstractIVRModel, n::Int, i, l, pd, T2, T3)
-    vr  = Dict(nw => var(pm, nw, :vr, i) for nw in nws(pm))
-    vi  = Dict(nw => var(pm, nw, :vi, i) for nw in nws(pm))
+    vr  = Dict(nw => var(pm, nw, :vr, i) for nw in nw_ids(pm))
+    vi  = Dict(nw => var(pm, nw, :vi, i) for nw in nw_ids(pm))
 
-    crd = Dict(nw => var(pm, nw, :crd, l) for nw in nws(pm))
-    cid = Dict(nw => var(pm, nw, :cid, l) for nw in nws(pm))
+    crd = Dict(nw => var(pm, nw, :crd, l) for nw in nw_ids(pm))
+    cid = Dict(nw => var(pm, nw, :cid, l) for nw in nw_ids(pm))
 
-    JuMP.@constraint(pm.model,  T2.get([n,n]) * pd
+    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * pd
                                 ==
-                                sum(T3.get([n1,n2,n]) *
+                                sum(T3.get([n1-1,n2-1,n-1]) *
                                     (vr[n1] * crd[n2] + vi[n1] * cid[n2])
-                                    for n1 in nws(pm), n2 in nws(pm))
+                                    for n1 in nw_ids(pm), n2 in nw_ids(pm))
                     )
 end
 
 ""
 function constraint_gp_load_power_imaginary(pm::AbstractIVRModel, n::Int, i, l, qd, T2, T3)
-    vr  = Dict(n => var(pm, n, :vr, i) for n in nws(pm))
-    vi  = Dict(n => var(pm, n, :vi, i) for n in nws(pm))
+    vr  = Dict(n => var(pm, n, :vr, i) for n in nw_ids(pm))
+    vi  = Dict(n => var(pm, n, :vi, i) for n in nw_ids(pm))
 
-    crd = Dict(n => var(pm, n, :crd, l) for n in nws(pm))
-    cid = Dict(n => var(pm, n, :cid, l) for n in nws(pm))
+    crd = Dict(n => var(pm, n, :crd, l) for n in nw_ids(pm))
+    cid = Dict(n => var(pm, n, :cid, l) for n in nw_ids(pm))
 
-    JuMP.@constraint(pm.model,  T2.get([n,n]) * qd
+    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * qd
                                 ==
-                                sum(T3.get([n1,n2,n]) *
+                                sum(T3.get([n1-1,n2-1,n-1]) *
                                     (vi[n1] * crd[n2] - vr[n1] * cid[n2])
-                                    for n1 in nws(pm), n2 in nws(pm))
+                                    for n1 in nw_ids(pm), n2 in nw_ids(pm))
+                    )
+end
+
+# chance constraints
+""
+function constraint_bus_voltage_squared_cc_limit(pm::AbstractIVRModel, i, vmin, vmax, λmin, λmax, T2, mop)
+    vs  = [var(pm, n, :vs, i) for n in sorted_nw_ids(pm)]
+
+    JuMP.@constraint(pm.model,  _PCE.var(vs,T2)
+                                <=
+                                ((_PCE.mean(vs,mop) - vmin^2) / λmin)^2
+                    )
+    JuMP.@constraint(pm.model,  _PCE.var(vs,T2)
+                                <=
+                                ((vmax^2 - _PCE.mean(vs,mop)) / λmax)^2
                     )
 end
 
 ""
-function constraint_bus_voltage_squared_cc_limit(pm::AbstractIVRModel, i, vmin, vmax, λ, T2, mop)
-    vs  = [var(pm, n, :vs, i) for n in nws(pm)]
-
-    JuMP.@constraint(pm.model,  _PCE.var(vs,T2)
-                                <=
-                                ((_PCE.mean(vs,mop) - vmin^2) / λ)^2
-                    )
-    JuMP.@constraint(pm.model,  _PCE.var(vs,T2)
-                                <=
-                                ((vmax^2 - _PCE.mean(vs,mop)) / λ)^2
-                    )
-end
-
-""
-function constraint_branch_current_cc_limit(pm::AbstractIVRModel, b, imax, λ, T2, mop)
-    css  = [var(pm, nw, :css, b) for nw in nws(pm)]
+function constraint_branch_series_current_squared_cc_limit(pm::AbstractIVRModel, b, imax, λmax, T2, mop)
+    css  = [var(pm, nw, :css, b) for nw in sorted_nw_ids(pm)]
 
     JuMP.@constraint(pm.model,  _PCE.var(css,T2)
                                 <=
-                                ((imax^2 - _PCE.mean(css,mop)) / λ)^2
+                                ((imax^2 - _PCE.mean(css,mop)) / λmax)^2
                     )
 end
 
 ""
-function constraint_gen_power_real_cc_limit(pm::AbstractIVRModel, g, pgmin, pgmax, λ, T2, mop)
-    pg  = [var(pm, nw, :pg, g) for nw in nws(pm)]
+function constraint_gen_power_real_cc_limit(pm::AbstractIVRModel, g, pmin, pmax, λmin, λmax, T2, mop)
+    pg  = [var(pm, nw, :pg, g) for nw in sorted_nw_ids(pm)]
 
     JuMP.@constraint(pm.model,  _PCE.var(pg,T2)
                                 <=
-                                ((_PCE.mean(pg,mop) - pgmin) / λ)^2
+                                ((_PCE.mean(pg,mop) - pmin) / λmin)^2
                     )
     JuMP.@constraint(pm.model,  _PCE.var(pg,T2)
                                 <=
-                                ((pgmax - _PCE.mean(pg,mop)) / λ)^2
+                                ((pmax - _PCE.mean(pg,mop)) / λmax)^2
                     )
 end
 
 ""
-function constraint_gen_power_imaginary_cc_limit(pm::AbstractIVRModel, g, qgmin, qgmax, λ, T2, mop)
-    qg  = [var(pm, nw, :qg, g) for nw in nws(pm)]
+function constraint_gen_power_imaginary_cc_limit(pm::AbstractIVRModel, g, qmin, qmax, λmin, λmax, T2, mop)
+    qg  = [var(pm, nw, :qg, g) for nw in sorted_nw_ids(pm)]
 
     JuMP.@constraint(pm.model,  _PCE.var(qg,T2)
                                 <=
-                                ((_PCE.mean(qg,mop) - qgmin) / λ)^2
+                                ((_PCE.mean(qg,mop) - qmin) / λmin)^2
                     )
     JuMP.@constraint(pm.model,  _PCE.var(qg,T2)
                                 <=
-                                ((qgmax - _PCE.mean(qg,mop)) / λ)^2
+                                ((qmax - _PCE.mean(qg,mop)) / λmax)^2
                     )
 end

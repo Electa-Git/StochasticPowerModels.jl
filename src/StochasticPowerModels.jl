@@ -9,27 +9,45 @@
 
 module StochasticPowerModels
 
-# import pkgs
-import Distributions
-import InfrastructureModels
-import JuMP
-import LinearAlgebra
-import PolyChaos
-import PowerModels
-import PowerModelsDistribution
+    # import pkgs
+    import Distributions
+    import InfrastructureModels
+    import JuMP
+    import LinearAlgebra
+    import PolyChaos
+    import PowerModels
+    import PowerModelsDistribution
 
+    # import types
+    import PowerModels: AbstractPowerModel, AbstractIVRModel
+    import PowerModels: comp_start_value
+    import InfrastructureModels: ids, ref, var, con, sol, nw_ids, nws, sol_component_value
 
-# pkgs const
-const _DST = Distributions
-const _IMs = InfrastructureModels
-const _PCE = PolyChaos
-const _PMs = PowerModels
-const _PMD = PowerModelsDistribution
+    # pkgs const
+    const _DST = Distributions
+    const _IMs = InfrastructureModels
+    const _PCE = PolyChaos
+    const _PMs = PowerModels
+    const _PMD = PowerModelsDistribution
 
-# paths
-const BASE_DIR = dirname(@__DIR__)
+    # const 
+    const nw_id_default = 1
 
-# export
-export BASE_DIR
+    # paths
+    const BASE_DIR = dirname(@__DIR__)
+
+    # include
+    include("core/constraint_template.jl")
+    include("core/objective.jl")
+    include("core/variable.jl")
+
+    include("form/iv.jl")
+
+    include("prob/sopf_iv.jl")
+
+    # export
+    export BASE_DIR
+
+    export run_sopf_iv
 
 end 
