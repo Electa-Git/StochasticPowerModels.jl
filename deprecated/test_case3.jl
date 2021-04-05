@@ -9,7 +9,7 @@ const _PMs = PowerModels
 const _SPM = StochasticPowerModels
 
 # data path
-path = joinpath(_SPM.BASE_DIR,"test/data/case3.m")
+path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case3.m")
 
 # build uncertainty data
 deg  = 1
@@ -40,7 +40,7 @@ for gen in data["gen"]
     gen[2]["λqmin"], gen[2]["λqmax"] = 1.6, 1.6
 end
 for branch in data["branch"]
-    branch[2]["imax"] = 2.0
+    branch[2]["imax"] = branch[2]["rate_a"]/0.9
     branch[2]["λimax"] = 1.6
 end
 
