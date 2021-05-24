@@ -1,7 +1,6 @@
 ## TODO
-## 1) describe an objective 
-## 2) enable load matrix builder for degrees higher than 1.
-## 3) construct script to run deterministic opf, only activate violated constraints.
+## 1) enable load matrix builder for degrees higher than 1.
+## 2) construct script to run deterministic opf, only activate violated constraints.
 
 # using pkgs
 using Ipopt
