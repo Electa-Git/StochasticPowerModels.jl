@@ -19,7 +19,7 @@ module StochasticPowerModels
     import PowerModelsDistribution
 
     # import types
-    import PowerModels: AbstractPowerModel, AbstractIVRModel
+    import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
     import PowerModels: comp_start_value
     import InfrastructureModels: ids, ref, var, con, sol, nw_ids, nws, sol_component_value
 
@@ -42,12 +42,16 @@ module StochasticPowerModels
     include("core/variable.jl")
 
     include("form/iv.jl")
+    include("form/acr.jl")
 
     include("prob/sopf_iv.jl")
+    include("prob/sopf_iv_itr.jl")
+
+    include("util/util.jl")
 
     # export
     export BASE_DIR
 
-    export run_sopf_iv
+    export run_sopf_iv, run_sopf_iv_itr
 
 end 

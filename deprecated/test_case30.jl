@@ -87,4 +87,3 @@ data["mop"] = mop
 # solve 
 solver = Ipopt.Optimizer
 result = run_sopf_iv(data, _PMs.IVRPowerModel, solver)
-

@@ -6,8 +6,6 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
-sorted_nw_ids(pm) = sort(collect(nw_ids(pm)))
-
 # variables
 ""
 function variable_bus_voltage(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
@@ -29,6 +27,12 @@ function variable_branch_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bo
 end
 
 ""
+function variable_dcline_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
+    _PMs.variable_dcline_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    _PMs.variable_dcline_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+end
+
+""
 function variable_load_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
     variable_load_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     variable_load_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
@@ -40,6 +44,7 @@ function variable_gen_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bound
     _PMs.variable_gen_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 end
 
+""
 function variable_gen_power(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
     _PMs.variable_gen_power_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     _PMs.variable_gen_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
@@ -47,14 +52,23 @@ end
 
 # constraints
 ""
-function constraint_current_balance(pm::AbstractIVRModel, n::Int, i, bus_arcs, bus_arcs_dc, bus_gens, bus_loads, bus_gs, bus_bs)
+function constraint_bus_voltage_ref(pm::AbstractIVRModel, n::Int, i::Int)
+    vr = var(pm, n, :vr, i)
+    vi = var(pm, n, :vi, i)
+
+    vn = ifelse(n == 1, 1.0, 0.0)
+
+    JuMP.@constraint(pm.model, vr == vn)
+    JuMP.@constraint(pm.model, vi == 0.0)
+end
+
+""
+function constraint_current_balance(pm::AbstractIVRModel, n::Int, i, bus_arcs, bus_gens, bus_loads, bus_gs, bus_bs)
     vr = var(pm, n, :vr, i)
     vi = var(pm, n, :vi, i)
 
     cr = var(pm, n, :cr)
     ci = var(pm, n, :ci)
-    crdc = var(pm, n, :crdc)
-    cidc = var(pm, n, :cidc)
 
     crd = var(pm, n, :crd)
     cid = var(pm, n, :cid)
@@ -62,14 +76,12 @@ function constraint_current_balance(pm::AbstractIVRModel, n::Int, i, bus_arcs, b
     cig = var(pm, n, :cig)
 
     JuMP.@constraint(pm.model,  sum(cr[a] for a in bus_arcs)
-                                + sum(crdc[d] for d in bus_arcs_dc)
                                 ==
                                 sum(crg[g] for g in bus_gens)
                                 - sum(crd[d] for d in bus_loads)
                                 - sum(gs for gs in values(bus_gs))*vr + sum(bs for bs in values(bus_bs))*vi
                                 )
     JuMP.@constraint(pm.model,  sum(ci[a] for a in bus_arcs)
-                                + sum(cidc[d] for d in bus_arcs_dc)
                                 ==
                                 sum(cig[g] for g in bus_gens)
                                 - sum(cid[d] for d in bus_loads)
@@ -176,22 +188,29 @@ end
 # chance constraints
 ""
 function constraint_bus_voltage_squared_cc_limit(pm::AbstractIVRModel, i, vmin, vmax, λmin, λmax, T2, mop)
-    vs  = [var(pm, n, :vs, i) for n in sorted_nw_ids(pm)]
+    vs = [var(pm, n, :vs, i) for n in sorted_nw_ids(pm)]
 
-    JuMP.@constraint(pm.model,  _PCE.var(vs,T2)
+    # bounds on the expectation
+    JuMP.@constraint(pm.model, vmin^2 <= _PCE.mean(vs, mop))
+    JuMP.@constraint(pm.model, _PCE.mean(vs, mop) <= vmax^2)
+    # chance constraint bounds
+    JuMP.@constraint(pm.model,  _PCE.var(vs, T2)
                                 <=
-                                ((_PCE.mean(vs,mop) - vmin^2) / λmin)^2
+                                ((_PCE.mean(vs, mop) - vmin^2) / λmin)^2
                     )
-    JuMP.@constraint(pm.model,  _PCE.var(vs,T2)
+    JuMP.@constraint(pm.model,  _PCE.var(vs, T2)
                                 <=
-                                ((vmax^2 - _PCE.mean(vs,mop)) / λmax)^2
+                                ((vmax^2 - _PCE.mean(vs, mop)) / λmax)^2
                     )
 end
 
 ""
 function constraint_branch_series_current_squared_cc_limit(pm::AbstractIVRModel, b, imax, λmax, T2, mop)
-    css  = [var(pm, nw, :css, b) for nw in sorted_nw_ids(pm)]
+    css = [var(pm, nw, :css, b) for nw in sorted_nw_ids(pm)]
 
+    # bound on the expectation
+    JuMP.@constraint(pm.model,  _PCE.mean(css, mop) <= imax^2)
+    # chance constraint bound
     JuMP.@constraint(pm.model,  _PCE.var(css,T2)
                                 <=
                                 ((imax^2 - _PCE.mean(css,mop)) / λmax)^2
@@ -202,13 +221,17 @@ end
 function constraint_gen_power_real_cc_limit(pm::AbstractIVRModel, g, pmin, pmax, λmin, λmax, T2, mop)
     pg  = [var(pm, nw, :pg, g) for nw in sorted_nw_ids(pm)]
 
-    JuMP.@constraint(pm.model,  _PCE.var(pg,T2)
+    # bounds on the expectation 
+    JuMP.@constraint(pm.model,  pmin <= _PCE.mean(pg, mop))
+    JuMP.@constraint(pm.model,  _PCE.mean(pg, mop) <= pmax)
+    # chance constraint bounds
+    JuMP.@constraint(pm.model,  _PCE.var(pg, T2)
                                 <=
-                                ((_PCE.mean(pg,mop) - pmin) / λmin)^2
+                                ((_PCE.mean(pg, mop) - pmin) / λmin)^2
                     )
-    JuMP.@constraint(pm.model,  _PCE.var(pg,T2)
+    JuMP.@constraint(pm.model,  _PCE.var(pg, T2)
                                 <=
-                                ((pmax - _PCE.mean(pg,mop)) / λmax)^2
+                                ((pmax - _PCE.mean(pg, mop)) / λmax)^2
                     )
 end
 

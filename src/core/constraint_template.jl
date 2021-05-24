@@ -6,6 +6,12 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
+# reference voltage 
+""
+function constraint_bus_voltage_ref(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+    constraint_bus_voltage_ref(pm, nw, i)
+end
+
 # current balance
 ""
 function constraint_current_balance(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
@@ -18,7 +24,6 @@ function constraint_current_balance(pm::AbstractPowerModel, i::Int; nw::Int=nw_i
 
     bus = ref(pm, nw, :bus, i)
     bus_arcs = ref(pm, nw, :bus_arcs, i)
-    bus_arcs_dc = ref(pm, nw, :bus_arcs_dc, i)
     bus_gens = ref(pm, nw, :bus_gens, i)
     bus_loads = ref(pm, nw, :bus_loads, i)
     bus_shunts = ref(pm, nw, :bus_shunts, i)
@@ -26,13 +31,13 @@ function constraint_current_balance(pm::AbstractPowerModel, i::Int; nw::Int=nw_i
     bus_gs = Dict(k => ref(pm, nw, :shunt, k, "gs") for k in bus_shunts)
     bus_bs = Dict(k => ref(pm, nw, :shunt, k, "bs") for k in bus_shunts)
 
-    constraint_current_balance(pm, nw, i, bus_arcs, bus_arcs_dc, bus_gens, bus_loads, bus_gs, bus_bs)
+    constraint_current_balance(pm, nw, i, bus_arcs, bus_gens, bus_loads, bus_gs, bus_bs)
 end
 
 # galerkin projection
 ""
 function constraint_gp_bus_voltage_squared(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
-    T2  = pm.data["T2"] ## this needs to be cleaner, however currently have no idea on how to do it
+    T2  = pm.data["T2"]
     T3  = pm.data["T3"]
 
     constraint_gp_bus_voltage_squared(pm, nw, i, T2, T3)

@@ -10,12 +10,14 @@
 ################################################################################
 
 ""
-function run_sopf_iv(file, model_constructor, optimizer; kwargs...)
-    return _PMs.run_model(file, model_constructor, optimizer, build_sopf_iv; multinetwork=true, kwargs...)
+function run_sopf_iv_itr(file, model_constructor, optimizer; kwargs...)
+    
+
+    return _PMs.run_model(file, model_constructor, optimizer, build_sopf_iv_itr; multinetwork=true, kwargs...)
 end
 
 ""
-function build_sopf_iv(pm::AbstractPowerModel)
+function build_sopf_iv_itr(pm::AbstractPowerModel)
     for (n, network) in _PMs.nws(pm) 
         variable_bus_voltage(pm, nw=n, bounded=false)
         variable_branch_current(pm, nw=n, bounded=false)
@@ -25,17 +27,17 @@ function build_sopf_iv(pm::AbstractPowerModel)
         variable_load_current(pm, nw=n, bounded=false)
     end
 
-    for i in _PMs.ids(pm, :bus)
+    for i in _PMs.ids(pm, :bus) if bounded_bus[i]
         constraint_bus_voltage_squared_cc_limit(pm, i)
-    end
+    end end
 
-    for g in _PMs.ids(pm, :gen)
+    for g in _PMs.ids(pm, :gen) if bounded_gen[g]
         constraint_gen_power_cc_limit(pm, g)
-    end
+    end end
 
-    for b in _PMs.ids(pm, :branch)
+    for b in _PMs.ids(pm, :branch) if bounded_branch[b]
         constraint_branch_series_current_squared_cc_limit(pm, b)
-    end
+    end end
 
     for (n, network) in _PMs.nws(pm)
         for i in ids(pm, :ref_buses)
