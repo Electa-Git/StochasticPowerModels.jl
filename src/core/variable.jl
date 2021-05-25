@@ -8,31 +8,31 @@
 
 "variable: `vs[i]` for `i` in `bus`es"
 function variable_bus_voltage_squared(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
-    vs = var(pm, nw)[:vs] = JuMP.@variable(pm.model,
-        [i in ids(pm, nw, :bus)], base_name="$(nw)_vs",
-        start = comp_start_value(ref(pm, nw, :bus, i), "vs_start", 1.0)
+    vs = _PMs.var(pm, nw)[:vs] = JuMP.@variable(pm.model,
+        [i in _PMs.ids(pm, nw, :bus)], base_name="$(nw)_vs",
+        start = comp_start_value(_PMs.ref(pm, nw, :bus, i), "vs_start", 1.0)
     )
 
     if bounded
-        for (i, bus) in ref(pm, nw, :bus)
+        for (i, bus) in _PMs.ref(pm, nw, :bus)
             JuMP.set_lower_bound(vs[i], bus["vmin"]^2)
             JuMP.set_upper_bound(vs[i], bus["vmax"]^2)
         end
     end
 
-    report && sol_component_value(pm, nw, :bus, :vs, ids(pm, nw, :bus), vs)
+    report && _PMs.sol_component_value(pm, nw, :bus, :vs, _PMs.ids(pm, nw, :bus), vs)
 end
 
 "variable: `crd[j]` for `j` in `load`"
 function variable_load_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
-    crd = var(pm, nw)[:crd] = JuMP.@variable(pm.model,
-        [i in ids(pm, nw, :load)], base_name="$(nw)_crd",
-        start = comp_start_value(ref(pm, nw, :load, i), "crd_start")
+    crd = _PMs.var(pm, nw)[:crd] = JuMP.@variable(pm.model,
+        [i in _PMs.ids(pm, nw, :load)], base_name="$(nw)_crd",
+        start = comp_start_value(_PMs.ref(pm, nw, :load, i), "crd_start")
     )
 
     if bounded
-        bus = ref(pm, nw, :bus)
-        for (i, l) in ref(pm, nw, :load)
+        bus = _PMs.ref(pm, nw, :bus)
+        for (i, l) in _PMs.ref(pm, nw, :load)
             vmin = bus[l["load_bus"]]["vmin"]
             @assert vmin > 0
             s = sqrt(max(abs(l["pmax"]), abs(l["pmin"]))^2 + max(abs(l["qmax"]), abs(l["qmin"]))^2)
@@ -43,19 +43,20 @@ function variable_load_current_real(pm::AbstractPowerModel; nw::Int=nw_id_defaul
         end
     end
 
-    report && sol_component_value(pm, nw, :load, :crd, ids(pm, nw, :load), crd)
+    report && _PMs.sol_component_value(pm, nw, :load, :crd, _PMs.ids(pm, nw, :load), crd)
 end
+
 
 "variable: `cid[j]` for `j` in `load`"
 function variable_load_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
-    cid = var(pm, nw)[:cid] = JuMP.@variable(pm.model,
-        [i in ids(pm, nw, :load)], base_name="$(nw)_cid",
-        start = comp_start_value(ref(pm, nw, :load, i), "cid_start")
+    cid = _PMs.var(pm, nw)[:cid] = JuMP.@variable(pm.model,
+        [i in _PMs.ids(pm, nw, :load)], base_name="$(nw)_cid",
+        start = comp_start_value(_PMs.ref(pm, nw, :load, i), "cid_start")
     )
 
     if bounded
-        bus = ref(pm, nw, :bus)
-        for (i, l) in ref(pm, nw, :load)
+        bus = _PMs.ref(pm, nw, :bus)
+        for (i, l) in _PMs.ref(pm, nw, :load)
             vmin = bus[l["load_bus"]]["vmin"]
             @assert vmin > 0
             s = sqrt(max(abs(l["pmax"]), abs(l["pmin"]))^2 + max(abs(l["qmax"]), abs(l["qmin"]))^2)
@@ -66,21 +67,21 @@ function variable_load_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_d
         end
     end
 
-    report && sol_component_value(pm, nw, :load, :cid, ids(pm, nw, :load), cid)
+    report && _PMs.sol_component_value(pm, nw, :load, :cid, _PMs.ids(pm, nw, :load), cid)
 end
 
 "variable: `css[l,i,j]` for `(l,i,j)` in `arcs_from`"
 function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
-    css = var(pm, nw)[:css] = JuMP.@variable(pm.model,
-        [l in ids(pm, nw, :branch)], base_name="$(nw)_css",
-        start = comp_start_value(ref(pm, nw, :branch, l), "css_start", 0.0)
+    css = _PMs.var(pm, nw)[:css] = JuMP.@variable(pm.model,
+        [l in _PMs.ids(pm, nw, :branch)], base_name="$(nw)_css",
+        start = comp_start_value(_PMs.ref(pm, nw, :branch, l), "css_start", 0.0)
     )
 
     if bounded
-        bus = ref(pm, nw, :bus)
-        branch = ref(pm, nw, :branch)
+        bus = _PMs.ref(pm, nw, :bus)
+        branch = _PMs.ref(pm, nw, :branch)
 
-        for (l,i,j) in ref(pm, nw, :arcs_from)
+        for (l,i,j) in _PMs.ref(pm, nw, :arcs_from)
             b = branch[l]
             ub = Inf
             if haskey(b, "rate_a")
@@ -106,5 +107,5 @@ function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=
         end
     end
 
-    report && sol_component_value(pm, nw, :branch, :css, ids(pm, nw, :branch), css)
+    report && _PMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
 end

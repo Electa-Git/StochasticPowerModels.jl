@@ -60,4 +60,6 @@ data["mop"] = mop
 
 # solve 
 solver = Ipopt.Optimizer
+result1 = _SPM.run_sopf_acr(data, _PMs.ACRPowerModel, solver)
+
 result = run_sopf_iv(data, _PMs.IVRPowerModel, solver)

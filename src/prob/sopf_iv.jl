@@ -23,31 +23,32 @@ function build_sopf_iv(pm::AbstractPowerModel)
         variable_gen_power(pm, nw=n, bounded=false)
         variable_gen_current(pm, nw=n, bounded=false)
         variable_load_current(pm, nw=n, bounded=false)
+       
     end
 
-    for i in _PMs.ids(pm, :bus)
-        constraint_bus_voltage_squared_cc_limit(pm, i)
+    for i in _PMs.ids(pm, :bus, nw=1)
+        constraint_bus_voltage_squared_cc_limit(pm, i, nw=1)
     end
 
-    for g in _PMs.ids(pm, :gen)
-        constraint_gen_power_cc_limit(pm, g)
+    for g in _PMs.ids(pm, :gen, nw=1)
+        constraint_gen_power_cc_limit(pm, g, nw=1)
     end
 
-    for b in _PMs.ids(pm, :branch)
-        constraint_branch_series_current_squared_cc_limit(pm, b)
+    for b in _PMs.ids(pm, :branch, nw=1)
+        constraint_branch_series_current_squared_cc_limit(pm, b, nw=1)
     end
 
     for (n, network) in _PMs.nws(pm)
-        for i in ids(pm, :ref_buses)
+        for i in _PMs.ids(pm, :ref_buses, nw=n)
             constraint_bus_voltage_ref(pm, i, nw=n)
         end
 
-        for i in _PMs.ids(pm, :bus)
+        for i in _PMs.ids(pm, :bus, nw=n)
             constraint_current_balance(pm, i, nw=n)
             constraint_gp_bus_voltage_squared(pm, i, nw=n)
         end
 
-        for b in _PMs.ids(pm, :branch)
+        for b in _PMs.ids(pm, :branch, nw=n)
             _PMs.constraint_current_from(pm, b, nw=n)
             _PMs.constraint_current_to(pm, b, nw=n)
 
@@ -56,11 +57,11 @@ function build_sopf_iv(pm::AbstractPowerModel)
             constraint_gp_branch_series_current_squared(pm, b, nw=n)
         end
 
-        for g in _PMs.ids(pm, :gen)
+        for g in _PMs.ids(pm, :gen, nw=n)
             constraint_gp_gen_power(pm, g, nw=n)
         end
 
-        for l in _PMs.ids(pm, :load)
+        for l in _PMs.ids(pm, :load, nw=n)
             constraint_gp_load_power(pm, l, nw=n)
         end
     end

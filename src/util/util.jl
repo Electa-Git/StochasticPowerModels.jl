@@ -6,4 +6,4 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
-sorted_nw_ids(pm) = sort(collect(nw_ids(pm)))
+sorted_nw_ids(pm) = sort(collect(_PMs.nw_ids(pm)))

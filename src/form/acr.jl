@@ -37,20 +37,58 @@ function variable_gen_power(pm::AbstractACRModel; nw::Int=nw_id_default, bounded
     _PMs.variable_gen_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 end
 
+
+""
+function variable_bus_voltage_squared(pm::AbstractACRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+vs = _PMs.var(pm, nw)[:vs] = JuMP.@variable(pm.model,
+    [i in _PMs.ids(pm, nw, :bus)], base_name="$(nw)_vs",
+    start = comp_start_value(_PMs.ref(pm, nw, :bus, i), "vs_start", 1.0)
+)
+
+if bounded
+    for (i, bus) in _PMs.ref(pm, nw, :bus)
+        JuMP.set_lower_bound(vs[i], bus["vmin"]^2)
+        JuMP.set_upper_bound(vs[i], bus["vmax"]^2)
+    end
+end
+
+report && _PMs.sol_component_value(pm, nw, :bus, :vs, _PMs.ids(pm, nw, :bus), vs)
+end
 # constraints
 
 ""
-function constraint_voltage_ref(pm::AbstractACRModel, i::Int , nw::Int, vm)
+function constraint_voltage_setpoint(pm::AbstractACRModel, i::Int , nw::Int, vm)
     vr  = _PMs.var(pm, nw, :vr, i) 
     vi  = _PMs.var(pm, nw, :vi, i)
    
-        JuMP.@constraint(pm.model, _PMs.var(pm, nw, :vi)[i] == 0)
     if nw ==1
-        JuMP.@constraint(pm.model, _PMs.var(pm, nw, :vr)[i] == vm)
+        JuMP.@constraint(pm.model, (vr^2 + vi^2) == vm^2)
     else
-        JuMP.@constraint(pm.model, _PMs.var(pm, nw, :vr)[i] == 0)
-
+        JuMP.@constraint(pm.model, (vr^2 + vi^2)  == 0)
     end
+end
+
+""
+function constraint_theta_ref(pm::AbstractACRModel, n::Int, i::Int, vm)
+    vr = _PMs.var(pm, n, :vr, i)
+    vi = _PMs.var(pm, n, :vi, i)
+
+    vn = ifelse(n == 1, vm, 0.0)
+
+    JuMP.@constraint(pm.model, vr == vn)
+    JuMP.@constraint(pm.model, vi == 0.0)
+end
+
+"`vmin <= vm[i] <= vmax` relax the voltage limit so that CC can be applied"
+function constraint_voltage_magnitude_bounds(pm::AbstractACRModel, n::Int, i, vmin, vmax)
+    @assert vmin <= vmax
+    vr = _PMs.var(pm, n, :vr, i)
+    vi = _PMs.var(pm, n, :vi, i)
+if n==1
+    JuMP.@constraint(pm.model, 0.95 * vmin^2 <= (vr^2 + vi^2))
+    JuMP.@constraint(pm.model, 1.05 * vmax^2 >= (vr^2 + vi^2))
+end
+
 end
 ""
 function constraint_gp_bus_voltage_squared(pm::AbstractACRModel, n::Int, i, T2, T3)
@@ -66,16 +104,7 @@ function constraint_gp_bus_voltage_squared(pm::AbstractACRModel, n::Int, i, T2, 
                     )
 end
 
-""
-function constraint_theta_ref(pm::AbstractACRModel, n::Int, i::Int)
-    vr = var(pm, n, :vr, i)
-    vi = var(pm, n, :vi, i)
 
-    vn = ifelse(n == 1, 1.0, 0.0)
-
-    JuMP.@constraint(pm.model, vr == vn)
-    JuMP.@constraint(pm.model, vi == 0.0)
-end
 ""
 function expression_branch_power_ohms_yt_from(pm::AbstractACRModel, n::Int, f_bus, t_bus, f_idx, t_idx, g, b, g_fr, b_fr, tr, ti, tm)
     vr_fr = _PMs.var(pm, n, :vr, f_bus)

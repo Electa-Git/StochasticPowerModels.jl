@@ -37,8 +37,8 @@ end
 function _objective_min_expected_fuel_cost_polynomial_linquad(pm::AbstractPowerModel, mop; report::Bool=true)
     gen_cost = Dict()
     
-    for (g, gen) in _PMs.ref(pm, :gen)
-        exp_pg = _PCE.mean([var(pm, nw, :pg, g) for nw in sorted_nw_ids(pm)], mop)        
+    for (g, gen) in _PMs.ref(pm, :gen, nw=1)
+        exp_pg = _PCE.mean([_PMs.var(pm, nw, :pg, g) for nw in sorted_nw_ids(pm)], mop)        
         if length(gen["cost"]) == 1
             gen_cost[g] = gen["cost"][1]
         elseif length(gen["cost"]) == 2
@@ -51,7 +51,7 @@ function _objective_min_expected_fuel_cost_polynomial_linquad(pm::AbstractPowerM
     end
 
     return JuMP.@objective(pm.model, Min,
-            sum(gen_cost[g] for g in _PMs.ids(pm, :gen))
+            sum(gen_cost[g] for g in _PMs.ids(pm, :gen, nw=1))
     )
 end
 
@@ -59,7 +59,7 @@ end
 function _objective_min_fuel_cost_polynomial_nl(pm::AbstractPowerModel, mop; report::Bool=true)
     gen_cost = Dict()
     
-    for (g, gen) in _PMs.ref(pm, :gen)
+    for (g, gen) in _PMs.ref(pm, :gen,nw=1)
         exp_pg = _PCE.mean([var(pm, nw, :pg, g) for nw in sorted_nw_ids(pm)], mop)    
 
         cost_rev = reverse(gen["cost"])
