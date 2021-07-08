@@ -45,21 +45,22 @@ function build_sopf_acr(pm::AbstractPowerModel)
             constraint_power_balance(pm, i, nw=n)
             constraint_gp_bus_voltage_squared(pm, i, nw=n)
             constraint_voltage_magnitude_bounds(pm, i, nw=n)
-            constraint_voltage_setpoint(pm, i, nw=n)
+            #constraint_voltage_setpoint(pm, i, nw=n)
         end
 
         for b in _PMs.ids(pm, :branch, nw=n)
-            #if n==1
-                #_PMs.constraint_voltage_angle_difference(pm, b, nw=n)
-            #end
-            constraint_gp_power_branch_to(pm, b, nw=n)
-            constraint_gp_power_branch_from(pm, b, nw=n)
-            #_PMs.constraint_thermal_limit_from(pm, b, nw=n)
-            #_PMs.constraint_thermal_limit_to(pm, b, nw=n)
-
-            #constraint_gp_thermal_limit_from(pm, b, nw=n) #these needs to be done based on squared branch current
-            #constraint_gp_thermal_limit_to(pm, b, nw=n)
+            #constraint_gp_power_branch_to(pm, b, nw=n)
+            #constraint_gp_power_branch_from(pm, b, nw=n)
+            constraint_branch_voltage(pm, b, nw=n)
+            constraint_gp_current_squared(pm, b, nw=n) #these needs to be done based on squared branch current
+            #following are simplified only g and b
+            
+            constraint_gp_power_branch_to_simplified(pm, b, nw=n)
+            constraint_gp_power_branch_from_simplified(pm, b, nw=n)
+            
         end
+
+
 
         #for d in _PMs.ids(pm, :dcline, nw=n)
         #   _PMs.constraint_dcline_power_losses(pm, d, nw=n)
@@ -72,5 +73,5 @@ function build_sopf_acr(pm::AbstractPowerModel)
     #     constraint_dcline_current_squared_cc_limit(pm, d)
     # end
 
-     objective_min_expected_fuel_cost(pm)                                      # needs to be implemented, based on expectation.
+    objective_min_expected_fuel_cost(pm)                                      # needs to be implemented, based on expectation.
 end

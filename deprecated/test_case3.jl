@@ -12,7 +12,7 @@ const _SPM = StochasticPowerModels
 path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case3.m")
 
 # build uncertainty data
-deg  = 1
+deg  = 2
 opq  = [Uniform01OrthoPoly(deg; Nrec=5*deg), 
         Uniform01OrthoPoly(deg; Nrec=5*deg),
         Uniform01OrthoPoly(deg; Nrec=5*deg)]
@@ -56,10 +56,31 @@ end
 # add stochastic base data
 data["T2"] = Tensor(2,mop)
 data["T3"] = Tensor(3,mop)
+#data["T4"] = Tensor(4,mop)
 data["mop"] = mop
 
 # solve 
 solver = Ipopt.Optimizer
-result1 = _SPM.run_sopf_acr(data, _PMs.ACRPowerModel, solver)
+result = _SPM.run_sopf_acr(data, _PMs.ACRPowerModel, solver)
 
-result = run_sopf_iv(data, _PMs.IVRPowerModel, solver)
+#result2 = run_sopf_iv(data, _PMs.IVRPowerModel, solver)
+
+#a1=[([(result["solution"]["nw"]["$i"]["bus"]["$j"]["vs"]) for i in 1:4]) for j in 1:3]
+""
+
+#_SPM.plotHist_volt(result, "vs", mop, 1000) #cdf=true to plot CDF #PDF=
+
+#_SPM.plotHist_gen(result, "pg", mop, 1000)
+
+
+
+_SPM.plotHist_volt(result, "vs", mop, 1000, pdf=true) #cdf=true to plot CDF #PDF=
+
+#_SPM.plotHist_gen(result, "qg", mop, 1000, pdf=true)
+_SPM.plotHist_gen(result, "pg", mop, 1000, pdf=true)
+_SPM.plotHist_branch(result, "css", mop, 1000, pdf=true)
+
+if haskey(result["solution"]["nw"]["1"], "load")
+    _SPM.plotHist_load(result, "cid", mop, 1000, pdf=true)
+    _SPM.plotHist_load(result, "cid", mop, 1000)
+end

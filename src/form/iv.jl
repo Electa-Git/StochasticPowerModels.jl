@@ -239,6 +239,10 @@ end
 function constraint_gen_power_imaginary_cc_limit(pm::AbstractIVRModel, g, qmin, qmax, λmin, λmax, T2, mop)
     qg  = [_PMs.var(pm, nw, :qg, g) for nw in sorted_nw_ids(pm)]
 
+    # bounds on the expectation 
+    JuMP.@constraint(pm.model,  qmin <= _PCE.mean(qg, mop))
+    JuMP.@constraint(pm.model,  _PCE.mean(qg, mop) <= qmax)
+    #
     JuMP.@constraint(pm.model,  _PCE.var(qg,T2)
                                 <=
                                 ((_PCE.mean(qg,mop) - qmin) / λmin)^2

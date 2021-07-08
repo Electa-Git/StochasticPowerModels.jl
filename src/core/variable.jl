@@ -102,10 +102,32 @@ function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=
 
             if !isinf(ub)
                 JuMP.set_lower_bound(css[l],  0.0)
-                JuMP.set_upper_bound(css[l],  ub^2)
+                JuMP.set_upper_bound(css[l], 1.5* ub^2)
             end
         end
     end
 
     report && _PMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
+end
+
+
+"variable: voltage drop real for `(l,i,j)` in `arcs_from`"
+function variable_branch_voltage_drop_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    vbdr = _PMs.var(pm, nw)[:vbdr] = JuMP.@variable(pm.model,
+        [l in _PMs.ids(pm, nw, :branch)], base_name="$(nw)_vbdr",
+        start = comp_start_value(_PMs.ref(pm, nw, :branch, l), "vbdr_start", 0.0)
+    )
+    
+
+    report && _PMs.sol_component_value(pm, nw, :branch, :vbdr, _PMs.ids(pm, nw, :branch), vbdr)
+end
+"variable: voltage drop img for `(l,i,j)` in `arcs_from`"
+function variable_branch_voltage_drop_img(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+
+    vbdi = _PMs.var(pm, nw)[:vbdi] = JuMP.@variable(pm.model,
+        [l in _PMs.ids(pm, nw, :branch)], base_name="$(nw)_vbdi",
+        start = comp_start_value(_PMs.ref(pm, nw, :branch, l), "vbdi_start", 0.0)
+    )
+
+    report && _PMs.sol_component_value(pm, nw, :branch, :vbdi, _PMs.ids(pm, nw, :branch), vbdi)
 end

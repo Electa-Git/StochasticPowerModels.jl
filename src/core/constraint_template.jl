@@ -71,6 +71,30 @@ function constraint_gp_branch_series_current_squared(pm::AbstractPowerModel, b::
 end
 
 ""
+function constraint_gp_branch_series_current_squared_new(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
+    T2  = pm.data["T2"]
+    T4  = pm.data["T4"]
+
+    constraint_gp_branch_series_current_squared_new(pm, nw, b, T2, T4)
+end
+
+""
+function constraint_gp_current_squared(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
+    T2  = pm.data["T2"]
+    T3  = pm.data["T3"]
+   # T4  = pm.data["T4"]
+    constraint_gp_current_squared(pm, nw, b, T2, T3)
+end
+
+""
+function constraint_gp_current(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
+    T2  = pm.data["T2"]
+    T3  = pm.data["T3"]
+
+    constraint_gp_branch_series_current_squared(pm, nw, b, T2, T3)
+end
+
+""
 function constraint_gp_power_branch_to(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     branch = _PMs.ref(pm, nw, :branch, i)
     f_bus = branch["f_bus"]
@@ -112,7 +136,47 @@ function constraint_gp_power_branch_from(pm::AbstractPowerModel, i::Int; nw::Int
     constraint_gp_power_branch_from(pm, nw, f_bus, t_bus, f_idx, t_idx, g, b, g_fr, b_fr, tr, ti, tm, T2, T3)
 end
 
+""
+function constraint_gp_power_branch_to_simplified(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+    branch = _PMs.ref(pm, nw, :branch, i)
+    f_bus = branch["f_bus"]
+    t_bus = branch["t_bus"]
+    f_idx = (i, f_bus, t_bus)
+    t_idx = (i, t_bus, f_bus)
 
+    g, b = _PMs.calc_branch_y(branch)
+    tr, ti = _PMs.calc_branch_t(branch)
+    g_to = branch["g_to"]
+    b_to = branch["b_to"]
+    tm = branch["tap"]
+
+    
+    T2  = pm.data["T2"]
+    T3  = pm.data["T3"]
+
+    constraint_gp_power_branch_to_simplified(pm, nw, f_bus, t_bus, f_idx, t_idx, g, b, g_to, b_to, tr, ti, tm, T2, T3)
+end
+
+""
+function constraint_gp_power_branch_from_simplified(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+    
+    branch = _PMs.ref(pm, nw, :branch, i)
+    f_bus = branch["f_bus"]
+    t_bus = branch["t_bus"]
+    f_idx = (i, f_bus, t_bus)
+    t_idx = (i, t_bus, f_bus)
+
+    g, b = _PMs.calc_branch_y(branch)
+    tr, ti = _PMs.calc_branch_t(branch)
+    g_fr = branch["g_fr"]
+    b_fr = branch["b_fr"]
+    tm = branch["tap"]
+    
+    T2  = pm.data["T2"]
+    T3  = pm.data["T3"]
+
+    constraint_gp_power_branch_from_simplified(pm, nw, f_bus, t_bus, f_idx, t_idx, g, b, g_fr, b_fr, tr, ti, tm, T2, T3)
+end
 ""
 function constraint_gp_gen_power(pm::AbstractPowerModel, g::Int; nw::Int=nw_id_default)
     i   = _PMs.ref(pm, nw, :gen, g, "gen_bus")
