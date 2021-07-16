@@ -27,7 +27,9 @@ function build_sopf_acr(pm::AbstractPowerModel)
     end
 
     for g in _PMs.ids(pm, :gen,nw=1)
+        #if g==1 || g==2 
         constraint_gen_power_cc_limit(pm, g,nw=1)
+        #end
     end
 
     for b in _PMs.ids(pm, :branch, nw=1)
@@ -38,25 +40,27 @@ function build_sopf_acr(pm::AbstractPowerModel)
 
         for i in _PMs.ids(pm, :ref_buses, nw=n)
            constraint_theta_ref(pm, i, nw=n)
-           #constraint_bus_voltage_ref(pm, i, nw=n)
         end
 
         for i in _PMs.ids(pm, :bus, nw=n)
             constraint_power_balance(pm, i, nw=n)
             constraint_gp_bus_voltage_squared(pm, i, nw=n)
             constraint_voltage_magnitude_bounds(pm, i, nw=n)
-            #constraint_voltage_setpoint(pm, i, nw=n)
+            constraint_voltage_setpoint(pm, i, nw=n)
         end
 
         for b in _PMs.ids(pm, :branch, nw=n)
-            #constraint_gp_power_branch_to(pm, b, nw=n)
-            #constraint_gp_power_branch_from(pm, b, nw=n)
-            constraint_branch_voltage(pm, b, nw=n)
-            constraint_gp_current_squared(pm, b, nw=n) #these needs to be done based on squared branch current
-            #following are simplified only g and b
+            constraint_gp_power_branch_to(pm, b, nw=n)
+            constraint_gp_power_branch_from(pm, b, nw=n)
             
-            constraint_gp_power_branch_to_simplified(pm, b, nw=n)
-            constraint_gp_power_branch_from_simplified(pm, b, nw=n)
+            constraint_branch_voltage(pm, b, nw=n)
+            constraint_gp_current_squared(pm, b, nw=n) 
+           
+            
+                #following are simplified only g and b; but apparantly not working
+            
+            #constraint_gp_power_branch_to_simplified(pm, b, nw=n)
+            #constraint_gp_power_branch_from_simplified(pm, b, nw=n)
             
         end
 
@@ -73,5 +77,6 @@ function build_sopf_acr(pm::AbstractPowerModel)
     #     constraint_dcline_current_squared_cc_limit(pm, d)
     # end
 
-    objective_min_expected_fuel_cost(pm)                                      # needs to be implemented, based on expectation.
+    #objective_min_expected_fuel_cost(pm) 
+    objective_min_fuel_cost_poly(pm)                                      # needs to be implemented, based on final polynomial.
 end

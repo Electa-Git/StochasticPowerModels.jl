@@ -19,6 +19,18 @@ function constraint_theta_ref(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_defa
 end
 
 ""
+function constraint_current_limit(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+    branch = _PMs.ref(pm, nw, :branch, i)
+    f_bus = branch["f_bus"]
+    t_bus = branch["t_bus"]
+    f_idx = (i, f_bus, t_bus)
+
+    if haskey(branch, "c_rating_a")
+        constraint_current_limit(pm, nw, f_idx, branch["c_rating_a"])
+    end
+end
+
+""
 function constraint_voltage_magnitude_bounds(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     bus = _PMs.ref(pm, nw, :bus, i)
     constraint_voltage_magnitude_bounds(pm, nw, i, bus["vmin"], bus["vmax"])
@@ -28,7 +40,7 @@ end
 function constraint_voltage_setpoint(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     bus = _PMs.ref(pm, nw, :bus, i)
 
-    constraint_voltage_setpoint(pm, i, nw, bus["vm"])
+    constraint_voltage_setpoint(pm, i, nw, bus["vm"],bus["bus_type"])
 end
 
 # current balance
@@ -244,8 +256,10 @@ function constraint_gen_power_cc_limit(pm::AbstractPowerModel, g::Int; nw::Int=n
 
     T2  = pm.data["T2"]
     mop = pm.data["mop"]
+    
 
     constraint_gen_power_real_cc_limit(pm, g, pmin, pmax, λpmin, λpmax, T2, mop)
+    
     constraint_gen_power_imaginary_cc_limit(pm, g, qmin, qmax, λqmin, λqmax, T2, mop)
 end
 

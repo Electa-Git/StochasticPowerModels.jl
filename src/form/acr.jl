@@ -1,5 +1,5 @@
 ################################################################################
-#  Copyright 2021, Tom Van Acker                                               #
+#  Copyright 2021, Arpan Koirala                                               #
 ################################################################################
 # StochasticPowerModels.jl                                                     #
 # An extention package of PowerModels.jl for Stochastic (Optimal) Power Flow   #
@@ -33,14 +33,39 @@ function variable_branch_current(pm::AbstractACRModel;nw::Int=nw_id_default, bou
 end
 
 
-
+""
 function variable_gen_power(pm::AbstractACRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
+  
     _PMs.variable_gen_power_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     _PMs.variable_gen_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 end
 
+"real power gen/ my trial to add variables only when pmax>0/ not working now"
+function variable_gen_power_real(pm::AbstractACRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    for g in _PMs.ids(pm, nw, :gen)
+        pmin = _PMs.ref(pm, nw, :gen, g, "pmin")
+        pmax = _PMs.ref(pm, nw, :gen, g, "pmax")
+        if pmax > pmin
+        pg = _PMs.var(pm, nw)[:pg] = JuMP.@variable(pm.model,
+             [g], base_name="$(nw)_pg",
+            start = comp_start_value(_PMs.ref(pm, nw, :gen, g), "pg_start", 0.0)
+    )
+        end
+    end
+    
+    if bounded
+        for (g, gen) in _PMs.ref(pm, nw, :gen)
+            JuMP.set_lower_bound(pg[g], gen["pmin"])
+            JuMP.set_upper_bound(pg[g], gen["pmax"])
+        end
+    end
+    
+    report && _PMs.sol_component_value(pm, nw, :gen, :pg, _PMs.ids(pm, nw, :gen), pg)
+    end
 
-""
+
+
+    ""
 function variable_bus_voltage_squared(pm::AbstractACRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
 vs = _PMs.var(pm, nw)[:vs] = JuMP.@variable(pm.model,
     [i in _PMs.ids(pm, nw, :bus)], base_name="$(nw)_vs",
@@ -59,12 +84,13 @@ end
 # constraints
 
 ""
-function constraint_voltage_setpoint(pm::AbstractACRModel, i::Int , nw::Int, vm)
+function constraint_voltage_setpoint(pm::AbstractACRModel, i::Int , nw::Int, vm, bus_type)
     vr  = _PMs.var(pm, nw, :vr, i) 
     vi  = _PMs.var(pm, nw, :vi, i)
-   
+   if bus_type == 1
     if nw ==1
-        JuMP.@constraint(pm.model, (vr^2 + vi^2) == vm^2)
+        JuMP.@NLconstraint(pm.model, (vr^2 + vi^2) == vm^2)
+    end
     end
 end
 
@@ -113,8 +139,8 @@ function constraint_branch_voltage(pm::AbstractACRModel,i; nw::Int=nw_id_default
     vi_fr = _PMs.var(pm, nw, :vi, f_bus)
     vi_to = _PMs.var(pm, nw, :vi, t_bus)
 
-    JuMP.@constraint(pm.model,  vbdr==vr_fr-vr_to)
-    JuMP.@constraint(pm.model,  vbdi==vi_fr-vi_to)
+    JuMP.@constraint(pm.model,  vbdr== (vr_fr-vr_to))
+    JuMP.@constraint(pm.model,  vbdi== (vi_fr-vi_to))
                 
 end
 
@@ -144,10 +170,11 @@ function constraint_theta_ref(pm::AbstractACRModel, n::Int, i::Int, vm)
     vr = _PMs.var(pm, n, :vr, i)
     vi = _PMs.var(pm, n, :vi, i)
 
-    vn = ifelse(n == 1, vm, 0.0)
+    vn = ifelse(n == 1, 1.0, 0.0)
 
-    JuMP.@constraint(pm.model, vr == vn)
+    
     JuMP.@constraint(pm.model, vi == 0.0)
+    JuMP.@constraint(pm.model, vr == vn)
 end
 
 "`vmin <= vm[i] <= vmax` relax the voltage limit so that CC can be applied
@@ -174,7 +201,6 @@ function constraint_gp_bus_voltage_squared(pm::AbstractACRModel, n::Int, i, T2, 
                                 ==
                                 sum(T3.get([n1-1,n2-1,n-1]) * 
                                     (vr[n1] * vr[n2] + 
-                                    #2*vr[n1]*vi[n2]+
                                     vi[n1] * vi[n2]) 
                                     for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
                     )
@@ -209,48 +235,52 @@ end
 
 function constraint_gp_power_branch_from(pm::AbstractACRModel, n::Int,f_bus, t_bus, f_idx, t_idx, g, b, g_fr, b_fr, tr, ti, tm, T2, T3)
     #complete with shunt and taps
+    p_fr = _PMs.var(pm, n, :p, f_idx)
+    q_fr = _PMs.var(pm, n, :q, f_idx)
     vr_fr = Dict(nw => _PMs.var(pm, nw, :vr, f_bus) for nw in _PMs.nw_ids(pm))
     vr_to = Dict(nw => _PMs.var(pm, nw, :vr, t_bus) for nw in _PMs.nw_ids(pm))
     vi_fr = Dict(nw => _PMs.var(pm, nw, :vi, f_bus) for nw in _PMs.nw_ids(pm))
     vi_to = Dict(nw => _PMs.var(pm, nw, :vi, t_bus) for nw in _PMs.nw_ids(pm))
 
     cstr_p = JuMP.@constraint(pm.model,
-        _PMs.var(pm, n, :p)[f_idx]* T2.get([n-1,n-1])
+        p_fr * T2.get([n-1,n-1])
         ==
         sum(T3.get([n1-1,n2-1,n-1]) *
-        (g+g_fr)/tm^2*(vr_fr[n1]*vr_fr[n2] + vi_fr[n1]*vi_fr[n2]) + (-g*tr+b*ti)/tm^2*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + (-b*tr-g*ti)/tm^2*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2])
+        ((g+g_fr)/tm^2*(vr_fr[n1]*vr_fr[n2] + vi_fr[n1]*vi_fr[n2]) + (-g*tr+b*ti)/tm^2*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + (-b*tr-g*ti)/tm^2*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2]))
         for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
     )
 
     cstr_q = JuMP.@constraint(pm.model,
-    _PMs.var(pm, n, :q)[f_idx]*T2.get([n-1,n-1])
+                    q_fr * T2.get([n-1,n-1])
                     ==
-                    sum(T3.get([n1-1,n2-1,n-1])*
-                    -(b+b_fr)/tm^2*(vr_fr[n1]*vr_fr[n2] + vi_fr[n1]*vi_fr[n2]) - (-b*tr-g*ti)/tm^2*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + (-g*tr+b*ti)/tm^2*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2])
+                    sum(T3.get([n1-1,n2-1,n-1]) *
+                    (-(b+b_fr)/tm^2*(vr_fr[n1]*vr_fr[n2] + vi_fr[n1]*vi_fr[n2]) - (-b*tr-g*ti)/tm^2*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + (-g*tr+b*ti)/tm^2*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2]) )
                         for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
                             )
 end
 
 function constraint_gp_power_branch_to(pm::AbstractACRModel, n::Int,f_bus, t_bus, f_idx, t_idx, g, b, g_to, b_to, tr, ti, tm, T2, T3)
-    #complete with shunt and taps   
+    #complete with shunt and taps 
+        p_to = _PMs.var(pm, n, :p, t_idx)
+        q_to = _PMs.var(pm, n, :q, t_idx)  
        vr_fr = Dict(nw => _PMs.var(pm, nw, :vr, f_bus) for nw in _PMs.nw_ids(pm))
        vr_to = Dict(nw => _PMs.var(pm, nw, :vr, t_bus) for nw in _PMs.nw_ids(pm))
        vi_fr = Dict(nw => _PMs.var(pm, nw, :vi, f_bus) for nw in _PMs.nw_ids(pm))
        vi_to = Dict(nw => _PMs.var(pm, nw, :vi, t_bus) for nw in _PMs.nw_ids(pm))
    
        cstr_p = JuMP.@constraint(pm.model,
-           _PMs.var(pm, n, :p)[t_idx]* T2.get([n-1,n-1])
+           p_to * T2.get([n-1,n-1])
            ==
            sum(T3.get([n1-1,n2-1,n-1]) *
-           (g+g_to)*(vr_to[n1]*vr_to[n2] + vi_to[n1]*vi_to[n2]) + (-g*tr-b*ti)/tm^2*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + (-b*tr+g*ti)/tm^2*(-(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2]))
+           ((g+g_to)*(vr_to[n1]*vr_to[n2] + vi_to[n1]*vi_to[n2]) + (-g*tr-b*ti)/tm^2*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + (-b*tr+g*ti)/tm^2*(-(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2])))
                for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
        )
    
        cstr_q = JuMP.@constraint(pm.model,
-       _PMs.var(pm, n, :q)[t_idx]*T2.get([n-1,n-1])
+                        q_to * T2.get([n-1,n-1])
                        ==
                        sum(T3.get([n1-1,n2-1,n-1])*
-                       -(b+b_to)*(vr_to[n1]*vr_to[n2] + vi_to[n1]*vi_to[n2]) - (-b*tr+g*ti)/tm^2*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + (-g*tr-b*ti)/tm^2*(-(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2]))
+                       (-(b+b_to)*(vr_to[n1]*vr_to[n2] + vi_to[n1]*vi_to[n2]) - (-b*tr+g*ti)/tm^2*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + (-g*tr-b*ti)/tm^2*(-(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2])))
                            for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
                                )
    end
@@ -266,17 +296,19 @@ function constraint_gp_power_branch_from_simplified(pm::AbstractACRModel, n::Int
     JuMP.@constraint(pm.model,
         _PMs.var(pm, n, :p)[f_idx]* T2.get([n-1,n-1])
         ==
-        sum(T3.get([n1-1,n2-1,n-1]) *
-        g*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + b*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2])
+        sum( (g*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + b*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2])) *
+        T3.get([n1-1,n2-1,n-1])
+        #g*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + b*(vi_fr[n1]*vi_to[n2] - vr_fr[n1]*vi_to[n2])
         for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
     )
 
     JuMP.@constraint(pm.model,
     _PMs.var(pm, n, :q)[f_idx]*T2.get([n-1,n-1])
                     ==
-                    sum(T3.get([n1-1,n2-1,n-1])*
-                    g*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2]) - (b)*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2])
-                        for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
+                    sum( (g*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2]) - (b)*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) ) *
+                    T3.get([n1-1,n2-1,n-1])
+                    #g*(vi_fr[n1]*vi_to[n2] - vr_fr[n1]*vi_to[n2]) - (b)*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2])
+                        for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm) )
                             )
 end
 
@@ -294,18 +326,18 @@ function constraint_gp_power_branch_to_simplified(pm::AbstractACRModel, n::Int,f
     JuMP.@constraint(pm.model,
         _PMs.var(pm, n, :p)[t_idx]* T2.get([n-1,n-1])
         ==
-        sum(T3.get([n1-1,n2-1,n-1]) *
-        g*(vr_to[n1]*vr_fr[n2] + vi_to[n1]*vi_fr[n2]) + b*(vi_to[n1]*vr_fr[n2] - vr_to[n1]*vi_fr[n2])
-        #g*(vr_to[n1]*vr_fr[n2] + vi_to[n1]*vi_fr[n2]) + b*(vi_to[n1]*vr_fr[n2] - vr_to[n1]*vi_fr[n2])
+        sum( (g * ( vr_to[n1]*vr_fr[n2] + vi_to[n1]*vi_fr[n2] ) + b*  (vi_to[n1]*vr_fr[n2] - vr_to[n1]*vi_fr[n2]) ) *
+        T3.get([n1-1,n2-1,n-1])
+        #g*(vr_to[n1]*vr_fr[n2] + vi_to[n1]*vi_fr[n2]) + b*(vi_to[n1]*vi_fr[n2] - vr_to[n1]*vi_fr[n2])
             for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
     )
 
     JuMP.@constraint(pm.model,
     _PMs.var(pm, n, :q)[t_idx]*T2.get([n-1,n-1])
                     ==
-                    sum(T3.get([n1-1,n2-1,n-1])*
-                    g*(vi_to[n1]*vr_fr[n2] - vr_to[n1]*vi_fr[n2]) - (b)*(vr_to[n1]*vr_fr[n2] + vi_to[n1]*vi_fr[n2])
-                    #g*(vi_to[n1]*vr_fr[n2] - vr_to[n1]*vi_fr[n2]) - (b)*(vr_to[n1]*vr_to[n2] + vi_to[n1]*vi_fr[n2])
+                    sum( (g*(vi_to[n1]*vr_fr[n2] - vr_to[n1]*vi_fr[n2]) - (b)*(vr_to[n1]*vr_fr[n2] + vi_to[n1]*vi_fr[n2])) *
+                    T3.get([n1-1,n2-1,n-1])
+                    #g*(vi_to[n1]*vi_fr[n2] - vr_to[n1]*vi_fr[n2]) - (b)*(vr_to[n1]*vr_fr[n2] + vi_to[n1]*vi_fr[n2])
                         for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
                             )
 end
@@ -315,11 +347,11 @@ end
 
 function constraint_bus_voltage_squared_cc_limit(pm::AbstractACRModel, i, vmin, vmax, λmin, λmax, T2, mop)
     vs  = [_PMs.var(pm, n, :vs, i) for n in sorted_nw_ids(pm)]
-
-    # bounds on the expectation
+    # bounds on the expectationsortso
+    #JuMP.@constraint(pm.model,  _PCE.mean(vs, mop)>=0)
+    #JuMP.@constraint(pm.model, _PCE.var(vs, T2) >= 0) #this copnstraint of constraint on p screws the problem
     JuMP.@constraint(pm.model, vmin^2 <= _PCE.mean(vs, mop))
-    JuMP.@constraint(pm.model, _PCE.mean(vs, mop) <= vmax^2) #this copnstraint of constraint on p screws the problem
-
+    JuMP.@constraint(pm.model, vmax^2 >= _PCE.mean(vs, mop))
     #JuMP.@constraint(pm.model, vmin^2 <= sum([vs[n]*T2.get([n-1,n-1]) for n in _PMs.nw_ids(pm)]))
     #display(JuMP.@constraint(pm.model, sum([vs[n]*T2.get([n-1,n-1]) for n in _PMs.nw_ids(pm)])<=vmax^2))
     #JuMP.@constraint(pm.model, _PCE.var(vs, T2)>=0) #Tillmans paper has this
@@ -329,8 +361,9 @@ function constraint_bus_voltage_squared_cc_limit(pm::AbstractACRModel, i, vmin, 
     # chance constraint bounds
     JuMP.@constraint(pm.model,  _PCE.var(vs, T2)
                                 <=
-                                ((_PCE.mean(vs, mop) - vmin^2) / λmin)^2
-                   )
+                               ((_PCE.mean(vs, mop) - vmin^2) / λmin)^2
+                 )
+
     JuMP.@constraint(pm.model,  _PCE.var(vs, T2)
                                <=
                                 ((vmax^2 - _PCE.mean(vs, mop)) / λmax)^2
@@ -343,7 +376,8 @@ function constraint_branch_series_current_squared_cc_limit(pm::AbstractACRModel,
 
     # bound on the expectation
     JuMP.@constraint(pm.model,  _PCE.mean(css, mop) <= imax^2)
-    #JuMP.@constraint(pm.model,  _PCE.var(css, T2) >= 0) #constraint in Tillemans
+    JuMP.@constraint(pm.model,  _PCE.mean(css, mop) >= 0)
+    #JuMP.@constraint(pm.model,  0 <= _PCE.var(css, T2)) #constraint in Tillemans
      # chance constraint bound
     JuMP.@constraint(pm.model,  _PCE.var(css,T2)
                                 <=
@@ -359,30 +393,48 @@ end
 
 function constraint_gen_power_real_cc_limit(pm::AbstractACRModel, g, pmin, pmax, λmin, λmax, T2, mop)
     pg  = [_PMs.var(pm, nw, :pg, g) for nw in sorted_nw_ids(pm)]
+
+    #if pmin < pmax
+     
+    #else
+    #    λmin, λmax = 3, 3
+    #    pmax = pmin+1
+    #    print(pmax)
+    #    print(pmin)
+    #end
      # bounds on the expectation 
-     #JuMP.@constraint(pm.model,  pmin <= _PCE.mean(pg, mop))
-     #display(JuMP.@constraint(pm.model,  _PCE.mean(pg, mop) <= pmax))
-     #display(JuMP.@constraint(pm.model,   sum([pg[n]*T2.get([n-1,n-1]) for n in _PMs.nw_ids(pm)]) >= pmin)) #given in Tillemans code
+     JuMP.@constraint(pm.model,  pmin <= _PCE.mean(pg, mop))
+     #JuMP.@constraint(pm.model,  0 <= _PCE.var(pg, T2) <= 100)
+     #JuMP.@constraint(pm.model,   sum([pg[n]*T2.get([n-1,n-1]) for n in _PMs.nw_ids(pm)]) <= pmax) #given in Tillemans code
      JuMP.@constraint(pm.model,  _PCE.mean(pg, mop) <= pmax)
      # chance constraint bounds
-    # JuMP.@constraint(pm.model,  _PCE.var(pg, T2)
-    #                             <=
-    #                            ((_PCE.mean(pg, mop) - pmin) / λmin)^2
-    #               )
-     #JuMP.@constraint(pm.model,  _PCE.var(pg, T2)
-     #                            <=
-     #                            ((pmax - _PCE.mean(pg, mop)) / λmax)^2
-     #               )
+     JuMP.@constraint(pm.model,  _PCE.var(pg, T2)
+                                 <=
+                                ((_PCE.mean(pg, mop) - pmin) / λmin)^2
+                   )
+     
+     JuMP.@constraint(pm.model,  _PCE.var(pg, T2)
+                                 <=
+                                 ((pmax - _PCE.mean(pg, mop)) / λmax)^2
+    
+                   )
+    #elseif pmin==pmax
+    #   JuMP.@constraint(pm.model,  pg[1]==pmin)
+    #    JuMP.@constraint(pm.model,  pg[2:length(pg)].==0.01)
+
+
+   #end
  end
 
 
 
 function constraint_gen_power_imaginary_cc_limit(pm::AbstractACRModel, g, qmin, qmax, λmin, λmax, T2, mop)
     qg  = [_PMs.var(pm, nw, :qg, g) for nw in sorted_nw_ids(pm)]
+
     # bounds on the expectation 
     JuMP.@constraint(pm.model,  qmin <= _PCE.mean(qg, mop))
     JuMP.@constraint(pm.model,  _PCE.mean(qg, mop) <= qmax)
-
+    #JuMP.@constraint(pm.model,  0 <= _PCE.var(qg, mop) <= 100)
     JuMP.@constraint(pm.model,  _PCE.var(qg,T2)
                                 <=
                                 ((_PCE.mean(qg,mop) - qmin) / λmin)^2
@@ -430,3 +482,4 @@ function constraint_power_balance(pm::AbstractACRModel, n::Int, i::Int, bus_arcs
     )
 
 end
+

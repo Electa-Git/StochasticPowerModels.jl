@@ -12,7 +12,7 @@ const _SPM = StochasticPowerModels
 path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case3.m")
 
 # build uncertainty data
-deg  = 2
+deg  = 1
 opq  = [Uniform01OrthoPoly(deg; Nrec=5*deg), 
         Uniform01OrthoPoly(deg; Nrec=5*deg),
         Uniform01OrthoPoly(deg; Nrec=5*deg)]
@@ -22,7 +22,10 @@ Npce = mop.dim
 # parse matpower data 
 data = _PMs.parse_file(path)
 
-# build load matrix
+
+#data["gen"]["3"]["cost"]=[1100, 1000.0, 0.0]
+
+# build load matrirx
 Nd = length(data["load"])
 pd, qd = zeros(Nd,Npce), zeros(Nd,Npce)
 for nd in 1:Nd
@@ -37,7 +40,7 @@ end
 for gen in data["gen"]
     gen[2]["pmin"] = 0.0
     gen[2]["λpmin"], gen[2]["λpmax"] = 1.6, 1.6
-    gen[2]["λqmin"], gen[2]["λqmax"] = 1.6, 1.6
+    gen[2]["λqmin"], gen[2]["λqmax"] = 1.6, 2.5
 end
 for branch in data["branch"]
     branch[2]["imax"] = branch[2]["rate_a"]/0.9
@@ -46,6 +49,11 @@ end
 
 # replicated data
 data = _PMs.replicate(data, Npce)
+
+#add pmax for third gen 
+#[data["nw"]["$i"]["gen"]["3"]["pmax"]=15 for i=1:Npce]
+
+#[data["nw"]["$i"]["gen"]["$j"]["qmin"]=0 for i=1:Npce, j=1:3]
 
 # adding the stochastic data
 for nw in 1:Npce, nd in 1:Nd
@@ -63,7 +71,7 @@ data["mop"] = mop
 solver = Ipopt.Optimizer
 result = _SPM.run_sopf_acr(data, _PMs.ACRPowerModel, solver)
 
-#result2 = run_sopf_iv(data, _PMs.IVRPowerModel, solver)
+#result = run_sopf_iv(data, _PMs.IVRPowerModel, solver)
 
 #a1=[([(result["solution"]["nw"]["$i"]["bus"]["$j"]["vs"]) for i in 1:4]) for j in 1:3]
 ""
@@ -74,9 +82,9 @@ result = _SPM.run_sopf_acr(data, _PMs.ACRPowerModel, solver)
 
 
 
-_SPM.plotHist_volt(result, "vs", mop, 1000, pdf=true) #cdf=true to plot CDF #PDF=
+_SPM.plotHist_volt(result, "vs", mop, 1000 ,pdf=true) #cdf=true to plot CDF #PDF=
 
-#_SPM.plotHist_gen(result, "qg", mop, 1000, pdf=true)
+_SPM.plotHist_gen(result, "qg", mop, 1000, pdf=true)
 _SPM.plotHist_gen(result, "pg", mop, 1000, pdf=true)
 _SPM.plotHist_branch(result, "css", mop, 1000, pdf=true)
 
