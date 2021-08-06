@@ -69,9 +69,9 @@ data["mop"] = mop
 
 # solve 
 solver = Ipopt.Optimizer
-#result = _SPM.run_sopf_acr(data, _PMs.ACRPowerModel, solver)
+result = _SPM.run_sopf_acr(data, _PMs.ACRPowerModel, solver)
 
-result = run_sopf_iv(data, _PMs.IVRPowerModel, solver)
+#result1 = run_sopf_iv(data, _PMs.IVRPowerModel, solver)
 
 #a1=[([(result["solution"]["nw"]["$i"]["bus"]["$j"]["vs"]) for i in 1:4]) for j in 1:3]
 ""
