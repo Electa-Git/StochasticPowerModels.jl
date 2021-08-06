@@ -57,10 +57,10 @@ function build_sopf_acr(pm::AbstractPowerModel)
             constraint_gp_current_squared(pm, b, nw=n) 
            
             
-                #following are simplified only g and b; but apparantly not working
-            
-            #constraint_gp_power_branch_to_simplified(pm, b, nw=n)
-            #constraint_gp_power_branch_from_simplified(pm, b, nw=n)
+                
+            #following are simplified only g and based in Tillemans paper; but apparantly not working
+                #constraint_gp_power_branch_to_simplified(pm, b, nw=n)
+                #constraint_gp_power_branch_from_simplified(pm, b, nw=n)
             
         end
 
@@ -77,6 +77,6 @@ function build_sopf_acr(pm::AbstractPowerModel)
     #     constraint_dcline_current_squared_cc_limit(pm, d)
     # end
 
-    #objective_min_expected_fuel_cost(pm) 
-    objective_min_fuel_cost_poly(pm)                                      # needs to be implemented, based on final polynomial.
+    objective_min_expected_fuel_cost(pm) 
+    #objective_min_fuel_cost_poly(pm)                                      # needs to be implemented, based on final polynomial.
 end

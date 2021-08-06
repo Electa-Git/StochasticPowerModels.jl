@@ -96,8 +96,9 @@ end
 
 
 """
+#old one not used anymore
 function constraint_gp_current_squared(pm::AbstractACRModel, n::Int, i, T2, T3)
-    #old one
+    
     branch = _PMs.ref(pm, n, :branch, i)
     f_bus = branch["f_bus"]
     t_bus = branch["t_bus"]
@@ -166,6 +167,8 @@ function constraint_gp_current_squared(pm::AbstractACRModel, n::Int, i, T2, T3)
                     )
 end
 
+
+""
 function constraint_theta_ref(pm::AbstractACRModel, n::Int, i::Int, vm)
     vr = _PMs.var(pm, n, :vr, i)
     vi = _PMs.var(pm, n, :vi, i)
@@ -285,7 +288,7 @@ function constraint_gp_power_branch_to(pm::AbstractACRModel, n::Int,f_bus, t_bus
                                )
    end
    
-
+"As given by Tillemans; apprantly not working"
 function constraint_gp_power_branch_from_simplified(pm::AbstractACRModel, n::Int,f_bus, t_bus, f_idx, t_idx, g, b, g_fr, b_fr, tr, ti, tm, T2, T3)
 ## simplified  without shunt and taps
     vr_fr = Dict(nw => _PMs.var(pm, nw, :vr, f_bus) for nw in _PMs.nw_ids(pm))
@@ -315,7 +318,7 @@ end
 
 
 
-
+"As given by Tillemans; apprantly not working"
 function constraint_gp_power_branch_to_simplified(pm::AbstractACRModel, n::Int,f_bus, t_bus, f_idx, t_idx, g, b, g_to, b_to, tr, ti, tm, T2, T3)
 #simplified without shunt and taps
     vr_fr = Dict(nw => _PMs.var(pm, nw, :vr, f_bus) for nw in _PMs.nw_ids(pm))
@@ -344,16 +347,15 @@ end
 
 
 
-
+""
 function constraint_bus_voltage_squared_cc_limit(pm::AbstractACRModel, i, vmin, vmax, λmin, λmax, T2, mop)
     vs  = [_PMs.var(pm, n, :vs, i) for n in sorted_nw_ids(pm)]
     # bounds on the expectationsortso
     #JuMP.@constraint(pm.model,  _PCE.mean(vs, mop)>=0)
-    #JuMP.@constraint(pm.model, _PCE.var(vs, T2) >= 0) #this copnstraint of constraint on p screws the problem
+    #JuMP.@constraint(pm.model, _PCE.var(vs, T2) >= 0) 
     JuMP.@constraint(pm.model, vmin^2 <= _PCE.mean(vs, mop))
     JuMP.@constraint(pm.model, vmax^2 >= _PCE.mean(vs, mop))
-    #JuMP.@constraint(pm.model, vmin^2 <= sum([vs[n]*T2.get([n-1,n-1]) for n in _PMs.nw_ids(pm)]))
-    #display(JuMP.@constraint(pm.model, sum([vs[n]*T2.get([n-1,n-1]) for n in _PMs.nw_ids(pm)])<=vmax^2))
+    
     #JuMP.@constraint(pm.model, _PCE.var(vs, T2)>=0) #Tillmans paper has this
     #JuMP.@constraint(pm.model, _PCE.mean(vs, mop) >=0) #Tillmans code has this bound
 
@@ -370,7 +372,7 @@ function constraint_bus_voltage_squared_cc_limit(pm::AbstractACRModel, i, vmin, 
                   )
 end
 
-
+""
 function constraint_branch_series_current_squared_cc_limit(pm::AbstractACRModel, b, imax, λmax, T2, mop)
     css = [_PMs.var(pm, nw, :css, b) for nw in sorted_nw_ids(pm)]
 
@@ -390,22 +392,14 @@ function constraint_branch_series_current_squared_cc_limit(pm::AbstractACRModel,
             
 end
 
-
+""
 function constraint_gen_power_real_cc_limit(pm::AbstractACRModel, g, pmin, pmax, λmin, λmax, T2, mop)
     pg  = [_PMs.var(pm, nw, :pg, g) for nw in sorted_nw_ids(pm)]
 
-    #if pmin < pmax
-     
-    #else
-    #    λmin, λmax = 3, 3
-    #    pmax = pmin+1
-    #    print(pmax)
-    #    print(pmin)
-    #end
      # bounds on the expectation 
      JuMP.@constraint(pm.model,  pmin <= _PCE.mean(pg, mop))
-     #JuMP.@constraint(pm.model,  0 <= _PCE.var(pg, T2) <= 100)
-     #JuMP.@constraint(pm.model,   sum([pg[n]*T2.get([n-1,n-1]) for n in _PMs.nw_ids(pm)]) <= pmax) #given in Tillemans code
+     #JuMP.@constraint(pm.model,  0 <= _PCE.var(pg, T2) <= 100) #used in Tillmans code
+     #JuMP.@constraint(pm.model,   sum([pg[n]*T2.get([n-1,n-1]) for n in _PMs.nw_ids(pm)]) <= pmax) #given in Tillmans code
      JuMP.@constraint(pm.model,  _PCE.mean(pg, mop) <= pmax)
      # chance constraint bounds
      JuMP.@constraint(pm.model,  _PCE.var(pg, T2)
@@ -418,12 +412,6 @@ function constraint_gen_power_real_cc_limit(pm::AbstractACRModel, g, pmin, pmax,
                                  ((pmax - _PCE.mean(pg, mop)) / λmax)^2
     
                    )
-    #elseif pmin==pmax
-    #   JuMP.@constraint(pm.model,  pg[1]==pmin)
-    #    JuMP.@constraint(pm.model,  pg[2:length(pg)].==0.01)
-
-
-   #end
  end
 
 
