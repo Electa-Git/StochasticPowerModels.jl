@@ -10,25 +10,20 @@
 module StochasticPowerModels
 
     # import pkgs
-    import Distributions
-    import InfrastructureModels
     import JuMP
-    import LinearAlgebra
     import PolyChaos
     import PowerModels
-    import PowerModelsDistribution
+    import InfrastructureModels
 
     # import types
     import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
-    import PowerModels: comp_start_value
-    import InfrastructureModels: ids, ref, var, con, sol, nw_ids, nws, sol_component_value
+    import PowerModels: comp_start_value, sol_component_value
+    import InfrastructureModels: ids, ref, var, con, sol, nw_ids, nws
 
     # pkgs const
-    const _DST = Distributions
-    const _IMs = InfrastructureModels
     const _PCE = PolyChaos
     const _PMs = PowerModels
-    const _PMD = PowerModelsDistribution
+    const _IMs = InfrastructureModels
 
     # const 
     const nw_id_default = 1
@@ -48,7 +43,7 @@ module StochasticPowerModels
     include("prob/sopf_acr.jl")
 
     include("util/util.jl")
-    include("util/plot.jl")
+    # include("util/plot.jl")
 
     # export
     export BASE_DIR
