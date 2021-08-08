@@ -53,7 +53,17 @@
         res_acr = run_sopf_acr(data, _PMs.ACRPowerModel, ipopt_solver)
         res_ivr = run_sopf_iv(data, _PMs.IVRPowerModel, ipopt_solver)
 
+        sol_acr = res_acr["solution"]["nw"]
+        sol_ivr = res_ivr["solution"]["nw"]
+        bus_vs_acr = [[sol_acr["$nw"]["bus"]["$nb"]["vs"] for nw in 1:Npce] for nb in 1:3]
+        bus_vs_ivr = [[sol_ivr["$nw"]["bus"]["$nb"]["vs"] for nw in 1:Npce] for nb in 1:3]
+
+        @test all(isapprox.(bus_vs_acr[1], bus_vs_ivr[1], atol=1e-6))
+        @test all(isapprox.(bus_vs_acr[2], bus_vs_ivr[2], atol=1e-6))
+        @test all(isapprox.(bus_vs_acr[3], bus_vs_ivr[3], atol=1e-6))
+
         @test isapprox(res_acr["objective"], res_ivr["objective"], rtol=1e-6)
+
     end
 
 end
