@@ -1,12 +1,11 @@
 # StochasticPowerModels
 
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://timmyfaraday.github.io/StochasticPowerModels.jl/dev)
-[![Build Status](https://travis-ci.com/timmyfaraday/StochasticPowerModels.jl.svg?branch=master)](https://travis-ci.com/timmyfaraday/StochasticPowerModels.jl)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/timmyfaraday/StochasticPowerModels.jl?svg=true)](https://ci.appveyor.com/project/timmyfaraday/StochasticPowerModels-jl)
-[![Codecov](https://codecov.io/gh/timmyfaraday/StochasticPowerModels.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/timmyfaraday/StochasticPowerModels.jl)
+<a href="https://github.com/timmyfaraday/StochasticPowerModels.jl/actions?query=workflow%3ACI"><img src="https://github.com/timmyfaraday/StochasticPowerModels.jl/workflows/CI/badge.svg"></img></a>
+<a href="https://codecov.io/gh/timmyfaraday/StochasticPowerModels.jl"><img src="https://img.shields.io/codecov/c/github/timmyfaraday/StochasticPowerModels.jl?logo=Codecov"></img></a>
+<a href="https://timmyfaraday.github.io/StochasticPowerModels.jl/dev/"><img src="https://github.com/timmyfaraday/StochasticPowerModels.jl/workflows/Documentation/badge.svg"></img></a>
 
-StochasticPowerModels.jl is an extension package of PowerModels(Distribution).jl
-for Stochastic (Optimal) Power Flow. It is designed to enable inclusion of 
+StochasticPowerModels.jl is an extension package of PowerModels.jl for 
+Stochastic (Optimal) Power Flow. It is designed to enable inclusion of 
 uncertainty in Steady-State Power Network Optimization. 
 
 ## Core Problem Specification
@@ -18,8 +17,7 @@ uncertainty in Steady-State Power Network Optimization.
 
 - PowerModels.jl Formulation
     - IVR
-- PowerModelsDistribution.jl Formulation
-    - IVR
+    - ACR
 
 ## Core Stochastic Specification
 
@@ -29,7 +27,6 @@ uncertainty in Steady-State Power Network Optimization.
 
 - Matpower ".m" files
 - PTI ".raw" files (PSS(R)E v33 specfication)
-- OpenDSS ".dss" files in the PowerModelsDistribution format
 - CSV ".csv" file with uncertainty data
 
 ## Installation
@@ -50,7 +47,9 @@ In order to test whether the package works, run:
 ## Acknowledgements
 
 This code has been developed at KU Leuven (University of Leuven). The primary
-developer is Tom Van Acker ([@timmyfaraday](https://github.com/timmyfaraday)).
+developer is Tom Van Acker ([@timmyfaraday](https://github.com/timmyfaraday)), 
+with support from the following contributors:
+- Arpan Koirala ([@arpkoirala](https://github.com/arpkoirala)), KU Leuven, ACR formulation
 
 ## License
 
