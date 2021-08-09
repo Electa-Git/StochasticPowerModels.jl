@@ -75,7 +75,11 @@ data["mop"] = mop
 
 # solve 
 solver = Ipopt.Optimizer
+
+res_acr = _SPM.run_sopf_acr(data, _PMs.ACRPowerModel, solver)
+#res_ivr = run_sopf_iv(data, _PMs.IVRPowerModel, solver)
 # res_acr = run_sopf_acr(data, _PMs.ACRPowerModel, solver)
 res_ivr = run_sopf_iv(data, _PMs.IVRPowerModel, solver)
+
 
 ## @ Arpan: adding a extra random variable helps converges... for the IVR 

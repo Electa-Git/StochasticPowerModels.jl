@@ -46,8 +46,8 @@ function build_sopf_acr(pm::AbstractPowerModel)
         for i in _PMs.ids(pm, :bus, nw=n)
             constraint_power_balance(pm, i, nw=n)
             constraint_gp_bus_voltage_squared(pm, i, nw=n)
-            constraint_voltage_magnitude_bounds(pm, i, nw=n)
-            constraint_voltage_setpoint(pm, i, nw=n)
+            #constraint_voltage_magnitude_bounds(pm, i, nw=n)
+            #constraint_voltage_setpoint(pm, i, nw=n)
         end
 
         for b in _PMs.ids(pm, :branch, nw=n)
