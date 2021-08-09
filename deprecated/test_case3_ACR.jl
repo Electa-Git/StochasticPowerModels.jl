@@ -82,11 +82,11 @@ result = _SPM.run_sopf_acr(data, _PMs.ACRPowerModel, solver)
 
 
 
-_SPM.plotHist_volt(result, "vs", mop, 1000 ,pdf=true) #cdf=true to plot CDF #PDF=
+_SPM.plotHist_volt(result, "vs", mop, 1000 ,pdf=true); #cdf=true to plot CDF #PDF=
 
 _SPM.plotHist_gen(result, "qg", mop, 1000, pdf=true)
 _SPM.plotHist_gen(result, "pg", mop, 1000, pdf=true)
-_SPM.plotHist_branch(result2, "css", mop, 1000, pdf=true)
+_SPM.plotHist_branch(result, "css", mop, 1000, pdf=true)
 
 if haskey(result["solution"]["nw"]["1"], "load")
     _SPM.plotHist_load(result, "cid", mop, 1000, pdf=true)
