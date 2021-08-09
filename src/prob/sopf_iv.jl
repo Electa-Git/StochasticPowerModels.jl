@@ -22,7 +22,6 @@ function build_sopf_iv(pm::AbstractPowerModel)
         variable_gen_power(pm, nw=n, bounded=false)
         variable_gen_current(pm, nw=n, bounded=false)
         variable_load_current(pm, nw=n, bounded=false)
-       
     end
 
     for i in _PMs.ids(pm, :bus, nw=1)

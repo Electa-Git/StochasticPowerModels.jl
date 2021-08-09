@@ -9,13 +9,13 @@ const _PMs = PowerModels
 const _SPM = StochasticPowerModels
 
 # data
-path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case5.m")
+path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case14.m")
 data = _PMs.parse_file(path)
 
 # build uncertainty data
 deg  = 1
-opq  = [Beta01OrthoPoly(deg, 1.2, 1.2; Nrec=5*deg), 
-        Beta01OrthoPoly(deg, 1.2, 1.2; Nrec=5*deg), 
+opq  = [Beta01OrthoPoly(deg, 2.0, 2.0; Nrec=5*deg), 
+        Beta01OrthoPoly(deg, 2.0, 5.0; Nrec=5*deg), 
         GaussOrthoPoly(deg; Nrec=5*deg),
         GaussOrthoPoly(deg; Nrec=5*deg)]
 mop  = MultiOrthoPoly(opq, deg)
@@ -24,7 +24,7 @@ Nopq = length(opq)
 
 # build load matrix
 Nd = length(data["load"])
-lib = Dict(1 => 1, 2 => 2, 3 => 3)
+lib = Dict(2 => 1, 3 => 1, 4 => 2, 10 => 4, 5 => 4, 8 => 3)
 pd, qd = zeros(Nd,Npce), zeros(Nd,Npce)
 
 for nd in 1:Nd
@@ -45,7 +45,6 @@ end
 # add the λs
 for bus in data["bus"]
     bus[2]["λvmin"], bus[2]["λvmax"] = 1.0364, 1.0364 
-    # λ = quantile(Normal(0.0,1.0),1.0-0.15)
 end
 for gen in data["gen"]
     gen[2]["pmin"] = 0.0
@@ -79,4 +78,4 @@ solver = Ipopt.Optimizer
 res_acr = run_sopf_acr(data, _PMs.ACRPowerModel, solver)
 res_ivr = run_sopf_iv(data, _PMs.IVRPowerModel, solver)
 
-## @ Arpan: adding a extra random variable helps converges... for the IVR 
+@assert isapprox(res_acr["objective"], res_ivr["objective"], rtol=1e-3)

@@ -18,19 +18,18 @@ function build_sopf_acr(pm::AbstractPowerModel)
     for (n, network) in _PMs.nws(pm) 
         variable_bus_voltage(pm, nw=n, bounded=false)
         variable_gen_power(pm, nw=n, bounded=false)
+
         variable_branch_power(pm, nw=n, bounded=false)
-        variable_branch_current(pm, nw=n, bounded=false)   
-        _PMs.variable_dcline_power(pm, nw=n, bounded=false)   
+        variable_branch_current(pm, nw=n, bounded=false) 
+        _PMs.variable_dcline_power(pm, nw=n, bounded=false) ## TOM: Let's eliminate this for now, also from the power balance. 
     end
 
     for i in _PMs.ids(pm, :bus,nw=1)
         constraint_bus_voltage_squared_cc_limit(pm, i,nw=1)
     end
 
-    for g in _PMs.ids(pm, :gen,nw=1)
-        #if g==1 || g==2 
+    for g in _PMs.ids(pm, :gen, nw=1)
         constraint_gen_power_cc_limit(pm, g,nw=1)
-        #end
     end
 
     for b in _PMs.ids(pm, :branch, nw=1)

@@ -85,7 +85,8 @@ data["mop"] = mop
 
 # solve 
 solver = Ipopt.Optimizer
-result = _SPM.run_sopf_iv(data, _PMs.IVRPowerModel, solver)
+res_ivr = run_sopf_iv(data, _PMs.IVRPowerModel, solver)
+res_acr = run_sopf_acr(data, _PMs.ACRPowerModel, solver)
 
 
 _SPM.plotHist_volt(result, "vs", mop, 1000, busno=[6,7,8,9] ,pdf=true) #cdf=true to plot CDF #PDF=
