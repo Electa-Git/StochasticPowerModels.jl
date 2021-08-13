@@ -11,11 +11,15 @@ const _SPM = StochasticPowerModels
 # solver
 solver = Ipopt.Optimizer
 
-# data
+# deterministic data
 path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case5.m")
 data = _PMs.parse_file(path)
 
-# build uncertainty data
+res_dtr_ivr = _PMs.run_opf_iv(data, _PMs.IVRPowerModel, solver)
+
+check_deterministic_solution!(data, res_dtr_ivr["solution"])
+
+# stochastic data
 deg  = 1
 opq  = [Beta01OrthoPoly(deg, 1.2, 1.2; Nrec=5*deg), 
         Beta01OrthoPoly(deg, 1.2, 1.2; Nrec=5*deg), 
@@ -51,34 +55,27 @@ for bus in data["bus"]
     # λ = quantile(Normal(0.0,1.0),1.0-0.15)
 end
 for gen in data["gen"]
-    gen[2]["pmin"] = 0.0
     gen[2]["λpmin"], gen[2]["λpmax"] = 1.0364, 1.0364
     gen[2]["λqmin"], gen[2]["λqmax"] = 1.0364, 1.0364
 end
 for branch in data["branch"]
-    f_bus = branch[2]["f_bus"]
-    branch[2]["imax"] = branch[2]["rate_a"]/data["bus"]["$f_bus"]["vmin"] 
     ## why no sqrt(3) in powermodel, but in the paper of line it seems to be there 29 / sqrt(3) ≈ 16 as in the paper
     branch[2]["λimax"] = 1.0364
 end
 
 # replicated data
-data = _PMs.replicate(data, Npce)
+sdata = _PMs.replicate(data, Npce)
 
 # adding the stochastic data
 for nw in 1:Npce, nd in 1:Nd
-    data["nw"]["$nw"]["load"]["$nd"]["pd"] = pd[nd,nw]
-    data["nw"]["$nw"]["load"]["$nd"]["qd"] = qd[nd,nw]
+    sdata["nw"]["$nw"]["load"]["$nd"]["pd"] = pd[nd,nw]
+    sdata["nw"]["$nw"]["load"]["$nd"]["qd"] = qd[nd,nw]
 end
 
 # add stochastic base data
-data["T2"] = Tensor(2,mop)
-data["T3"] = Tensor(3,mop)
-data["mop"] = mop
+sdata["T2"] = Tensor(2,mop)
+sdata["T3"] = Tensor(3,mop)
+sdata["mop"] = mop
 
 # solve 
-res_ivr = run_sopf_iv(data, _PMs.IVRPowerModel, solver)
-
-# res_acr = run_sopf_acr(data, _PMs.ACRPowerModel, solver)
-
-## @ Arpan: adding a extra random variable helps converges... for the IVR 
+res_stc_ivr, solve_time = run_sopf_iv_itr(sdata, _PMs.IVRPowerModel, solver, res_dtr_ivr["solve_time"]);

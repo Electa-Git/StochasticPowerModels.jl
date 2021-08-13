@@ -7,7 +7,7 @@
 ################################################################################
 
 "variable: `vs[i]` for `i` in `bus`es"
-function variable_bus_voltage_squared(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+function variable_bus_voltage_squared(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, cstr::Bool=false)
     vs = _PMs.var(pm, nw)[:vs] = JuMP.@variable(pm.model,
         [i in _PMs.ids(pm, nw, :bus)], base_name="$(nw)_vs",
         start = comp_start_value(_PMs.ref(pm, nw, :bus, i), "vs_start", 1.0)
@@ -17,6 +17,14 @@ function variable_bus_voltage_squared(pm::AbstractPowerModel; nw::Int=nw_id_defa
         for (i, bus) in _PMs.ref(pm, nw, :bus)
             JuMP.set_lower_bound(vs[i], bus["vmin"]^2)
             JuMP.set_upper_bound(vs[i], bus["vmax"]^2)
+        end
+    end
+    
+    if cstr
+        for (i, bus) in _PMs.ref(pm, nw, :bus) 
+            if !(bus["cstr"])
+                JuMP.fix(vs[i], 0.0; force = true)
+            end 
         end
     end
 
@@ -71,7 +79,7 @@ function variable_load_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_d
 end
 
 "variable: `css[l,i,j]` for `(l,i,j)` in `arcs_from`"
-function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, cstr=false, report::Bool=true)
     css = _PMs.var(pm, nw)[:css] = JuMP.@variable(pm.model,
         [l in _PMs.ids(pm, nw, :branch)], base_name="$(nw)_css",
         start = comp_start_value(_PMs.ref(pm, nw, :branch, l), "css_start", 0.0)
@@ -101,9 +109,17 @@ function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=
             end
 
             if !isinf(ub)
-                JuMP.set_lower_bound(css[l],  0.0)
+                JuMP.set_lower_bound(css[l], 0.0)
                 JuMP.set_upper_bound(css[l], 1.5* ub^2)
             end
+        end
+    end
+
+    if cstr
+        for (l,i,j) in _PMs.ref(pm, nw, :arcs_from) 
+            if !(_PMs.ref(pm, nw, :branch)[l]["cstr"])
+                JuMP.fix(css[l], 0.0; force = true)
+            end 
         end
     end
 

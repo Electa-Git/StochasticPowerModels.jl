@@ -8,22 +8,22 @@
 
 # variables
 ""
-function variable_bus_voltage(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
+function variable_bus_voltage(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, cstr::Bool=false, kwargs...)
     _PMs.variable_bus_voltage_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     _PMs.variable_bus_voltage_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 
-    variable_bus_voltage_squared(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    variable_bus_voltage_squared(pm, nw=nw, bounded=bounded, report=report, cstr=cstr; kwargs...)
 end
 
 ""
-function variable_branch_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
+function variable_branch_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, cstr::Bool=false, kwargs...)
     _PMs.variable_branch_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     _PMs.variable_branch_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     
     _PMs.variable_branch_series_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     _PMs.variable_branch_series_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 
-    variable_branch_series_current_squared(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    variable_branch_series_current_squared(pm, nw=nw, bounded=bounded, report=report, cstr=cstr; kwargs...)
 end
 
 ""

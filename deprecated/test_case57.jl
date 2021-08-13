@@ -12,13 +12,14 @@ const _SPM = StochasticPowerModels
 solver = Ipopt.Optimizer
 
 # data
-path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case5.m")
+## use: https://github.com/power-grid-lib/pglib-opf
+path = "/Users/tvanacke/.julia/dev/pglib-opf/pglib_opf_case57_ieee.m"
 data = _PMs.parse_file(path)
 
 # build uncertainty data
 deg  = 1
-opq  = [Beta01OrthoPoly(deg, 1.2, 1.2; Nrec=5*deg), 
-        Beta01OrthoPoly(deg, 1.2, 1.2; Nrec=5*deg), 
+opq  = [Beta01OrthoPoly(deg, 2.0, 2.0; Nrec=5*deg), 
+        Beta01OrthoPoly(deg, 2.0, 5.0; Nrec=5*deg), 
         GaussOrthoPoly(deg; Nrec=5*deg),
         GaussOrthoPoly(deg; Nrec=5*deg)]
 mop  = MultiOrthoPoly(opq, deg)
@@ -27,7 +28,7 @@ Nopq = length(opq)
 
 # build load matrix
 Nd = length(data["load"])
-lib = Dict(1 => 1, 2 => 2, 3 => 3)
+lib = Dict(16 => 1, 8 => 1, 29 => 2, 41 => 4, 5 => 4, 22 => 3)
 pd, qd = zeros(Nd,Npce), zeros(Nd,Npce)
 
 for nd in 1:Nd
@@ -47,19 +48,18 @@ end
 
 # add the λs
 for bus in data["bus"]
-    bus[2]["λvmin"], bus[2]["λvmax"] = 1.0364, 1.0364 
-    # λ = quantile(Normal(0.0,1.0),1.0-0.15)
+    bus[2]["λvmin"], bus[2]["λvmax"] = 1.6, 1.6 
 end
 for gen in data["gen"]
     gen[2]["pmin"] = 0.0
-    gen[2]["λpmin"], gen[2]["λpmax"] = 1.0364, 1.0364
-    gen[2]["λqmin"], gen[2]["λqmax"] = 1.0364, 1.0364
+    gen[2]["λpmin"], gen[2]["λpmax"] = 1.6, 1.6
+    gen[2]["λqmin"], gen[2]["λqmax"] = 1.6, 1.6
 end
 for branch in data["branch"]
     f_bus = branch[2]["f_bus"]
     branch[2]["imax"] = branch[2]["rate_a"]/data["bus"]["$f_bus"]["vmin"] 
     ## why no sqrt(3) in powermodel, but in the paper of line it seems to be there 29 / sqrt(3) ≈ 16 as in the paper
-    branch[2]["λimax"] = 1.0364
+    branch[2]["λimax"] = 1.6
 end
 
 # replicated data
@@ -78,7 +78,3 @@ data["mop"] = mop
 
 # solve 
 res_ivr = run_sopf_iv(data, _PMs.IVRPowerModel, solver)
-
-# res_acr = run_sopf_acr(data, _PMs.ACRPowerModel, solver)
-
-## @ Arpan: adding a extra random variable helps converges... for the IVR 

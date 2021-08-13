@@ -66,21 +66,21 @@ function variable_gen_power_real(pm::AbstractACRModel; nw::Int=nw_id_default, bo
 
 
     ""
-function variable_bus_voltage_squared(pm::AbstractACRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
-vs = _PMs.var(pm, nw)[:vs] = JuMP.@variable(pm.model,
-    [i in _PMs.ids(pm, nw, :bus)], base_name="$(nw)_vs",
-    start = comp_start_value(_PMs.ref(pm, nw, :bus, i), "vs_start", 1.0)
-)
+# function variable_bus_voltage_squared(pm::AbstractACRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+# vs = _PMs.var(pm, nw)[:vs] = JuMP.@variable(pm.model,
+#     [i in _PMs.ids(pm, nw, :bus)], base_name="$(nw)_vs",
+#     start = comp_start_value(_PMs.ref(pm, nw, :bus, i), "vs_start", 1.0)
+# )
 
-if bounded
-    for (i, bus) in _PMs.ref(pm, nw, :bus)
-        JuMP.set_lower_bound(vs[i], bus["vmin"]^2)
-        JuMP.set_upper_bound(vs[i], bus["vmax"]^2)
-    end
-end
+# if bounded
+#     for (i, bus) in _PMs.ref(pm, nw, :bus)
+#         JuMP.set_lower_bound(vs[i], bus["vmin"]^2)
+#         JuMP.set_upper_bound(vs[i], bus["vmax"]^2)
+#     end
+# end
 
-report && _PMs.sol_component_value(pm, nw, :bus, :vs, _PMs.ids(pm, nw, :bus), vs)
-end
+# report && _PMs.sol_component_value(pm, nw, :bus, :vs, _PMs.ids(pm, nw, :bus), vs)
+# end NOTE TOM: This is unnecessary as it is already presented in variable.jl
 # constraints
 
 ""
