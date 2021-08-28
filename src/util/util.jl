@@ -123,3 +123,28 @@ function check_stochastic_branch_current_bounds(data, sol, nb)
 
     return cmax^2 <= csss
 end
+
+""
+function create_mop(data_dist)
+    m=Vector{Symbol}()
+    for id in sort!(collect(keys(data_dist)))
+        push!(m, Symbol(data_dist[id]["distribution"]))
+    end
+
+    m2=[]
+    for i=1:length(m)
+        dist_sym=m[i]
+        d=data_dist["$i"]
+        degree = d["deg"]
+        No_rec = (d["deg"] *d["Nrec"])
+        alpha= d["alpha"]
+        beta=d["beta"]
+        if dist_sym == :Beta01OrthoPoly
+            a = Meta.parse(string("$dist_sym($degree, $alpha, $beta; Nrec=$No_rec)"))
+        else
+            a = Meta.parse(string("$dist_sym($degree; Nrec=$No_rec)"))
+        end
+        push!(m2, a)
+    end
+    return m2
+end
