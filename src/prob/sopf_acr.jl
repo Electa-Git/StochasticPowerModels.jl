@@ -1,5 +1,5 @@
 ################################################################################
-#  Copyright 2021, Tom Van Acker                                               #
+#  Copyright 2021, Arpan Koirala, Tom Van Acker                                #
 ################################################################################
 # StochasticPowerModels.jl                                                     #
 # An extention package of PowerModels.jl for Stochastic (Optimal) Power Flow   #

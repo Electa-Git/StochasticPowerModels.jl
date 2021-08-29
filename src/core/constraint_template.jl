@@ -94,7 +94,7 @@ end
 function constraint_gp_current_squared(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
     T2  = pm.data["T2"]
     T3  = pm.data["T3"]
-   # T4  = pm.data["T4"]
+
     constraint_gp_current_squared(pm, nw, b, T2, T3)
 end
 
@@ -170,8 +170,7 @@ function constraint_gp_power_branch_to_simplified(pm::AbstractPowerModel, i::Int
 end
 
 ""
-function constraint_gp_power_branch_from_simplified(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
-    
+function constraint_gp_power_branch_from_simplified(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)   
     branch = _PMs.ref(pm, nw, :branch, i)
     f_bus = branch["f_bus"]
     t_bus = branch["t_bus"]
@@ -231,14 +230,13 @@ end
 
 ""
 function constraint_branch_series_current_squared_cc_limit(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
-    imax = _PMs.ref(pm, nw, :branch, b, "imax")
-    
-    λmax = _PMs.ref(pm, nw, :branch, b, "λimax")
+    cmax = _PMs.ref(pm, nw, :branch, b, "cmax")
+    λmax = _PMs.ref(pm, nw, :branch, b, "λcmax")
     
     T2  = pm.data["T2"]
     mop = pm.data["mop"]
 
-    constraint_branch_series_current_squared_cc_limit(pm, b, imax, λmax, T2, mop)
+    constraint_branch_series_current_squared_cc_limit(pm, b, cmax, λmax, T2, mop)
 end
 
 
@@ -257,9 +255,7 @@ function constraint_gen_power_cc_limit(pm::AbstractPowerModel, g::Int; nw::Int=n
     T2  = pm.data["T2"]
     mop = pm.data["mop"]
     
-
     constraint_gen_power_real_cc_limit(pm, g, pmin, pmax, λpmin, λpmax, T2, mop)
-    
     constraint_gen_power_imaginary_cc_limit(pm, g, qmin, qmax, λqmin, λqmax, T2, mop)
 end
 

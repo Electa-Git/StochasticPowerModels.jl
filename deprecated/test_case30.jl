@@ -1,7 +1,3 @@
-## TODO
-## 1) enable load matrix builder for degrees higher than 1.
-## 2) construct script to run deterministic opf, only activate violated constraints.
-
 # using pkgs
 using Ipopt
 using PolyChaos
@@ -13,7 +9,8 @@ const _PMs = PowerModels
 const _SPM = StochasticPowerModels
 
 # data path
-path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case30.m")
+## use: https://github.com/power-grid-lib/pglib-opf
+path = "/Users/tvanacke/.julia/dev/pglib-opf/pglib_opf_case30_ieee.m"
 
 # build uncertainty data
 deg  = 1
@@ -54,19 +51,19 @@ end
 
 # add the λs
 for bus in data["bus"]
-    bus[2]["λvmin"], bus[2]["λvmax"] = 1.0364, 1.0364 
+    bus[2]["λvmin"], bus[2]["λvmax"] = 1.6, 1.6 
     # λ = quantile(Normal(0.0,1.0),1.0-0.15)
 end
 for gen in data["gen"]
     gen[2]["pmin"] = 0.0
-    gen[2]["λpmin"], gen[2]["λpmax"] = 1.0364, 1.0364
-    gen[2]["λqmin"], gen[2]["λqmax"] = 1.0364, 1.0364
+    gen[2]["λpmin"], gen[2]["λpmax"] = 1.6, 1.6
+    gen[2]["λqmin"], gen[2]["λqmax"] = 1.6, 1.6
 end
 for branch in data["branch"]
     f_bus = branch[2]["f_bus"]
     branch[2]["imax"] = branch[2]["rate_a"]/data["bus"]["$f_bus"]["vmin"] 
     ## why no sqrt(3) in powermodel, but in the paper of line it seems to be there 29 / sqrt(3) ≈ 16 as in the paper
-    branch[2]["λimax"] = 1.0364
+    branch[2]["λimax"] = 1.6
 end
 
 # replicated data

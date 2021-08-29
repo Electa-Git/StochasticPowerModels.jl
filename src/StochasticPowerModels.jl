@@ -14,6 +14,7 @@ module StochasticPowerModels
     import PolyChaos
     import PowerModels
     import InfrastructureModels
+    import Memento
 
     # import types
     import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
@@ -25,8 +26,16 @@ module StochasticPowerModels
     const _PMs = PowerModels
     const _IMs = InfrastructureModels
 
+    # memento logger
+    function __init__()
+        global _LOGGER = Memento.getlogger(PowerModels)
+    end
+
     # const 
     const nw_id_default = 1
+
+    # funct
+    sorted_nw_ids(pm) = sort(collect(_PMs.nw_ids(pm)))
 
     # paths
     const BASE_DIR = dirname(@__DIR__)
@@ -36,12 +45,12 @@ module StochasticPowerModels
     include("core/objective.jl")
     include("core/variable.jl")
 
-    include("form/iv.jl")
     include("form/acr.jl")
+    include("form/iv.jl")
 
+    include("prob/sopf_acr.jl")
     include("prob/sopf_iv.jl")
     include("prob/sopf_iv_itr.jl")
-    include("prob/sopf_acr.jl")
 
     include("util/util.jl")
     # include("util/plot.jl")
@@ -51,6 +60,4 @@ module StochasticPowerModels
 
     export run_sopf_iv, run_sopf_acr
     export run_sopf_iv_itr
-
-    export check_deterministic_solution!
 end 

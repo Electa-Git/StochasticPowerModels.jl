@@ -6,145 +6,92 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
-sorted_nw_ids(pm) = sort(collect(_PMs.nw_ids(pm)))
-
-is_constrained(pm, cmp, idx) = _PMs.ref(pm, 1, cmp, idx, "cstr")
-
-function check_deterministic_solution!(file, sol)
-    # bus
-    for nb in keys(file["bus"])
-        file["bus"][nb]["cstr"] = 
-            check_deterministic_voltage_magnitude_bounds(file["bus"][nb], sol["bus"][nb])
-    end
-    # gen
-    for ng in keys(file["gen"])
-        file["gen"][ng]["cstr"] =
-            check_deterministic_generator_power_bounds(file["gen"][ng], sol["gen"][ng])
-    end
-    # branch 
-    for nb in keys(file["branch"])
-        fbus = file["branch"][nb]["f_bus"]
-        file["branch"][nb]["imax"] = file["branch"][nb]["rate_a"] / file["bus"]["$fbus"]["vmin"]
-        file["branch"][nb]["cstr"] =
-            check_deterministic_branch_current_bounds(file["branch"][nb], sol["branch"][nb])
-    end
-end
-
-function check_stochastic_solution!(file, sol)
-    cstr = false
-
-    # bus
-    for nb in keys(file["nw"]["1"]["bus"])
-        nb_cstr = check_stochastic_voltage_magnitude_bounds(file["nw"]["1"]["bus"][nb], sol, nb)
-        if nb_cstr != file["nw"]["1"]["bus"][nb]["cstr"]  
-            cstr = true
-        end
-        file["nw"]["1"]["bus"][nb]["cstr"] = nb_cstr            
-    end
-    # gen
-    for ng in keys(file["nw"]["1"]["gen"])
-        ng_cstr = check_stochastic_generator_power_bounds(file["nw"]["1"]["gen"][ng], sol, ng)
-        if ng_cstr != file["nw"]["1"]["gen"][ng]["cstr"] 
-            cstr = true
-        end
-        file["nw"]["1"]["gen"][ng]["cstr"] = ng_cstr
-    end
-    # branch 
-    for nb in keys(file["nw"]["1"]["branch"])
-        nb_cstr = check_stochastic_branch_current_bounds(file["nw"]["1"]["branch"][nb], sol, nb)
-        if nb_cstr != file["nw"]["1"]["branch"][nb]["cstr"] 
-            cstr = true
-        end
-        file["nw"]["1"]["branch"][nb]["cstr"] = nb_cstr
-    end
-
-    return cstr
-end
-
-function check_deterministic_voltage_magnitude_bounds(data, sol)
-    vr, vi = sol["vr"], sol["vi"]
-    vmin, vmax = data["vmin"], data["vmax"]
-
-    vm = sqrt(vr^2 + vi^2)
-
-    return isapprox(vm, vmin, rtol=1e-6) || isapprox(vm, vmax, rtol=1e-6)
-end
-function check_deterministic_generator_power_bounds(data, sol)
-    pg, qg = sol["pg"], sol["qg"]
-    pmin, pmax = data["pmin"], data["pmax"]
-    qmin, qmax = data["qmin"], data["qmax"]
-
-    return isapprox(pg, pmin, rtol=1e-6) || isapprox(pg, pmax, rtol=1e-6) ||
-           isapprox(qg, qmin, rtol=1e-6) || isapprox(qg, qmax, rtol=1e-6)
-end
-function check_deterministic_branch_current_bounds(data, sol)
-    csr, csi = sol["csr_fr"], sol["csi_fr"]
-    cmax = data["imax"]
-
-    cm = sqrt(csr^2 + csi^2)
-    
-    return isapprox(cm, cmax, rtol=1e-6)
-end
-
-function check_stochastic_voltage_magnitude_bounds(data, sol, nb)
-    vs = [sol["nw"][nw]["bus"][nb]["vs"] for nw in sort(collect(keys(sol["nw"])))]
-    
-    vmin, vmax = data["vmin"], data["vmax"]
-    λvmin, λvmax = data["λvmin"], data["λvmax"]
-
-    vsmin = vs[1] - λvmin * sqrt(sum(vs[2:end].^2))
-    vsmax = vs[1] + λvmax * sqrt(sum(vs[2:end].^2))
-
-    return vsmin <= vmin^2 || vmax^2 <= vsmax
-end
-function check_stochastic_generator_power_bounds(data, sol, ng)
-    pg = [sol["nw"][nw]["gen"][ng]["pg"] for nw in sort(collect(keys(sol["nw"])))]
-    qg = [sol["nw"][nw]["gen"][ng]["qg"] for nw in sort(collect(keys(sol["nw"])))]
-
-    pmin, pmax = data["pmin"], data["pmax"]
-    qmin, qmax = data["qmin"], data["qmax"]
-    λpmin, λpmax = data["λpmin"], data["λpmax"]
-    λqmin, λqmax = data["λqmin"], data["λqmax"]
-
-    pgmin = pg[1] - λpmin * sqrt(sum(pg[2:end].^2))
-    pgmax = pg[1] + λpmax * sqrt(sum(pg[2:end].^2))
-    qgmin = qg[1] - λqmin * sqrt(sum(qg[2:end].^2))
-    qgmax = qg[1] + λqmax * sqrt(sum(qg[2:end].^2))
-
-    return pgmin <= pmin || pmax <= pgmax || qgmin <= qmin || qmax <= qgmax
-end
-function check_stochastic_branch_current_bounds(data, sol, nb)
-    css = [sol["nw"][nw]["branch"][nb]["css"] for nw in sort(collect(keys(sol["nw"])))]
-
-    cmax = data["imax"]
-    λimax = data["λimax"]
-
-    csss = css[1] - λimax * sqrt(sum(css[2:end].^2))
-
-    return cmax^2 <= csss
-end
+""
+var_min(var, λ) = var[1] - λ * sqrt(sum(var[2:end].^2))
+var_max(var, λ) = var[1] + λ * sqrt(sum(var[2:end].^2))
 
 ""
-function create_mop(data_dist)
-    m=Vector{Symbol}()
-    for id in sort!(collect(keys(data_dist)))
-        push!(m, Symbol(data_dist[id]["distribution"]))
+is_constrained(pm, cmp, idx) = _PMs.ref(pm, 1, cmp, idx, "cstr")
+
+""
+function parse_dst(dst, pa, pb, deg)
+    dst == "Beta"    && return _PCE.Beta01OrthoPoly(deg, pa, pb; Nrec=5*deg)
+    dst == "Normal"  && return _PCE.GaussOrthoPoly(deg; Nrec=5*deg)
+    dst == "Uniform" && return _PCE.Uniform01OrthoPoly(deg; Nrec=5*deg)
+end
+
+"""
+    build_stochastic_data!(data::Dict{String,Any}, deg::Int)
+"""
+function build_stochastic_data(data, deg)
+    # add maximum current
+    for (nb, branch) in data["branch"]
+        f_bus = branch["f_bus"]
+        branch["cmax"] = branch["rate_a"] / data["bus"]["$f_bus"]["vmin"]
     end
 
-    m2=[]
-    for i=1:length(m)
-        dist_sym=m[i]
-        d=data_dist["$i"]
-        degree = d["deg"]
-        No_rec = (d["deg"] *d["Nrec"])
-        alpha= d["alpha"]
-        beta=d["beta"]
-        if dist_sym == :Beta01OrthoPoly
-            a = Meta.parse(string("$dist_sym($degree, $alpha, $beta; Nrec=$No_rec)"))
+    # build mop
+    opq = [parse_dst(ns[2]["dst"], ns[2]["pa"], ns[2]["pb"], deg) for ns in data["sdata"]]
+    mop = _PCE.MultiOrthoPoly(opq, deg)
+
+    # build load matrix
+    Nd, Npce = length(data["load"]), mop.dim
+    pd, qd = zeros(Nd, Npce), zeros(Nd, Npce)
+    for nd in 1:Nd 
+        # reactive power
+        qd[nd,1] = data["load"]["$nd"]["qd"]
+        # active power
+        nb = data["load"]["$nd"]["load_bus"]
+        ni = data["bus"]["$nb"]["dst_id"]
+        if ni == 0
+            pd[nd,1] = data["load"]["$nd"]["pd"]
         else
-            a = Meta.parse(string("$dist_sym($degree; Nrec=$No_rec)"))
+            base = data["baseMVA"]
+            μ, σ = data["bus"]["$nb"]["μ"] / base, data["bus"]["$nb"]["σ"] / base
+            if mop.uni[ni] isa _PCE.GaussOrthoPoly
+                pd[nd,[1,ni+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[ni])
+            else
+                pd[nd,[1,ni+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[ni], kind="μσ")
+            end
         end
-        push!(m2, a)
     end
-    return m2
+
+    # replicate the data
+    data = _PMs.replicate(data, Npce)
+
+    # add the stochastic data 
+    data["T2"] = _PCE.Tensor(2,mop)
+    data["T3"] = _PCE.Tensor(3,mop)
+    data["mop"] = mop
+    for nw in 1:Npce, nd in 1:Nd
+        data["nw"]["$nw"]["load"]["$nd"]["pd"] = pd[nd,nw]
+        data["nw"]["$nw"]["load"]["$nd"]["qd"] = qd[nd,nw]
+    end
+
+    return data
 end
+
+# ""
+# function create_mop(data_dist)
+#     m=Vector{Symbol}()
+#     for id in sort!(collect(keys(data_dist)))
+#         push!(m, Symbol(data_dist[id]["distribution"]))
+#     end
+
+#     m2=[]
+#     for i=1:length(m)
+#         dist_sym=m[i]
+#         d=data_dist["$i"]
+#         degree = d["deg"]
+#         No_rec = (d["deg"] *d["Nrec"])
+#         alpha= d["alpha"]
+#         beta=d["beta"]
+#         if dist_sym == :Beta01OrthoPoly
+#             a = Meta.parse(string("$dist_sym($degree, $alpha, $beta; Nrec=$No_rec)"))
+#         else
+#             a = Meta.parse(string("$dist_sym($degree; Nrec=$No_rec)"))
+#         end
+#         push!(m2, a)
+#     end
+#     return m2
+# end

@@ -6,10 +6,9 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
-# load pkgs 
-using Test
+# using pkgs
+using JuMP
 using Ipopt
-using PolyChaos
 using PowerModels
 using StochasticPowerModels
 
@@ -17,13 +16,17 @@ using StochasticPowerModels
 const _PMs = PowerModels
 const _SPM = StochasticPowerModels
 
-# solvers
-ipopt_solver = optimizer_with_attributes(Ipopt.Optimizer,"max_cpu_time"=>300.0,
-                                                              "tol"=>1e-9,
-                                                              "print_level"=>0)
+# data
+path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case14_spm.m")
+data = _PMs.parse_file(path)
 
-@testset "StochasticPowerModels.jl" begin
+# solve problem
+solver = Ipopt.Optimizer
+result_stc = run_sopf_iv(data, _PMs.IVRPowerModel, solver, deg = 1)
 
-    # include("form.jl")
+# solve problem iteratively
+solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0)
+result_dtr, result_itr = run_sopf_iv_itr(data, _PMs.IVRPowerModel, solver, deg = 1)
 
-end
+# assert
+@assert isapprox(result_stc["objective"], result_itr["objective"], rtol=1e-6)
