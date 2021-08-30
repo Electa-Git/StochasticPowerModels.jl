@@ -6,25 +6,21 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
-# load pkgs 
-using Test
-using Ipopt
-using PolyChaos
-using PowerModels
-using StochasticPowerModels
+@testset "Problem Formulations" begin
 
-# constants 
-const _PMs = PowerModels
-const _SPM = StochasticPowerModels
-
-# solvers
-ipopt_solver = optimizer_with_attributes(Ipopt.Optimizer,"max_cpu_time"=>300.0,
-                                                         "tol"=>1e-9,
-                                                         "print_level"=>0)
-
-@testset "StochasticPowerModels.jl" begin
-
-    # include("form.jl")
-    include("prob.jl")
+    @testset "IVR vs iterative IVR"
+        # data
+        path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case14_spm.m")
+        data = _PMs.parse_file(path)
+    
+        # solve problem
+        result_stc = run_sopf_iv(data, _PMs.IVRPowerModel, solver, deg = 1)
+    
+        # solve problem iteratively
+        result_dtr, result_itr = run_sopf_iv_itr(data, _PMs.IVRPowerModel, solver, deg = 1);
+    
+        # assert
+        @test isapprox(result_stc["objective"], result_itr["objective"], rtol=1e-6)
+    end
 
 end
