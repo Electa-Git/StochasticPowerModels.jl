@@ -108,8 +108,8 @@ function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=
             end
 
             if !isinf(ub)
-                JuMP.set_lower_bound(css[l], 0.0)
-                JuMP.set_upper_bound(css[l], 1.5* ub^2)
+                JuMP.set_lower_bound(css[l], -2.0 * ub^2)
+                JuMP.set_upper_bound(css[l],  2.0 * ub^2)
             end
         end
     end

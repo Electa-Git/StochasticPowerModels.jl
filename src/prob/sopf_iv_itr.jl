@@ -173,6 +173,9 @@ function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_ite
         iter += 1
     end
 
+    stc_result["cnstr"] = Dict("gen" => cnstr_gen, 
+                               "bus" => cnstr_bus, 
+                               "branch" => cnstr_branch)
     stc_result["solve_time"] = time() - start_time
     stc_result["iterations"] = iter
 
@@ -183,7 +186,7 @@ end
 function build_sopf_iv_unc(pm::AbstractPowerModel)
     for (n, network) in _PMs.nws(pm) 
         variable_bus_voltage(pm, nw=n, bounded=false, aux_fix=true)
-        variable_branch_current(pm, nw=n, bounded=false, aux_fix=true)
+        variable_branch_current(pm, nw=n, aux_fix=true)
 
         variable_gen_power(pm, nw=n, bounded=false)
         variable_gen_current(pm, nw=n, bounded=false)
