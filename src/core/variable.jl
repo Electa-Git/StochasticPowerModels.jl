@@ -24,7 +24,7 @@ function variable_bus_voltage_squared(pm::AbstractPowerModel; nw::Int=nw_id_defa
         JuMP.fix.(vs, 1.0; force=true)
     end
 
-    report && _PMs.sol_component_value(pm, nw, :bus, :vs, _PMs.ids(pm, nw, :bus), vs)
+    report && _IMs.sol_component_value(pm, nw, :bus, :vs, _PMs.ids(pm, nw, :bus), vs)
 end
 
 "variable: `crd[j]` for `j` in `load`"
@@ -47,7 +47,7 @@ function variable_load_current_real(pm::AbstractPowerModel; nw::Int=nw_id_defaul
         end
     end
 
-    report && _PMs.sol_component_value(pm, nw, :load, :crd, _PMs.ids(pm, nw, :load), crd)
+    report && _IMs.sol_component_value(pm, nw, :load, :crd, _PMs.ids(pm, nw, :load), crd)
 end
 
 
@@ -71,7 +71,7 @@ function variable_load_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_d
         end
     end
 
-    report && _PMs.sol_component_value(pm, nw, :load, :cid, _PMs.ids(pm, nw, :load), cid)
+    report && _IMs.sol_component_value(pm, nw, :load, :cid, _PMs.ids(pm, nw, :load), cid)
 end
 
 "variable: `css[l,i,j]` for `(l,i,j)` in `arcs_from`"
@@ -115,7 +115,7 @@ function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=
         JuMP.fix.(css, 0.0; force=true)
     end
 
-    report && _PMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
+    report && _IMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
 end
 
 
@@ -127,7 +127,7 @@ function variable_branch_voltage_drop_real(pm::AbstractPowerModel; nw::Int=nw_id
     )
     
 
-    report && _PMs.sol_component_value(pm, nw, :branch, :vbdr, _PMs.ids(pm, nw, :branch), vbdr)
+    report && _IMs.sol_component_value(pm, nw, :branch, :vbdr, _PMs.ids(pm, nw, :branch), vbdr)
 end
 "variable: voltage drop img for `(l,i,j)` in `arcs_from`"
 function variable_branch_voltage_drop_img(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
@@ -137,5 +137,5 @@ function variable_branch_voltage_drop_img(pm::AbstractPowerModel; nw::Int=nw_id_
         start = comp_start_value(_PMs.ref(pm, nw, :branch, l), "vbdi_start", 0.0)
     )
 
-    report && _PMs.sol_component_value(pm, nw, :branch, :vbdi, _PMs.ids(pm, nw, :branch), vbdi)
+    report && _IMs.sol_component_value(pm, nw, :branch, :vbdi, _PMs.ids(pm, nw, :branch), vbdi)
 end
