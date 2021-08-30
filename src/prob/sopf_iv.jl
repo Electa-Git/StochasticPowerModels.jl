@@ -18,7 +18,7 @@ end
 ""
 function build_sopf_iv(pm::AbstractPowerModel)
     for (n, network) in _PMs.nws(pm) 
-        variable_bus_voltage(pm, nw=n, bounded=false)
+        variable_bus_voltage(pm, nw=n)
         variable_branch_current(pm, nw=n)
 
         variable_gen_power(pm, nw=n, bounded=false)
