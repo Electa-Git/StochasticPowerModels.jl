@@ -190,7 +190,7 @@ function build_sopf_iv_unc(pm::AbstractPowerModel)
 
         variable_gen_power(pm, nw=n, bounded=false)
         variable_gen_current(pm, nw=n, bounded=false)
-        variable_load_current(pm, nw=n, bounded=false)
+        variable_load_current(pm, nw=n)
     end
 
     for (n, network) in _PMs.nws(pm)

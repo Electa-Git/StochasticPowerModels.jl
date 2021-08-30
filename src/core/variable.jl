@@ -35,19 +35,6 @@ function variable_load_current_real(pm::AbstractPowerModel; nw::Int=nw_id_defaul
         start = comp_start_value(_PMs.ref(pm, nw, :load, i), "crd_start")
     )
 
-    if bounded
-        bus = _PMs.ref(pm, nw, :bus)
-        for (i, l) in _PMs.ref(pm, nw, :load)
-            vmin = bus[l["load_bus"]]["vmin"]
-            @assert vmin > 0
-            s = sqrt(max(abs(l["pmax"]), abs(l["pmin"]))^2 + max(abs(l["qmax"]), abs(l["qmin"]))^2)
-            ub = s/vmin
-
-            JuMP.set_lower_bound(crd[i], -ub)
-            JuMP.set_upper_bound(crd[i],  ub)
-        end
-    end
-
     report && sol_component_value(pm, nw, :load, :crd, _PMs.ids(pm, nw, :load), crd)
     # report && _IMs.sol_component_value(pm, nw, :load, :crd, _PMs.ids(pm, nw, :load), crd)
 end
@@ -59,19 +46,6 @@ function variable_load_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_d
         [i in _PMs.ids(pm, nw, :load)], base_name="$(nw)_cid",
         start = comp_start_value(_PMs.ref(pm, nw, :load, i), "cid_start")
     )
-
-    if bounded
-        bus = _PMs.ref(pm, nw, :bus)
-        for (i, l) in _PMs.ref(pm, nw, :load)
-            vmin = bus[l["load_bus"]]["vmin"]
-            @assert vmin > 0
-            s = sqrt(max(abs(l["pmax"]), abs(l["pmin"]))^2 + max(abs(l["qmax"]), abs(l["qmin"]))^2)
-            ub = s/vmin
-
-            JuMP.set_lower_bound(cid[i], -ub)
-            JuMP.set_upper_bound(cid[i],  ub)
-        end
-    end
 
     report && sol_component_value(pm, nw, :load, :cid, _PMs.ids(pm, nw, :load), cid)
     # report && _IMs.sol_component_value(pm, nw, :load, :cid, _PMs.ids(pm, nw, :load), cid)
