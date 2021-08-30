@@ -22,7 +22,7 @@ function build_sopf_iv(pm::AbstractPowerModel)
         variable_branch_current(pm, nw=n)
 
         variable_gen_power(pm, nw=n)
-        variable_gen_current(pm, nw=n, bounded=false)
+        variable_gen_current(pm, nw=n, bounded=false) # enforcing bounds makes problem infeasible
         variable_load_current(pm, nw=n)
     end
 
