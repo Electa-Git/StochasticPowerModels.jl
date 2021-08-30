@@ -9,7 +9,6 @@ uncertainty in Steady-State Power Network Optimization.
 
 ## Core Problem Specification
 
-- Stochastic Power Flow (sPF)
 - Stochastic Optimal Power Flow (sOPF)
 
 ## Core Network Formulation
@@ -25,8 +24,6 @@ uncertainty in Steady-State Power Network Optimization.
 ## Network Data Formats
 
 - Matpower ".m" files
-- PTI ".raw" files (PSS(R)E v33 specfication)
-- CSV ".csv" file with uncertainty data
 
 ## Installation
 
