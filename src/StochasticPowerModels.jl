@@ -20,6 +20,7 @@ module StochasticPowerModels
     import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
     import PowerModels: comp_start_value, sol_component_value
     import InfrastructureModels: ids, ref, var, con, sol, nw_ids, nws
+    import InfrastructureModels: sol_component_value
 
     # pkgs const
     const _PCE = PolyChaos
