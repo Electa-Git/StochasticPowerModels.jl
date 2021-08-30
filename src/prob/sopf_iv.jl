@@ -18,12 +18,12 @@ end
 ""
 function build_sopf_iv(pm::AbstractPowerModel)
     for (n, network) in _PMs.nws(pm) 
-        variable_bus_voltage(pm, nw=n, bounded=false)
-        variable_branch_current(pm, nw=n, bounded=false)
+        variable_bus_voltage(pm, nw=n)
+        variable_branch_current(pm, nw=n)
 
-        variable_gen_power(pm, nw=n, bounded=false)
+        variable_gen_power(pm, nw=n)
         variable_gen_current(pm, nw=n, bounded=false)
-        variable_load_current(pm, nw=n, bounded=false)
+        variable_load_current(pm, nw=n)
     end
 
     for i in _PMs.ids(pm, :bus, nw=1)
