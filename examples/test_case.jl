@@ -17,10 +17,11 @@ const _PMs = PowerModels
 const _SPM = StochasticPowerModels
 
 # data
-path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case3_spm.m")
-#include(joinpath(_SPM.BASE_DIR,"test/io.jl"))
+
+path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case118_spm.m")
+include(joinpath(_SPM.BASE_DIR,"test/io.jl"))
 data = _PMs.parse_file(path)
-# add_stochastic_data!(data)
+add_stochastic_data!(data)
 
 # initialize solver
 solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0)
