@@ -10,7 +10,7 @@
 
     @testset "IVR vs iterative IVR" begin
         # data
-        path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case14_spm.m")
+        path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case3_spm.m")
         data = _PMs.parse_file(path)
     
         # solve problem

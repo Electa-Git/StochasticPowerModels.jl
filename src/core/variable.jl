@@ -96,7 +96,6 @@ function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=
     # report && _IMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
 end
 
-
 "variable: voltage drop real for `(l,i,j)` in `arcs_from`"
 function variable_branch_voltage_drop_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     vbdr = _PMs.var(pm, nw)[:vbdr] = JuMP.@variable(pm.model,

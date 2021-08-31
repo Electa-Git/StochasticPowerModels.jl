@@ -24,7 +24,8 @@ ipopt_solver = optimizer_with_attributes(Ipopt.Optimizer,"max_cpu_time"=>300.0,
 
 @testset "StochasticPowerModels.jl" begin
 
-    # include("form.jl")
+    include("form.jl")
+    
     include("prob.jl")
 
 end

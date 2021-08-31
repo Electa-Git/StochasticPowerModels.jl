@@ -9,8 +9,10 @@
 ################################################################################
 
 ""
-function run_sopf_acr(file, model_constructor::Type, optimizer; kwargs...)
-    return _PMs.run_model(file, model_constructor, optimizer, build_sopf_acr; multinetwork=true, kwargs...)
+function run_sopf_acr(data, model_constructor::Type, optimizer; deg::Int=1, kwargs...)
+    sdata = build_stochastic_data(data, deg)
+    
+    return _PMs.run_model(sdata, model_constructor, optimizer, build_sopf_acr; multinetwork=true, kwargs...)
 end
 
 ""
