@@ -9,60 +9,24 @@
 @testset "Formulations" begin 
 
     @testset "ACR vs IVR" begin
-        path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case3.m")
+        # data
+        path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case3_spm.m")
         data = _PMs.parse_file(path)
-        
-        # set-up stochastic input
-        deg  = 1
-        opq  = [Uniform01OrthoPoly(deg; Nrec=5*deg), 
-                Uniform01OrthoPoly(deg; Nrec=5*deg),
-                Uniform01OrthoPoly(deg; Nrec=5*deg)]
-        mop  = MultiOrthoPoly(opq, deg)
-        Npce = mop.dim
-        Nd = length(data["load"])
-        pd, qd = zeros(Nd,Npce), zeros(Nd,Npce)
-        for nd in 1:Nd
-            pd[nd,[1,nd+1]] = convert2affinePCE(data["load"]["$nd"]["pd"], 0.10, mop.uni[1], kind="μσ")
-            qd[nd,[1,nd+1]] = convert2affinePCE(data["load"]["$nd"]["qd"], 0.05, mop.uni[2], kind="μσ")
-        end
-        for bus in data["bus"]
-            bus[2]["λvmin"], bus[2]["λvmax"] = 1.6, 1.6
-        end
-        for gen in data["gen"]
-            gen[2]["pmin"] = 0.0
-            gen[2]["λpmin"], gen[2]["λpmax"] = 1.6, 1.6
-            gen[2]["λqmin"], gen[2]["λqmax"] = 1.6, 2.5
-        end
-        for branch in data["branch"]
-            branch[2]["imax"] = branch[2]["rate_a"]/0.9
-            branch[2]["λimax"] = 1.6
-        end
+    
+        # solve problem
+        result_acr = run_sopf_iv(data, _PMs.IVRPowerModel, ipopt_solver, deg = 1)
+        result_ivr = run_sopf_acr(data, _PMs.ACRPowerModel, ipopt_solver, deg = 1)
 
-        # replicate data
-        data = _PMs.replicate(data, Npce)
-
-        # add stochastic input to data
-        for nw in 1:Npce, nd in 1:Nd
-            data["nw"]["$nw"]["load"]["$nd"]["pd"] = pd[nd,nw]
-            data["nw"]["$nw"]["load"]["$nd"]["qd"] = qd[nd,nw]
-        end
-        data["T2"] = Tensor(2,mop)
-        data["T3"] = Tensor(3,mop)
-        data["mop"] = mop
-        
-        res_acr = run_sopf_acr(data, _PMs.ACRPowerModel, ipopt_solver)
-        res_ivr = run_sopf_iv(data, _PMs.IVRPowerModel, ipopt_solver)
-
-        sol_acr = res_acr["solution"]["nw"]
-        sol_ivr = res_ivr["solution"]["nw"]
-        bus_vs_acr = [[sol_acr["$nw"]["bus"]["$nb"]["vs"] for nw in 1:Npce] for nb in 1:3]
-        bus_vs_ivr = [[sol_ivr["$nw"]["bus"]["$nb"]["vs"] for nw in 1:Npce] for nb in 1:3]
+        sol_acr = result_acr["solution"]["nw"]
+        sol_ivr = result_ivr["solution"]["nw"]
+        bus_vs_acr = [[sol_acr["$nw"]["bus"]["$nb"]["vs"] for nw in 1:4] for nb in 1:3]
+        bus_vs_ivr = [[sol_ivr["$nw"]["bus"]["$nb"]["vs"] for nw in 1:4] for nb in 1:3]
 
         @test all(isapprox.(bus_vs_acr[1], bus_vs_ivr[1], atol=1e-6))
         @test all(isapprox.(bus_vs_acr[2], bus_vs_ivr[2], atol=1e-6))
         @test all(isapprox.(bus_vs_acr[3], bus_vs_ivr[3], atol=1e-6))
 
-        @test isapprox(res_acr["objective"], res_ivr["objective"], rtol=1e-6)
+        @test isapprox(result_acr["objective"], result_ivr["objective"], rtol=1e-6)
 
     end
 

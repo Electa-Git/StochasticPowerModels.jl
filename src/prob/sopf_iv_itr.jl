@@ -186,10 +186,11 @@ end
 function build_sopf_iv_unc(pm::AbstractPowerModel)
     for (n, network) in _PMs.nws(pm) 
         variable_bus_voltage(pm, nw=n, aux_fix=true)
+
         variable_branch_current(pm, nw=n, aux_fix=true)
 
         variable_gen_power(pm, nw=n, bounded=false) # enforcing bounds makes problem infeasible
-        variable_gen_current(pm, nw=n)
+        variable_gen_current(pm, nw=n, bounded=false) # enforcing bounds alters the objective 
         variable_load_current(pm, nw=n)
     end
 

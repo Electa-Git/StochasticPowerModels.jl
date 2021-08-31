@@ -27,12 +27,6 @@ function variable_branch_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bo
 end
 
 ""
-function variable_dcline_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
-    _PMs.variable_dcline_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
-    _PMs.variable_dcline_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
-end
-
-""
 function variable_load_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
     variable_load_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     variable_load_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
