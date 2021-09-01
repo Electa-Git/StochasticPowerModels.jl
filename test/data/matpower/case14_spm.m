@@ -5,7 +5,7 @@
 %%%%               Benchmark Group - Typical Operations               %%%%%
 %%%%                         29 - July - 2021                         %%%%%
 %%%%                                                                  %%%%%
-%%%%   The file has been adjusted for the purpose of stochastic OPF.  %%%%%
+%%%%   The file has been extended for the purpose of stochastic OPF.  %%%%%
 %%%%                                                                  %%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %

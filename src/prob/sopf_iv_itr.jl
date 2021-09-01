@@ -53,7 +53,7 @@ function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_ite
         vr, vi = bus_res["vr"], bus_res["vi"]
         vmin, vmax = bus["vmin"], bus["vmax"]
 
-        vm = sqrt(vr^2 + vi^2)
+        vm = abs(vr + im * vi)
 
         vs  = [_PMs.var(stc_pm, nw, :vs, bus_id) for nw in _PMs.nw_ids(stc_pm)]
 
@@ -75,7 +75,7 @@ function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_ite
         csr, csi = branch_res["csr_fr"], branch_res["csi_fr"]
         cmax = branch["cmax"]
 
-        csm = sqrt(csr^2 + csi^2)
+        csm = abs(csr + im * csi)
 
         css  = Dict(nw => _PMs.var(stc_pm, nw, :css, branch_id) for nw in _PMs.nw_ids(stc_pm))
 
@@ -129,7 +129,7 @@ function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_ite
     
             λvmin, λvmax = bus["λvmin"], bus["λvmax"]
     
-            vm = sqrt.(vr.^2 + vi.^2)
+            vm = abs.(vr .+ im .* vi)
     
             vs  = [_PMs.var(stc_pm, nw, :vs, bus_id) for nw in _PMs.nw_ids(stc_pm)]
     
@@ -154,7 +154,7 @@ function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_ite
     
             λcmax = branch["λcmax"]
     
-            csm = sqrt.(csr.^2 + csi.^2)
+            csm = abs.(csr .+ im .* csi)
 
             css = [_PMs.var(stc_pm, nw, :css, branch_id) for nw in _PMs.nw_ids(stc_pm)]
     
