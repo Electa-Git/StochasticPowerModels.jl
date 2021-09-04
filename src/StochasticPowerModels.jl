@@ -20,7 +20,7 @@ module StochasticPowerModels
     import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
     import PowerModels: comp_start_value, sol_component_value
     import InfrastructureModels: ids, ref, var, con, sol, nw_ids, nws
-    import InfrastructureModels: sol_component_value
+    import InfrastructureModels: sol_component_value, sol_component_value_edge
 
     # pkgs const
     const _PCE = PolyChaos
@@ -51,6 +51,7 @@ module StochasticPowerModels
 
     include("prob/sopf_acr.jl")
     include("prob/sopf_iv.jl")
+    include("prob/sopf_iv_red.jl")
     include("prob/sopf_iv_itr.jl")
 
     include("util/util.jl")
@@ -59,6 +60,6 @@ module StochasticPowerModels
     # export
     export BASE_DIR
 
-    export run_sopf_iv, run_sopf_acr
+    export run_sopf_iv, run_sopf_acr, run_sopf_iv_reduced
     export run_sopf_iv_itr
 end 
