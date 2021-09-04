@@ -27,6 +27,17 @@ function variable_branch_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bo
 end
 
 ""
+function variable_branch_current_reduced(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false, kwargs...)
+    _PMs.variable_branch_series_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    _PMs.variable_branch_series_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+
+    expression_variable_branch_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    expression_variable_branch_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    
+    variable_branch_series_current_squared(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
+end
+
+""
 function variable_load_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
     variable_load_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     variable_load_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)

@@ -46,7 +46,15 @@ result_stc = run_sopf_iv(data, _PMs.IVRPowerModel, solver, deg = 1)
 # sdata = _SPM.build_stochastic_data(data, deg)
 # pm = instantiate_model(sdata, _PMs.IVRPowerModel, _SPM.build_sopf_iv)
 # result = optimize_model!(pm, optimizer=solver)
+
     
+##
+
+result_stc_red = _SPM.run_sopf_iv_reduced(data, _PMs.IVRPowerModel, solver, deg = 1)
+# sdata = _SPM.build_stochastic_data(data, deg)
+# pm2 = instantiate_model(sdata, _PMs.IVRPowerModel, _SPM.build_sopf_iv_reduced)
+# result2 = optimize_model!(pm2, optimizer=solver)
+
 ##
 # solve problem iteratively
 (result_dtr, result_itr) = run_sopf_iv_itr(data, _PMs.IVRPowerModel, solver, deg = 1);
