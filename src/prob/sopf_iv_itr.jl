@@ -91,11 +91,11 @@ function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_ite
         end
     end end
 
-    while violated && iter <= max_iter && (time() - start_time) < time_limit
-        violated = false
+    # solve the stochastic opf
+    @time stc_result = _PMs.optimize_model!(stc_pm, optimizer=optimizer)
 
-        # solve the stochastic opf
-        @time global stc_result = _PMs.optimize_model!(stc_pm, optimizer=optimizer)
+    while iter <= max_iter && (time() - start_time) < time_limit
+        violated = false
 
         # add the necessary bounds based on the last stochastic solution
         for (ng, gen) in data["gen"] if !in(ng, cnstr_gen)
@@ -169,6 +169,11 @@ function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_ite
                 constraint_branch_series_current_squared_cc_limit(stc_pm, branch_id, nw=1)
             end
         end end
+
+        violated || break
+
+        # solve the stochastic opf
+        @time stc_result = _PMs.optimize_model!(stc_pm, optimizer=optimizer)
 
         iter += 1
     end

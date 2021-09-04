@@ -1,11 +1,9 @@
 ################################################################################
-#  Copyright 2021, Tom Van Acker                                               #
+#  Copyright 2021, Frederik Geth                                               #
 ################################################################################
 # StochasticPowerModels.jl                                                     #
 # An extention package of PowerModels.jl for Stochastic (Optimal) Power Flow   #
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
-################################################################################
-# NOTE: dc lines are omitted from the current formulation                      #
 ################################################################################
 
 ""
@@ -50,9 +48,6 @@ function build_sopf_iv_reduced(pm::AbstractPowerModel)
         end
 
         for b in _PMs.ids(pm, :branch, nw=n)
-            # _PMs.constraint_current_from(pm, b, nw=n)
-            # _PMs.constraint_current_to(pm, b, nw=n)
-
             _PMs.constraint_voltage_drop(pm, b, nw=n)
 
             constraint_gp_branch_series_current_squared(pm, b, nw=n)

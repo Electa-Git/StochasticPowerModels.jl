@@ -51,6 +51,102 @@ function variable_load_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_d
     # report && _IMs.sol_component_value(pm, nw, :load, :cid, _PMs.ids(pm, nw, :load), cid)
 end
 
+"variable: `cr[l,i,j]` for `(l,i,j)` in `arcs`"
+function expression_variable_branch_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    cr = _PMs.var(pm, nw)[:cr] = Dict()
+
+    bus = _PMs.ref(pm, nw, :bus)
+    branch = _PMs.ref(pm, nw, :branch)
+
+    for (l,i,j) in _PMs.ref(pm, nw, :arcs_from)
+        b = branch[l]
+        tm = b["tap"]
+        tr, ti = _PMs.calc_branch_t(b)
+        g_sh_fr, b_sh_fr = b["g_fr"], b["b_fr"]
+        g_sh_to, b_sh_to = b["g_to"], b["b_to"]
+
+        vr_fr = _PMs.var(pm, nw, :vr, i)
+        vi_fr = _PMs.var(pm, nw, :vi, i)
+    
+        vr_to = _PMs.var(pm, nw, :vr, j)
+        vi_to = _PMs.var(pm, nw, :vi, j)
+    
+        csr_fr = _PMs.var(pm, nw, :csr, l)
+        csi_fr = _PMs.var(pm, nw, :csi, l)
+
+        cr[(l,i,j)] = (tr*csr_fr - ti*csi_fr + g_sh_fr*vr_fr - b_sh_fr*vi_fr)/tm^2
+        cr[(l,j,i)] = -csr_fr + g_sh_to*vr_to - b_sh_to*vi_to
+
+        # ub = Inf
+        # if haskey(b, "rate_a")
+        #     rate_fr = b["rate_a"]*b["tap"]
+        #     rate_to = b["rate_a"]
+        #     ub = max(rate_fr/bus[i]["vmin"], rate_to/bus[j]["vmin"])
+        # end
+        # if haskey(b, "c_rating_a")
+        #     ub = b["c_rating_a"]
+        # end
+
+        # if !isinf(ub)
+        #     JuMP.@constraint(pm.model, cr[(l,i,j)] >= -ub)
+        #     JuMP.@constraint(pm.model, cr[(l,i,j)] <= ub)
+
+        #     JuMP.@constraint(pm.model, cr[(l,j,i)] >= -ub)
+        #     JuMP.@constraint(pm.model, cr[(l,j,i)] <= ub)
+        # end
+    end
+
+    report && _IMs.sol_component_value_edge(pm, _PMs.pm_it_sym, nw, :branch, :cr_fr, :cr_to, _PMs.ref(pm, nw, :arcs_from), _PMs.ref(pm, nw, :arcs_to), cr)
+end
+
+"variable: `ci[l,i,j]` for `(l,i,j)` in `arcs`"
+function expression_variable_branch_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    ci = _PMs.var(pm, nw)[:ci] = Dict()
+
+    bus = _PMs.ref(pm, nw, :bus)
+    branch = _PMs.ref(pm, nw, :branch)
+
+    for (l,i,j) in _PMs.ref(pm, nw, :arcs_from)
+        b = branch[l]
+        tm = b["tap"]
+        tr, ti = _PMs.calc_branch_t(b)
+        g_sh_fr, b_sh_fr = b["g_fr"], b["b_fr"]
+        g_sh_to, b_sh_to = b["g_to"], b["b_to"]
+
+        vr_fr = _PMs.var(pm, nw, :vr, i)
+        vi_fr = _PMs.var(pm, nw, :vi, i)
+    
+        vr_to = _PMs.var(pm, nw, :vr, j)
+        vi_to = _PMs.var(pm, nw, :vi, j)
+    
+        csr_fr = _PMs.var(pm, nw, :csr, l)
+        csi_fr = _PMs.var(pm, nw, :csi, l)
+
+        ci[(l,i,j)] = (tr*csi_fr + ti*csr_fr + g_sh_fr*vi_fr + b_sh_fr*vr_fr)/tm^2
+        ci[(l,j,i)] = -csi_fr + g_sh_to*vi_to + b_sh_to*vr_to
+
+        # ub = Inf
+        # if haskey(b, "rate_a")
+        #     rate_fr = b["rate_a"]*b["tap"]
+        #     rate_to = b["rate_a"]
+        #     ub = max(rate_fr/bus[i]["vmin"], rate_to/bus[j]["vmin"])
+        # end
+        # if haskey(b, "c_rating_a")
+        #     ub = b["c_rating_a"]
+        # end
+
+        # if !isinf(ub)
+        #     JuMP.@constraint(pm.model, ci[(l,i,j)] >= -ub)
+        #     JuMP.@constraint(pm.model, ci[(l,i,j)] <= ub)
+
+        #     JuMP.@constraint(pm.model, ci[(l,j,i)] >= -ub)
+        #     JuMP.@constraint(pm.model, ci[(l,j,i)] <= ub)
+        # end
+    end
+
+    report && _IMs.sol_component_value_edge(pm, _PMs.pm_it_sym, nw, :branch, :ci_fr, :ci_to, _PMs.ref(pm, nw, :arcs_from), _PMs.ref(pm, nw, :arcs_to), ci)
+end
+
 "variable: `css[l,i,j]` for `(l,i,j)` in `arcs_from`"
 function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, aux_fix::Bool=false, report::Bool=true)
     css = _PMs.var(pm, nw)[:css] = JuMP.@variable(pm.model,
@@ -116,154 +212,4 @@ function variable_branch_voltage_drop_img(pm::AbstractPowerModel; nw::Int=nw_id_
 
     report && sol_component_value(pm, nw, :branch, :vbdi, _PMs.ids(pm, nw, :branch), vbdi)
     # report && _IMs.sol_component_value(pm, nw, :branch, :vbdi, _PMs.ids(pm, nw, :branch), vbdi)
-end
-
-"variable: `cr[l,i,j]` for `(l,i,j)` in `arcs`"
-function expression_variable_branch_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
-    cr_expressions = Dict()
-
-    # if bounded
-    bus = _PMs.ref(pm, nw, :bus)
-    branch = _PMs.ref(pm, nw, :branch)
-
-    for (l,i,j) in _PMs.ref(pm, nw, :arcs_from)
-        b = branch[l]
-
-        vr_fr = _PMs.var(pm, nw, :vr, i)
-        vi_fr = _PMs.var(pm, nw, :vi, i)
-    
-        vr_to = _PMs.var(pm, nw, :vr, j)
-        vi_to = _PMs.var(pm, nw, :vi, j)
-    
-        csr_fr = _PMs.var(pm, nw, :csr, l)
-        csi_fr = _PMs.var(pm, nw, :csi, l)
-
-        tm = b["tap"]
-        tr, ti = _PMs.calc_branch_t(b)
-
-        g_sh_fr = b["g_fr"]
-        b_sh_fr = b["b_fr"]
-
-        g_sh_to = b["g_to"]
-        b_sh_to = b["b_to"]
-        
-
-        # JuMP.@constraint(pm.model, cr_fr == (tr*csr_fr - ti*csi_fr + g_sh_fr*vr_fr - b_sh_fr*vi_fr)/tm^2)
-        # JuMP.@constraint(pm.model, ci_fr == (tr*csi_fr + ti*csr_fr + g_sh_fr*vi_fr + b_sh_fr*vr_fr)/tm^2)
-
-        # JuMP.@constraint(pm.model, cr_to == csr_to + g_sh_to*vr_to - b_sh_to*vi_to)
-        # JuMP.@constraint(pm.model, ci_to == csi_to + g_sh_to*vi_to + b_sh_to*vr_to)
-
-        cr_expressions[(l,i,j)] = (tr*csr_fr - ti*csi_fr + g_sh_fr*vr_fr - b_sh_fr*vi_fr)/tm^2
-        cr_expressions[(l,j,i)] = -csr_fr + g_sh_to*vr_to - b_sh_to*vi_to
-
-        ub = Inf
-        if haskey(b, "rate_a")
-            rate_fr = b["rate_a"]*b["tap"]
-            rate_to = b["rate_a"]
-            ub = max(rate_fr/bus[i]["vmin"], rate_to/bus[j]["vmin"])
-        end
-        if haskey(b, "c_rating_a")
-            ub = b["c_rating_a"]
-        end
-
-        if !isinf(ub)
-            # JuMP.@constraint(pm.model, cr_expressions[(l,i,j)] >= -ub)
-            # JuMP.@constraint(pm.model, cr_expressions[(l,i,j)] <= ub)
-
-            # JuMP.@constraint(pm.model, cr_expressions[(l,j,i)] >= -ub)
-            # JuMP.@constraint(pm.model, cr_expressions[(l,j,i)] <= ub)
-
-            # JuMP.set_lower_bound(cr[(l,i,j)], -ub)
-            # JuMP.set_upper_bound(cr[(l,i,j)],  ub)
-
-            # JuMP.set_lower_bound(cr[(l,j,i)], -ub)
-            # JuMP.set_upper_bound(cr[(l,j,i)],  ub)
-        end
-    end
-    # end
-
-    cr = _PMs.var(pm, nw)[:cr] = cr_expressions
-    # JuMP.@variable(pm.model,
-    # [(l,i,j) in ref(pm, nw, :arcs)], base_name="$(nw)_cr",
-    # start = comp_start_value(ref(pm, nw, :branch, l), "cr_start")
-    # )
-
-
-    report && _IMs.sol_component_value_edge(pm, _PMs.pm_it_sym, nw, :branch, :cr_fr, :cr_to, _PMs.ref(pm, nw, :arcs_from), _PMs.ref(pm, nw, :arcs_to), cr)
-end
-
-"variable: `ci[l,i,j]` for `(l,i,j)` in `arcs`"
-function expression_variable_branch_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
-    ci_expressions = Dict()
-
-    # if bounded
-    bus = _PMs.ref(pm, nw, :bus)
-    branch = _PMs.ref(pm, nw, :branch)
-
-    for (l,i,j) in _PMs.ref(pm, nw, :arcs_from)
-        b = branch[l]
-
-        vr_fr = _PMs.var(pm, nw, :vr, i)
-        vi_fr = _PMs.var(pm, nw, :vi, i)
-    
-        vr_to = _PMs.var(pm, nw, :vr, j)
-        vi_to = _PMs.var(pm, nw, :vi, j)
-    
-        csr_fr = _PMs.var(pm, nw, :csr, l)
-        csi_fr = _PMs.var(pm, nw, :csi, l)
-
-        tm = b["tap"]
-        tr, ti = _PMs.calc_branch_t(b)
-
-        g_sh_fr = b["g_fr"]
-        b_sh_fr = b["b_fr"]
-
-        g_sh_to = b["g_to"]
-        b_sh_to = b["b_to"]
-        
-
-        # JuMP.@constraint(pm.model, cr_fr == (tr*csr_fr - ti*csi_fr + g_sh_fr*vr_fr - b_sh_fr*vi_fr)/tm^2)
-        # JuMP.@constraint(pm.model, ci_fr == (tr*csi_fr + ti*csr_fr + g_sh_fr*vi_fr + b_sh_fr*vr_fr)/tm^2)
-
-        # JuMP.@constraint(pm.model, cr_to == csr_to + g_sh_to*vr_to - b_sh_to*vi_to)
-        # JuMP.@constraint(pm.model, ci_to == csi_to + g_sh_to*vi_to + b_sh_to*vr_to)
-
-        ci_expressions[(l,i,j)] = (tr*csi_fr + ti*csr_fr + g_sh_fr*vi_fr + b_sh_fr*vr_fr)/tm^2
-        ci_expressions[(l,j,i)] = -csi_fr + g_sh_to*vi_to + b_sh_to*vr_to
-
-        ub = Inf
-        if haskey(b, "rate_a")
-            rate_fr = b["rate_a"]*b["tap"]
-            rate_to = b["rate_a"]
-            ub = max(rate_fr/bus[i]["vmin"], rate_to/bus[j]["vmin"])
-        end
-        if haskey(b, "c_rating_a")
-            ub = b["c_rating_a"]
-        end
-
-        if !isinf(ub)
-            # JuMP.@constraint(pm.model, ci_expressions[(l,i,j)] >= -ub)
-            # JuMP.@constraint(pm.model, ci_expressions[(l,i,j)] <= ub)
-
-            # JuMP.@constraint(pm.model, ci_expressions[(l,j,i)] >= -ub)
-            # JuMP.@constraint(pm.model, ci_expressions[(l,j,i)] <= ub)
-
-            # JuMP.set_lower_bound(cr[(l,i,j)], -ub)
-            # JuMP.set_upper_bound(cr[(l,i,j)],  ub)
-
-            # JuMP.set_lower_bound(cr[(l,j,i)], -ub)
-            # JuMP.set_upper_bound(cr[(l,j,i)],  ub)
-        end
-    end
-    # end
-
-    ci = _PMs.var(pm, nw)[:ci] = ci_expressions
-    # JuMP.@variable(pm.model,
-    # [(l,i,j) in ref(pm, nw, :arcs)], base_name="$(nw)_cr",
-    # start = comp_start_value(ref(pm, nw, :branch, l), "cr_start")
-    # )
-
-
-    report && _IMs.sol_component_value_edge(pm, _PMs.pm_it_sym, nw, :branch, :ci_fr, :ci_to, _PMs.ref(pm, nw, :arcs_from), _PMs.ref(pm, nw, :arcs_to), ci)
 end
