@@ -47,6 +47,7 @@ This code has been developed at KU Leuven (University of Leuven). The primary
 developer is Tom Van Acker ([@timmyfaraday](https://github.com/timmyfaraday)), 
 with support from the following contributors:
 - Arpan Koirala ([@arpkoirala](https://github.com/arpkoirala)), KU Leuven, ACR formulation
+- Frederik Geth ([@frederikgeth](https://github.com/frederikgeth)), CSIRO, reduced IVR formulation
 
 ## License
 
