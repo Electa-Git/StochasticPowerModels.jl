@@ -207,7 +207,7 @@ function constraint_branch_series_current_squared_cc_limit(pm::AbstractIVRModel,
     # chance constraint bound
     JuMP.@constraint(pm.model,  _PCE.var(css,T2)
                                 <=
-                                ((imax^2 - _PCE.mean(css,mop)) / λmax)^2
+                                ((imax^2 - _PCE.mean(css, mop)) / λmax)^2
                     )
 end
 

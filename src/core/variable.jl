@@ -15,8 +15,8 @@ function variable_bus_voltage_squared(pm::AbstractPowerModel; nw::Int=nw_id_defa
 
     if bounded
         for (i, bus) in _PMs.ref(pm, nw, :bus)
-            JuMP.set_lower_bound(vs[i], -2.0 * bus["vmax"])
-            JuMP.set_upper_bound(vs[i],  2.0 * bus["vmax"])
+            JuMP.set_lower_bound(vs[i], -2.0 * bus["vmax"]^2)
+            JuMP.set_upper_bound(vs[i],  2.0 * bus["vmax"]^2)
         end
     end
     
