@@ -14,8 +14,9 @@ uncertainty in Steady-State Power Network Optimization.
 ## Core Network Formulation
 
 - PowerModels.jl Formulation
-    - IVR
     - ACR
+    - IVR
+    - reduced IVR
 
 ## Core Stochastic Specification
 
