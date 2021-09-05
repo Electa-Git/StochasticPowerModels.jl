@@ -3,7 +3,7 @@
 %%%%    IEEE PES Power Grid Library - Optimal Power Flow - v19.01     %%%%%
 %%%%          (https://github.com/power-grid-lib/pglib-opf)           %%%%%
 %%%%               Benchmark Group - Typical Operations               %%%%%
-%%%%                         4 - Sep - 2021                         %%%%%
+%%%%                         04 - Sep - 2021                          %%%%%
 %%%%                                                                  %%%%%
 %%%%   The file has been extended for the purpose of stochastic OPF.  %%%%%
 %%%%                                                                  %%%%%
