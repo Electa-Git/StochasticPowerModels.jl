@@ -6,6 +6,34 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
+"expected cost of active power generation"
+function objective_min_expected_generation_cost(pm::AbstractPowerModel; kwargs...)
+    gen_cost = Dict()
+
+    T2 = pm.data["T2"]
+
+    for (g, gen) in _PMs.ref(pm, :gen, nw=1)
+        pg = Dict(nw => _PMs.var(pm, nw, :pg, g) for nw in _PMs.nw_ids(pm))
+
+        if length(gen["cost"]) == 1
+            gen_cost[g] = gen["cost"][1]
+        elseif length(gen["cost"]) == 2
+            gen_cost[g] = gen["cost"][1]*pg[1] + 
+                          gen["cost"][2]
+        elseif length(gen["cost"]) == 3
+            gen_cost[g] = gen["cost"][1]*sum(T2.get([n-1,n-1]) * pg[n]^2 for n in _PMs.nw_ids(pm)) + 
+                          gen["cost"][2]*pg[1] + 
+                          gen["cost"][3]
+        else
+            gen_cost[g] = 0.0
+        end
+    end
+
+    return JuMP.@objective(pm.model, Min,
+            sum(gen_cost[g] for g in _PMs.ids(pm, :gen, nw=1))
+    )
+end
+
 ""
 function objective_min_expected_fuel_cost(pm::AbstractPowerModel; kwargs...)
     model = _PMs.check_gen_cost_models(pm)
@@ -99,7 +127,7 @@ function _objective_min_fuel_cost_polynomial_nl(pm::AbstractPowerModel, mop; rep
     return JuMP.@NLobjective(pm.model, Min,
         sum(gen_cost[g] for g in _PMs.ids(pm, :gen))
     )
-end
+end 
 
 "only for 2nd degree/ square termed to be checked"
 function _objective_min_fuel_cost_poly_based(pm::AbstractPowerModel; report::Bool=true)
