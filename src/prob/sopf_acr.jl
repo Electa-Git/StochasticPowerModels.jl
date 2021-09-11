@@ -79,6 +79,7 @@ function build_sopf_acr(pm::AbstractPowerModel)
     #     constraint_dcline_current_squared_cc_limit(pm, d)
     # end
 
-    objective_min_expected_fuel_cost(pm) 
+    objective_min_expected_generation_cost(pm)
+    #objective_min_expected_fuel_cost(pm) 
     #objective_min_fuel_cost_poly(pm)                                      # needs to be implemented, based on final polynomial.
 end

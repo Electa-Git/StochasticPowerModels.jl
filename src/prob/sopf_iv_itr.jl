@@ -9,7 +9,7 @@
 ################################################################################
 
 ""
-function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_iter::Int=10, time_limit::Float64=3600.0, kwargs...)
+function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_iter::Int=5, time_limit::Float64=3600.0, kwargs...)
     Memento.info(_LOGGER, "maximum iterations set to value of $max_iter")
 
     # build the stochastic data
@@ -226,4 +226,3 @@ function build_sopf_iv_unc(pm::AbstractPowerModel)
 
     objective_min_expected_generation_cost(pm)
 end
-
