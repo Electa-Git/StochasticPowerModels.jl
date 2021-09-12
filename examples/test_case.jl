@@ -18,11 +18,11 @@ const _SPM = StochasticPowerModels
 
 # data
 deg  = 1
-path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case3.m") #0_spm_muhlpfordt
+path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case30_spm_muhlpfordt.m") 
 data = _PMs.parse_file(path)
 
 # initialize solver
-solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer)#, "print_level" => 0)
+solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0)
 
 # solve problem
 result_stc = run_sopf_iv(data, _PMs.IVRPowerModel, solver, deg = deg)
@@ -34,5 +34,5 @@ result_red = _SPM.run_sopf_iv_reduced(data, _PMs.IVRPowerModel, solver, deg = de
 (result_dtr, result_itr) = run_sopf_iv_itr(data, _PMs.IVRPowerModel, solver, deg = deg);
 
 # assert
-@assert isapprox(result_stc["objective"], result_red["objective"], rtol=1e-4)
-@assert isapprox(result_stc["objective"], result_itr["objective"], rtol=1e-4)
+@assert isapprox(result_stc["objective"], result_red["objective"], rtol=1e-6)
+@assert isapprox(result_stc["objective"], result_itr["objective"], rtol=1e-6)
