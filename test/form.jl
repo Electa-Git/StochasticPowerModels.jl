@@ -8,26 +8,38 @@
 
 @testset "Formulations" begin 
 
-    @testset "ACR vs IVR" begin
+    @testset "ACR vs IVR (deg=1)" begin
+        # Example from: Chance-constrained ac optimal power flow: A polynomial 
+        # chaos approach (p. 8)
+
         # data
-        path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case3_spm.m")
+        path = joinpath(_SPM.BASE_DIR, "test/data/matpower/case30_spm_muhlpfordt.m")
         data = _PMs.parse_file(path)
-    
+
         # solve problem
-        result_acr = run_sopf_acr(data, _PMs.ACRPowerModel, ipopt_solver, deg = 1)
-        result_ivr = run_sopf_iv(data, _PMs.IVRPowerModel, ipopt_solver, deg = 1)
+        result_ivr = run_sopf_iv(data, _PMs.IVRPowerModel, ipopt_solver, deg=1)
+        result_acr = run_sopf_acr(data, _PMs.ACRPowerModel, ipopt_solver, deg=1)
 
-        sol_acr = result_acr["solution"]["nw"]
-        sol_ivr = result_ivr["solution"]["nw"]
-        bus_vs_acr = [[sol_acr["$nw"]["bus"]["$nb"]["vs"] for nw in 1:4] for nb in 1:3]
-        bus_vs_ivr = [[sol_ivr["$nw"]["bus"]["$nb"]["vs"] for nw in 1:4] for nb in 1:3]
+        # test
+        @test isapprox(result_ivr["objective"], 599.35, rtol=1e-4)
+        @test isapprox(result_acr["objective"], 599.35, rtol=1e-4)
+    end
 
-        @test all(isapprox.(bus_vs_acr[1], bus_vs_ivr[1], atol=1e-6))
-        @test all(isapprox.(bus_vs_acr[2], bus_vs_ivr[2], atol=1e-6))
-        @test all(isapprox.(bus_vs_acr[3], bus_vs_ivr[3], atol=1e-6))
+    @testset "ACR vs IVR (deg=2)" begin
+        # Example from: Chance-constrained ac optimal power flow: A polynomial 
+        # chaos approach (p. 8)
 
-        @test isapprox(result_acr["objective"], result_ivr["objective"], rtol=1e-6)
+        # data
+        path = joinpath(_SPM.BASE_DIR, "test/data/matpower/case30_spm_muhlpfordt.m")
+        data = _PMs.parse_file(path)
 
+        # solve problem
+        result_ivr = run_sopf_iv(data, _PMs.IVRPowerModel, ipopt_solver, deg=2)
+        result_acr = run_sopf_acr(data, _PMs.ACRPowerModel, ipopt_solver, deg=2)
+
+        # test
+        @test isapprox(result_ivr["objective"], 599.35, rtol=1e-4)
+        @test isapprox(result_acr["objective"], 599.35, rtol=1e-4)
     end
 
     @testset "IVR vs reduced IVR" begin
@@ -51,5 +63,5 @@
         @test isapprox(result_ivr["objective"], result_red["objective"], rtol=1e-6)
 
     end
-
+    
 end
