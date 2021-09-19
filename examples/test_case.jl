@@ -22,10 +22,10 @@ path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case30_spm_muhlpfordt.m")
 data = _PMs.parse_file(path)
 
 # initialize solver
-solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0)
+solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer)
 
 # solve problem
-result_stc = run_sopf_iv(data, _PMs.IVRPowerModel, solver, deg = deg)
+result_stc = run_sopf_iv(data, _PMs.IVRPowerModel, solver, aux=false, deg = deg)
     
 # solve reduced problem 
 result_red = _SPM.run_sopf_iv_reduced(data, _PMs.IVRPowerModel, solver, deg = deg)

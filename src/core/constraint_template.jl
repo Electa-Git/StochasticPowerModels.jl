@@ -215,6 +215,20 @@ end
 
 # chance constraint limit
 ""
+function constraint_bus_voltage_cc_limit(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+    vmin = _PMs.ref(pm, nw, :bus, i, "vmin")
+    vmax = _PMs.ref(pm, nw, :bus, i, "vmax")
+    
+    λmin = _PMs.ref(pm, nw, :bus, i, "λvmin")
+    λmax = _PMs.ref(pm, nw, :bus, i, "λvmax")
+    
+    T2 = pm.data["T2"]
+    T4 = pm.data["T4"]
+
+    constraint_bus_voltage_cc_limit(pm, i, vmin, vmax, λmin, λmax, T2, T4)
+end
+
+""
 function constraint_bus_voltage_squared_cc_limit(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     vmin = _PMs.ref(pm, nw, :bus, i, "vmin")
     vmax = _PMs.ref(pm, nw, :bus, i, "vmax")
@@ -226,6 +240,17 @@ function constraint_bus_voltage_squared_cc_limit(pm::AbstractPowerModel, i::Int;
     mop = pm.data["mop"]
 
     constraint_bus_voltage_squared_cc_limit(pm, i, vmin, vmax, λmin, λmax, T2, mop)
+end
+
+""
+function constraint_branch_series_current_cc_limit(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
+    cmax = _PMs.ref(pm, nw, :branch, b, "cmax")
+    λmax = _PMs.ref(pm, nw, :branch, b, "λcmax")
+    
+    T2 = pm.data["T2"]
+    T4 = pm.data["T4"]
+
+    constraint_branch_series_current_cc_limit(pm, b, cmax, λmax, T2, T4)
 end
 
 ""

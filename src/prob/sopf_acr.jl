@@ -74,7 +74,6 @@ function build_sopf_acr(pm::AbstractPowerModel)
 
     end
     
-   
     # for d in _PMs.ids(pm, :dcline)                                                 # needs to be implemented, similar to constraint_branch_series_current_squared_cc_limit
     #     constraint_dcline_current_squared_cc_limit(pm, d)
     # end
