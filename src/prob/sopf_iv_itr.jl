@@ -9,7 +9,7 @@
 ################################################################################
 
 ""
-function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_iter::Int=10, time_limit::Float64=3600.0, kwargs...)
+function run_sopf_iv_itr(data, model_constructor, optimizer; aux::Bool=true, deg::Int=1, max_iter::Int=10, time_limit::Float64=3600.0, kwargs...)
     Memento.info(_LOGGER, "maximum iterations set to value of $max_iter")
 
     # build the stochastic data
@@ -26,7 +26,11 @@ function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_ite
     dtr_result = _PMs.optimize_model!(dtr_pm, optimizer=optimizer)
 
     # instantiate the unconstrained stochastic opf
-    stc_pm = _PMs.instantiate_model(sdata, model_constructor, build_sopf_iv_unc)
+    if aux
+        stc_pm = _PMs.instantiate_model(sdata, model_constructor, build_sopf_iv_unc_with_aux)
+    else
+        stc_pm = _PMs.instantiate_model(sdata, model_constructor, build_sopf_iv_unc_without_aux)
+    end
 
     # add the initial bounds based on the deterministic solution
     for (ng, gen) in data["gen"] if !in(ng, cnstr_gen)
@@ -55,17 +59,25 @@ function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_ite
 
         vm = abs(vr + im * vi)
 
-        vs  = [_PMs.var(stc_pm, nw, :vs, bus_id) for nw in _PMs.nw_ids(stc_pm)]
-
         if isapprox(vmin, vm, rtol=1e-6) || isapprox(vm, vmax, rtol=1e-6) 
             violated = true
             push!(cnstr_bus, nb)
 
-            JuMP.unfix.(vs)
-            for (n, network) in _PMs.nws(stc_pm)
-                constraint_gp_bus_voltage_squared(stc_pm, bus_id, nw=n)
+            if aux
+                for nw in _PMs.nw_ids(stc_pm)
+                    JuMP.unfix(_PMs.var(stc_pm, nw, :vs, bus_id))
+                end
+                
+                for (n, network) in _PMs.nws(stc_pm)
+                    constraint_gp_bus_voltage_squared(stc_pm, bus_id, nw=n)
+                end
+                constraint_bus_voltage_squared_cc_limit(stc_pm, bus_id, nw=1)
+            else
+                JuMP.unfix(_PMs.var(stc_pm, nw_id_default, :ve, bus_id))
+                JuMP.unfix(_PMs.var(stc_pm, nw_id_default, :vv, bus_id))
+
+                constraint_bus_voltage_cc_limit(stc_pm, bus_id, nw=nw_id_default)
             end
-            constraint_bus_voltage_squared_cc_limit(stc_pm, bus_id, nw=1)
         end
     end end
     for (nb, branch) in data["branch"] if !in(nb, cnstr_branch)
@@ -77,22 +89,30 @@ function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_ite
 
         csm = abs(csr + im * csi)
 
-        css  = Dict(nw => _PMs.var(stc_pm, nw, :css, branch_id) for nw in _PMs.nw_ids(stc_pm))
-
         if isapprox(csm, cmax, rtol=1e-6) 
             violated = true
             push!(cnstr_branch, nb)
 
-            JuMP.unfix.(css)
-            for (n, network) in _PMs.nws(stc_pm)
-                constraint_gp_branch_series_current_squared(stc_pm, branch_id, nw=n)
+            if aux
+                for nw in _PMs.nw_ids(stc_pm)
+                    JuMP.unfix(_PMs.var(stc_pm, nw, :css, branch_id))
+                end
+
+                for (n, network) in _PMs.nws(stc_pm)
+                    constraint_gp_branch_series_current_squared(stc_pm, branch_id, nw=n)
+                end
+                constraint_branch_series_current_squared_cc_limit(stc_pm, branch_id, nw=nw_id_default)
+            else
+                JuMP.unfix(_PMs.var(stc_pm, nw_id_default, :cse, branch_id))
+                JuMP.unfix(_PMs.var(stc_pm, nw_id_default, :csv, branch_id))
+
+                constraint_branch_series_current_cc_limit(stc_pm, branch_id, nw=nw_id_default)
             end
-            constraint_branch_series_current_squared_cc_limit(stc_pm, branch_id, nw=1)
         end
     end end
 
     # solve the stochastic opf
-    @time stc_result = _PMs.optimize_model!(stc_pm, optimizer=optimizer)
+    stc_result = _PMs.optimize_model!(stc_pm, optimizer=optimizer)
 
     while iter <= max_iter && (time() - start_time) < time_limit
         violated = false
@@ -131,17 +151,25 @@ function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_ite
     
             vm = abs.(vr .+ im .* vi)
     
-            vs  = [_PMs.var(stc_pm, nw, :vs, bus_id) for nw in _PMs.nw_ids(stc_pm)]
-    
             if vmin > var_min(vm, λvmin) || var_max(vm, λvmax) > vmax
                 violated = true
                 push!(cnstr_bus, nb)
     
-                JuMP.unfix.(vs)
-                for (n, network) in _PMs.nws(stc_pm)
-                    constraint_gp_bus_voltage_squared(stc_pm, bus_id, nw=n)
+                if aux
+                    for nw in _PMs.nw_ids(stc_pm)
+                        JuMP.unfix(_PMs.var(stc_pm, nw, :vs, bus_id))
+                    end
+                    
+                    for (n, network) in _PMs.nws(stc_pm)
+                        constraint_gp_bus_voltage_squared(stc_pm, bus_id, nw=n)
+                    end
+                    constraint_bus_voltage_squared_cc_limit(stc_pm, bus_id, nw=1)
+                else
+                    JuMP.unfix(_PMs.var(stc_pm, nw_id_default, :ve, bus_id))
+                    JuMP.unfix(_PMs.var(stc_pm, nw_id_default, :vv, bus_id))
+    
+                    constraint_bus_voltage_cc_limit(stc_pm, bus_id, nw=nw_id_default)
                 end
-                constraint_bus_voltage_squared_cc_limit(stc_pm, bus_id, nw=1)
             end
         end end
         for (nb, branch) in data["branch"] if !in(nb, cnstr_branch)
@@ -156,24 +184,32 @@ function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_ite
     
             csm = abs.(csr .+ im .* csi)
 
-            css = [_PMs.var(stc_pm, nw, :css, branch_id) for nw in _PMs.nw_ids(stc_pm)]
-    
             if var_max(csm, λcmax) > cmax 
                 violated = true
                 push!(cnstr_branch, nb)
     
-                JuMP.unfix.(css)
-                for (n, network) in _PMs.nws(stc_pm)
-                    constraint_gp_branch_series_current_squared(stc_pm, branch_id, nw=n)
+                if aux
+                    for nw in _PMs.nw_ids(stc_pm)
+                        JuMP.unfix(_PMs.var(stc_pm, nw, :css, branch_id))
+                    end
+    
+                    for (n, network) in _PMs.nws(stc_pm)
+                        constraint_gp_branch_series_current_squared(stc_pm, branch_id, nw=n)
+                    end
+                    constraint_branch_series_current_squared_cc_limit(stc_pm, branch_id, nw=nw_id_default)
+                else
+                    JuMP.unfix(_PMs.var(stc_pm, nw_id_default, :cse, branch_id))
+                    JuMP.unfix(_PMs.var(stc_pm, nw_id_default, :csv, branch_id))
+    
+                    constraint_branch_series_current_cc_limit(stc_pm, branch_id, nw=nw_id_default)
                 end
-                constraint_branch_series_current_squared_cc_limit(stc_pm, branch_id, nw=1)
             end
         end end
 
         violated || break
 
         # solve the stochastic opf
-        @time stc_result = _PMs.optimize_model!(stc_pm, optimizer=optimizer)
+        stc_result = _PMs.optimize_model!(stc_pm, optimizer=optimizer)
 
         iter += 1
     end
@@ -188,11 +224,11 @@ function run_sopf_iv_itr(data, model_constructor, optimizer; deg::Int=1, max_ite
 end
 
 ""
-function build_sopf_iv_unc(pm::AbstractPowerModel)
+function build_sopf_iv_unc_with_aux(pm::AbstractPowerModel)
     for (n, network) in _PMs.nws(pm) 
-        variable_bus_voltage(pm, nw=n, aux_fix=true)
+        variable_bus_voltage(pm, nw=n, aux=true, aux_fix=true)
 
-        variable_branch_current(pm, nw=n, aux_fix=true)
+        variable_branch_current(pm, nw=n, aux=true, aux_fix=true)
 
         variable_gen_power(pm, nw=n, bounded=false) # enforcing bounds makes problem infeasible
         variable_gen_current(pm, nw=n, bounded=false) # enforcing bounds alters the objective 
@@ -224,6 +260,46 @@ function build_sopf_iv_unc(pm::AbstractPowerModel)
         end
     end
 
-    objective_min_expected_fuel_cost(pm)
+    objective_min_expected_generation_cost(pm)
+end
+
+""
+function build_sopf_iv_unc_without_aux(pm::AbstractPowerModel)
+    for (n, network) in _PMs.nws(pm) 
+        variable_bus_voltage(pm, nw=n, aux=false, aux_fix=true)
+
+        variable_branch_current(pm, nw=n, aux=false, aux_fix=true)
+
+        variable_gen_power(pm, nw=n, bounded=false) # enforcing bounds makes problem infeasible
+        variable_gen_current(pm, nw=n, bounded=false) # enforcing bounds alters the objective 
+        variable_load_current(pm, nw=n)
+    end
+
+    for (n, network) in _PMs.nws(pm)
+        for i in _PMs.ids(pm, :ref_buses, nw=n)
+            constraint_bus_voltage_ref(pm, i, nw=n)
+        end
+
+        for i in _PMs.ids(pm, :bus, nw=n)
+            constraint_current_balance(pm, i, nw=n)
+        end
+
+        for b in _PMs.ids(pm, :branch, nw=n)
+            _PMs.constraint_current_from(pm, b, nw=n)
+            _PMs.constraint_current_to(pm, b, nw=n)
+
+            _PMs.constraint_voltage_drop(pm, b, nw=n)
+        end
+
+        for g in _PMs.ids(pm, :gen, nw=n) 
+            constraint_gp_gen_power(pm, g, nw=n) 
+        end
+
+        for l in _PMs.ids(pm, :load, nw=n)
+            constraint_gp_load_power(pm, l, nw=n)
+        end
+    end
+
+    objective_min_expected_generation_cost(pm)
 end
 
