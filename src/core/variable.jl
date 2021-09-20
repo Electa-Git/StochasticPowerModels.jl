@@ -197,7 +197,9 @@ function variable_branch_series_current_expectation(pm::AbstractPowerModel; nw::
     )
 
     if bounded
-
+        for l in _PMs.ids(pm, nw, :branch)
+                JuMP.set_lower_bound(cse[l], 0.0)
+        end
     end
 
     if aux_fix
@@ -216,7 +218,9 @@ function variable_branch_series_current_variance(pm::AbstractPowerModel; nw::Int
     )
 
     if bounded
-
+        for l in _PMs.ids(pm, nw, :branch)
+                JuMP.set_lower_bound(csv[l], 0.0)
+        end
     end
 
     if aux_fix
