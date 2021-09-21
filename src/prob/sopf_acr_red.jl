@@ -9,14 +9,14 @@
 ################################################################################
 
 ""
-function run_sopf_acr(data, model_constructor::Type, optimizer; deg::Int=1, kwargs...)
+function run_sopf_acr_reduced(data, model_constructor::Type, optimizer; deg::Int=1, kwargs...)
     sdata = build_stochastic_data(data, deg)
     
-    return _PMs.run_model(sdata, model_constructor, optimizer, build_sopf_acr; multinetwork=true, kwargs...)
+    return _PMs.run_model(sdata, model_constructor, optimizer, build_sopf_acr_reduced; multinetwork=true, kwargs...)
 end
 
 ""
-function build_sopf_acr(pm::AbstractPowerModel)
+function build_sopf_acr_reduced(pm::AbstractPowerModel)
     for (n, network) in _PMs.nws(pm) 
         variable_bus_voltage(pm, nw=n)
         variable_gen_power(pm, nw=n, bounded=false)
@@ -41,7 +41,7 @@ function build_sopf_acr(pm::AbstractPowerModel)
     for (n, network) in _PMs.nws(pm)
 
         for i in _PMs.ids(pm, :ref_buses, nw=n)
-           constraint_theta_ref(pm, i, nw=n)
+           #constraint_theta_ref(pm, i, nw=n)
         end
 
         for i in _PMs.ids(pm, :bus, nw=n)
@@ -52,17 +52,18 @@ function build_sopf_acr(pm::AbstractPowerModel)
         end
 
         for b in _PMs.ids(pm, :branch, nw=n)
-            constraint_gp_power_branch_to(pm, b, nw=n)
-            constraint_gp_power_branch_from(pm, b, nw=n)
-            
+            #constraint_gp_power_branch_to(pm, b, nw=n)
+            #constraint_gp_power_branch_from(pm, b, nw=n)
+            constraint_gp_power_branch_to_simplified(pm, b, nw=n)
+            constraint_gp_power_branch_from_simplified(pm, b, nw=n)
             constraint_branch_voltage(pm, b, nw=n)
             constraint_gp_current_squared(pm, b, nw=n) 
            
             
                 
             #following are simplified only g and based in Tillemans paper; but apparantly not working
-                #constraint_gp_power_branch_to_simplified(pm, b, nw=n)
-                #constraint_gp_power_branch_from_simplified(pm, b, nw=n)
+            #reduces the shunt currents
+            
             
         end
 

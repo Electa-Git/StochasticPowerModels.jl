@@ -40,7 +40,7 @@ function variable_gen_power(pm::AbstractACRModel; nw::Int=nw_id_default, bounded
     _PMs.variable_gen_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 end
 
-"real power gen/ my trial to add variables only when pmax>0/ not working now"
+"real power gen"
 function variable_gen_power_real(pm::AbstractACRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     for g in _PMs.ids(pm, nw, :gen)
         pmin = _PMs.ref(pm, nw, :gen, g, "pmin")
@@ -289,7 +289,7 @@ function constraint_gp_power_branch_to(pm::AbstractACRModel, n::Int,f_bus, t_bus
    end
    
 "As given by Tillemans; apprantly not working"
-function constraint_gp_power_branch_from_simplified(pm::AbstractACRModel, n::Int,f_bus, t_bus, f_idx, t_idx, g, b, g_fr, b_fr, tr, ti, tm, T2, T3)
+function constraint_gp_power_branch_from_simplified(pm::AbstractACRModel, n::Int,f_bus, t_bus, f_idx, t_idx, g, b, T2, T3)
 ## simplified  without shunt and taps
     vr_fr = Dict(nw => _PMs.var(pm, nw, :vr, f_bus) for nw in _PMs.nw_ids(pm))
     vr_to = Dict(nw => _PMs.var(pm, nw, :vr, t_bus) for nw in _PMs.nw_ids(pm))
@@ -299,18 +299,18 @@ function constraint_gp_power_branch_from_simplified(pm::AbstractACRModel, n::Int
     JuMP.@constraint(pm.model,
         _PMs.var(pm, n, :p)[f_idx]* T2.get([n-1,n-1])
         ==
-        sum( (g*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + b*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2])) *
+        sum( #(g*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + b*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2])) *
         T3.get([n1-1,n2-1,n-1])
-        #g*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + b*(vi_fr[n1]*vi_to[n2] - vr_fr[n1]*vi_to[n2])
+        * ((g)*(vr_fr[n1]*vr_fr[n2] + vi_fr[n1]*vi_fr[n2]) + (-g)*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + (-b)*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2]))
         for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
     )
 
     JuMP.@constraint(pm.model,
     _PMs.var(pm, n, :q)[f_idx]*T2.get([n-1,n-1])
                     ==
-                    sum( (g*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2]) - (b)*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) ) *
+                    sum( #(g*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2]) - (b)*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) ) *
                     T3.get([n1-1,n2-1,n-1])
-                    #g*(vi_fr[n1]*vi_to[n2] - vr_fr[n1]*vi_to[n2]) - (b)*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2])
+                    *(-(b)*(vr_fr[n1]*vr_fr[n2] + vi_fr[n1]*vi_fr[n2]) - (-b)*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + (-g)*(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2]) )
                         for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm) )
                             )
 end
@@ -318,8 +318,8 @@ end
 
 
 
-"As given by Tillemans; apprantly not working"
-function constraint_gp_power_branch_to_simplified(pm::AbstractACRModel, n::Int,f_bus, t_bus, f_idx, t_idx, g, b, g_to, b_to, tr, ti, tm, T2, T3)
+"As given by Tillemans"
+function constraint_gp_power_branch_to_simplified(pm::AbstractACRModel, n::Int,f_bus, t_bus, f_idx, t_idx, g, b, T2, T3)
 #simplified without shunt and taps
     vr_fr = Dict(nw => _PMs.var(pm, nw, :vr, f_bus) for nw in _PMs.nw_ids(pm))
     vr_to = Dict(nw => _PMs.var(pm, nw, :vr, t_bus) for nw in _PMs.nw_ids(pm))
@@ -329,18 +329,19 @@ function constraint_gp_power_branch_to_simplified(pm::AbstractACRModel, n::Int,f
     JuMP.@constraint(pm.model,
         _PMs.var(pm, n, :p)[t_idx]* T2.get([n-1,n-1])
         ==
-        sum( (g * ( vr_to[n1]*vr_fr[n2] + vi_to[n1]*vi_fr[n2] ) + b*  (vi_to[n1]*vr_fr[n2] - vr_to[n1]*vi_fr[n2]) ) *
+        sum( #(g * ( vr_to[n1]*vr_fr[n2] + vi_to[n1]*vi_fr[n2] ) + b*  (vi_to[n1]*vr_fr[n2] - vr_to[n1]*vi_fr[n2]) ) *
         T3.get([n1-1,n2-1,n-1])
-        #g*(vr_to[n1]*vr_fr[n2] + vi_to[n1]*vi_fr[n2]) + b*(vi_to[n1]*vi_fr[n2] - vr_to[n1]*vi_fr[n2])
+        *  ((g)*(vr_to[n1]*vr_to[n2] + vi_to[n1]*vi_to[n2]) + (-g)*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + (-b)*(-(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2])))
+            
             for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
-    )
+            )
 
     JuMP.@constraint(pm.model,
     _PMs.var(pm, n, :q)[t_idx]*T2.get([n-1,n-1])
                     ==
-                    sum( (g*(vi_to[n1]*vr_fr[n2] - vr_to[n1]*vi_fr[n2]) - (b)*(vr_to[n1]*vr_fr[n2] + vi_to[n1]*vi_fr[n2])) *
+                    sum( #(g*(vi_to[n1]*vr_fr[n2] - vr_to[n1]*vi_fr[n2]) - (b)*(vr_to[n1]*vr_fr[n2] + vi_to[n1]*vi_fr[n2])) *
                     T3.get([n1-1,n2-1,n-1])
-                    #g*(vi_to[n1]*vi_fr[n2] - vr_to[n1]*vi_fr[n2]) - (b)*(vr_to[n1]*vr_fr[n2] + vi_to[n1]*vi_fr[n2])
+                    *(-(b)*(vr_to[n1]*vr_to[n2] + vi_to[n1]*vi_to[n2]) - (-b)*(vr_fr[n1]*vr_to[n2] + vi_fr[n1]*vi_to[n2]) + (-g)*(-(vi_fr[n1]*vr_to[n2] - vr_fr[n1]*vi_to[n2])))
                         for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
                             )
 end
@@ -354,7 +355,7 @@ function constraint_bus_voltage_squared_cc_limit(pm::AbstractACRModel, i, vmin, 
     #JuMP.@constraint(pm.model,  _PCE.mean(vs, mop)>=0)
     #JuMP.@constraint(pm.model, _PCE.var(vs, T2) >= 0) 
     JuMP.@constraint(pm.model, vmin^2 <= _PCE.mean(vs, mop))
-    JuMP.@constraint(pm.model, vmax^2 >= _PCE.mean(vs, mop))
+    JuMP.@constraint(pm.model, _PCE.mean(vs, mop) <= vmax^2)
     
     #JuMP.@constraint(pm.model, _PCE.var(vs, T2)>=0) #Tillmans paper has this
     #JuMP.@constraint(pm.model, _PCE.mean(vs, mop) >=0) #Tillmans code has this bound
