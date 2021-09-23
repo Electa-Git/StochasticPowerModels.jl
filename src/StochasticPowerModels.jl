@@ -53,6 +53,7 @@ module StochasticPowerModels
     include("prob/sopf_iv.jl")
     include("prob/sopf_iv_red.jl")
     include("prob/sopf_iv_itr.jl")
+    include("prob/sopf_acr_red.jl")
 
     include("util/util.jl")
     # include("util/plot.jl")
