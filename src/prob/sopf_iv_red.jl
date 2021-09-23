@@ -62,5 +62,5 @@ function build_sopf_iv_reduced(pm::AbstractPowerModel)
         end
     end
 
-    objective_min_expected_fuel_cost(pm)
+    objective_min_expected_generation_cost(pm)
 end

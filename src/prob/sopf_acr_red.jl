@@ -9,7 +9,7 @@
 ################################################################################
 
 ""
-function run_sopf_acr_reduced(data, model_constructor::Type, optimizer;aux::Bool=true,  deg::Int=1, kwargs...)
+function run_sopf_acr_reduced(data, model_constructor::Type, optimizer; aux::Bool=true,  deg::Int=1, kwargs...)
     sdata = build_stochastic_data(data, deg)
     
     if aux
@@ -17,7 +17,6 @@ function run_sopf_acr_reduced(data, model_constructor::Type, optimizer;aux::Bool
     else
         return _PMs.run_model(sdata, model_constructor, optimizer, build_sopf_acr_reduced_without_aux; multinetwork=true, kwargs...)
     end
-
 
 end
 
@@ -89,9 +88,8 @@ function build_sopf_acr_reduced_with_aux(pm::AbstractPowerModel)
     objective_min_expected_generation_cost(pm)
     #objective_min_expected_fuel_cost(pm) 
     #objective_min_fuel_cost_poly(pm)                                      # needs to be implemented, based on final polynomial.
+
 end
-
-
 
 ""
 function build_sopf_acr_reduced_without_aux(pm::AbstractPowerModel)

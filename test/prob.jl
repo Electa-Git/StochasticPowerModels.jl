@@ -10,14 +10,14 @@
 
     @testset "IVR vs iterative IVR" begin
         # data
-        path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case3_spm.m")
+        path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case14_spm.m")
         data = _PMs.parse_file(path)
     
         # solve problem
-        result_stc = run_sopf_iv(data, _PMs.IVRPowerModel, ipopt_solver, deg = 1)
+        result_stc = run_sopf_iv(data, _PMs.IVRPowerModel, ipopt_solver, deg = 2)
     
         # solve problem iteratively
-        result_dtr, result_itr = run_sopf_iv_itr(data, _PMs.IVRPowerModel, ipopt_solver, deg = 1);
+        result_dtr, result_itr = run_sopf_iv_itr(data, _PMs.IVRPowerModel, ipopt_solver, deg = 2);
     
         # assert
         @test isapprox(result_stc["objective"], result_itr["objective"], rtol=1e-6)

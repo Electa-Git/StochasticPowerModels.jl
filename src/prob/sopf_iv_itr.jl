@@ -302,4 +302,3 @@ function build_sopf_iv_unc_without_aux(pm::AbstractPowerModel)
 
     objective_min_expected_generation_cost(pm)
 end
-

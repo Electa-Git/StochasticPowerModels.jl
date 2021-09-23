@@ -157,16 +157,16 @@ function constraint_gp_power_branch_to_simplified(pm::AbstractPowerModel, i::Int
     t_idx = (i, t_bus, f_bus)
 
     g, b = _PMs.calc_branch_y(branch)
-    tr, ti = _PMs.calc_branch_t(branch)
-    g_to = branch["g_to"]
-    b_to = branch["b_to"]
-    tm = branch["tap"]
+    #tr, ti = _PMs.calc_branch_t(branch)
+    #g_to = branch["g_to"]
+    #b_to = branch["b_to"]
+    #tm = branch["tap"]
 
     
     T2  = pm.data["T2"]
     T3  = pm.data["T3"]
 
-    constraint_gp_power_branch_to_simplified(pm, nw, f_bus, t_bus, f_idx, t_idx, g, b, g_to, b_to, tr, ti, tm, T2, T3)
+    constraint_gp_power_branch_to_simplified(pm, nw, f_bus, t_bus, f_idx, t_idx, g, b, T2, T3)
 end
 
 ""
@@ -178,15 +178,15 @@ function constraint_gp_power_branch_from_simplified(pm::AbstractPowerModel, i::I
     t_idx = (i, t_bus, f_bus)
 
     g, b = _PMs.calc_branch_y(branch)
-    tr, ti = _PMs.calc_branch_t(branch)
-    g_fr = branch["g_fr"]
-    b_fr = branch["b_fr"]
-    tm = branch["tap"]
+    #tr, ti = _PMs.calc_branch_t(branch)
+    #g_fr = branch["g_fr"]
+    #b_fr = branch["b_fr"]
+    #tm = branch["tap"]
     
     T2  = pm.data["T2"]
     T3  = pm.data["T3"]
 
-    constraint_gp_power_branch_from_simplified(pm, nw, f_bus, t_bus, f_idx, t_idx, g, b, g_fr, b_fr, tr, ti, tm, T2, T3)
+    constraint_gp_power_branch_from_simplified(pm, nw, f_bus, t_bus, f_idx, t_idx, g, b, T2, T3)
 end
 ""
 function constraint_gp_gen_power(pm::AbstractPowerModel, g::Int; nw::Int=nw_id_default)
