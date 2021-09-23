@@ -18,7 +18,7 @@ const _SPM = StochasticPowerModels
 
 # data
 deg  = 1
-aux  = false
+aux  = true
 path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case30_spm_muhlpfordt.m")
 data = _PMs.parse_file(path)
 
@@ -26,6 +26,9 @@ data = _PMs.parse_file(path)
 solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer)
 
 # solve problem
+result_stc = run_sopf_iv(data, _PMs.IVRPowerModel, solver, aux=aux, deg=deg)
+
+# solve reduced problem
 result_stc = run_sopf_iv(data, _PMs.IVRPowerModel, solver, aux=aux, deg=deg)
 
 # solve problem iteratively

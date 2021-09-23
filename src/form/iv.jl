@@ -48,7 +48,11 @@ function variable_branch_current_reduced(pm::AbstractIVRModel; nw::Int=nw_id_def
     
     if aux
         variable_branch_series_current_squared(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
-    end
+    else
+        if nw == nw_id_default
+            variable_branch_series_current_expectation(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
+            variable_branch_series_current_variance(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
+    end end
 end
 
 ""

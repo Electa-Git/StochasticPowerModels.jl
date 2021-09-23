@@ -1,5 +1,5 @@
 ################################################################################
-#  Copyright 2021, Tom Van Acker                                               #
+#  Copyright 2021, Tom Van Acker, Arpan Koirala                                #
 ################################################################################
 # StochasticPowerModels.jl                                                     #
 # An extention package of PowerModels.jl for Stochastic (Optimal) Power Flow   #
@@ -22,14 +22,14 @@ aux  = true
 path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case30_spm_muhlpfordt.m")
 data = _PMs.parse_file(path)
 
-
-#data["bus"]["1"]["vmin"]=1.0
-#data["bus"]["1"]["vmax"]=1.0
 # initialize solver
 solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer)
 
 # solve problem
-result_stc = _SPM.run_sopf_acr_reduced(data, _PMs.ACRPowerModel, solver, aux=aux, deg=deg)
+result_stc = _SPM.run_sopf_acr(data, _PMs.ACRPowerModel, solver, aux=aux, deg=deg)
+
+# solve problem
+result_red = _SPM.run_sopf_acr_reduced(data, _PMs.ACRPowerModel, solver, aux=aux, deg=deg)
 
 # solve problem iteratively
 #(result_dtr, result_itr) = run_sopf_iv_itr(data, _PMs.IVRPowerModel, solver, aux=aux, deg=deg);
