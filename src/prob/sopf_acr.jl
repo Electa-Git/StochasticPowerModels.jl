@@ -9,7 +9,7 @@
 ################################################################################
 
 ""
-function run_sopf_acr(data, model_constructor::Type, optimizer; deg::Int=1, kwargs...)
+function run_sopf_acr(data, model_constructor::Type, optimizer; aux::Bool=true,  deg::Int=1, kwargs...)
     sdata = build_stochastic_data(data, deg)
     
     return _PMs.run_model(sdata, model_constructor, optimizer, build_sopf_acr; multinetwork=true, kwargs...)
@@ -18,12 +18,12 @@ end
 ""
 function build_sopf_acr(pm::AbstractPowerModel)
     for (n, network) in _PMs.nws(pm) 
-        variable_bus_voltage(pm, nw=n, bounded=false)
+        variable_bus_voltage(pm, nw=n)
         variable_gen_power(pm, nw=n, bounded=false)
 
         variable_branch_power(pm, nw=n, bounded=false)
         variable_branch_current(pm, nw=n, bounded=false) 
-        _PMs.variable_dcline_power(pm, nw=n, bounded=false) ## TOM: Let's eliminate this for now, also from the power balance. 
+        #_PMs.variable_dcline_power(pm, nw=n, bounded=false) ## TOM: Let's eliminate this for now, also from the power balance. 
     end
 
     for i in _PMs.ids(pm, :bus,nw=1)
@@ -78,6 +78,6 @@ function build_sopf_acr(pm::AbstractPowerModel)
     #     constraint_dcline_current_squared_cc_limit(pm, d)
     # end
 
-    objective_min_expected_fuel_cost(pm) 
+    objective_min_expected_generation_cost(pm)
     #objective_min_fuel_cost_poly(pm)                                      # needs to be implemented, based on final polynomial.
 end

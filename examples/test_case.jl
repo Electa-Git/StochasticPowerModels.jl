@@ -11,25 +11,31 @@ using JuMP
 using Ipopt
 using PowerModels
 using StochasticPowerModels
-
 # constants 
 const _PMs = PowerModels
 const _SPM = StochasticPowerModels
 
 # data
-deg  = 1
+deg  = 2
 aux  = false
 path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case30_spm_muhlpfordt.m")
 data = _PMs.parse_file(path)
 
 # initialize solver
-solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer)
+solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0)
 
 # solve problem
-result_stc = run_sopf_iv(data, _PMs.IVRPowerModel, solver, aux=aux, deg=deg)
+result_stc = run_sopf_iv(data, _PMs.IVRPowerModel, solver, aux=aux, deg = deg)
+    
+# solve reduced problem 
+#result_red = _SPM.run_sopf_iv_reduced(data, _PMs.IVRPowerModel, solver, aux=aux, deg = deg)
 
+#result_acr = _SPM.run_sopf_acr(data, _PMs.ACRPowerModel, solver, aux=aux, deg = deg)
+
+result_acr_red = _SPM.run_sopf_acr_reduced(data, _PMs.ACRPowerModel, aux=aux, solver, deg = deg)
 # solve problem iteratively
-(result_dtr, result_itr) = run_sopf_iv_itr(data, _PMs.IVRPowerModel, solver, aux=aux, deg=deg);
+(result_dtr, result_itr) = run_sopf_iv_itr(data, _PMs.IVRPowerModel, solver, deg = deg);
 
 # assert
-@assert isapprox(result_stc["objective"], result_itr["objective"], rtol=1e-5)
+@assert isapprox(result_stc["objective"], result_red["objective"], rtol=1e-6)
+@assert isapprox(result_stc["objective"], result_itr["objective"], rtol=1e-6)

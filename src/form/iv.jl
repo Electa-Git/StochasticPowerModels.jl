@@ -262,7 +262,7 @@ function constraint_bus_voltage_squared_cc_limit(pm::AbstractIVRModel, i, vmin, 
 end
 
 ""
-function constraint_branch_series_current_cc_limit(pm::AbstractIVRModel, b, cmax, λmax, T2, T4)
+function constraint_branch_series_current_cc_limit(pm::AbstractIVRModel, b, cmax, λmax, T2, T4,gs,bs)
     ntws = _PMs.nw_ids(pm)
 
     cse  = _PMs.var(pm, nw_id_default, :cse, b)
