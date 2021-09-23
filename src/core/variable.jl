@@ -6,6 +6,48 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
+"variable: `ve[i]` for `i` in `bus`es"
+function variable_bus_voltage_expectation(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false)
+    ve = _PMs.var(pm, nw)[:ve] = JuMP.@variable(pm.model,
+        [i in _PMs.ids(pm, nw, :bus)], base_name="$(nw)_ve",
+        start = comp_start_value(_PMs.ref(pm, nw, :bus, i), "ve_start", 1.0)
+    )
+
+    if bounded
+        for (i, bus) in _PMs.ref(pm, nw, :bus)
+            JuMP.set_lower_bound(ve[i],  0.0)
+        end
+    end
+    
+    if aux_fix 
+        JuMP.fix.(ve, 1.0; force=true)
+    end
+
+    report && sol_component_value(pm, nw, :bus, :ve, _PMs.ids(pm, nw, :bus), ve)
+    # report && _IMs.sol_component_value(pm, nw, :bus, :vs, _PMs.ids(pm, nw, :bus), vs)
+end
+
+"variable: `vv[i]` for `i` in `bus`es"
+function variable_bus_voltage_variance(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false)
+    vv = _PMs.var(pm, nw)[:vv] = JuMP.@variable(pm.model,
+        [i in _PMs.ids(pm, nw, :bus)], base_name="$(nw)_vv",
+        start = comp_start_value(_PMs.ref(pm, nw, :bus, i), "vv_start", 1.0)
+    )
+
+    if bounded
+        for (i, bus) in _PMs.ref(pm, nw, :bus)
+            JuMP.set_lower_bound(vv[i],  0.0)
+        end
+    end
+    
+    if aux_fix 
+        JuMP.fix.(vv, 1.0; force=true)
+    end
+
+    report && sol_component_value(pm, nw, :bus, :vv, _PMs.ids(pm, nw, :bus), vv)
+    # report && _IMs.sol_component_value(pm, nw, :bus, :vs, _PMs.ids(pm, nw, :bus), vs)
+end
+
 "variable: `vs[i]` for `i` in `bus`es"
 function variable_bus_voltage_squared(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false)
     vs = _PMs.var(pm, nw)[:vs] = JuMP.@variable(pm.model,
@@ -145,6 +187,48 @@ function expression_variable_branch_current_imaginary(pm::AbstractPowerModel; nw
     end
 
     report && _IMs.sol_component_value_edge(pm, _PMs.pm_it_sym, nw, :branch, :ci_fr, :ci_to, _PMs.ref(pm, nw, :arcs_from), _PMs.ref(pm, nw, :arcs_to), ci)
+end
+
+"variable: `cse[l,i,j]` for `(l,i,j)` in `arcs_from`"
+function variable_branch_series_current_expectation(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, aux_fix::Bool=false, report::Bool=true)
+    cse = _PMs.var(pm, nw)[:cse] = JuMP.@variable(pm.model,
+        [l in _PMs.ids(pm, nw, :branch)], base_name="$(nw)_cse",
+        start = comp_start_value(_PMs.ref(pm, nw, :branch, l), "cse_start", 0.0)
+    )
+
+    if bounded
+        for l in _PMs.ids(pm, nw, :branch)
+                #JuMP.set_lower_bound(cse[l], 0.0)
+        end
+    end
+
+    if aux_fix
+        JuMP.fix.(cse, 0.0; force=true)
+    end
+
+    report && sol_component_value(pm, nw, :branch, :cse, _PMs.ids(pm, nw, :branch), cse)
+    # report && _IMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
+end
+
+"variable: `csv[l,i,j]` for `(l,i,j)` in `arcs_from`"
+function variable_branch_series_current_variance(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, aux_fix::Bool=false, report::Bool=true)
+    csv = _PMs.var(pm, nw)[:csv] = JuMP.@variable(pm.model,
+        [l in _PMs.ids(pm, nw, :branch)], base_name="$(nw)_csv",
+        start = comp_start_value(_PMs.ref(pm, nw, :branch, l), "csv_start", 0.0)
+    )
+
+    if bounded
+        for l in _PMs.ids(pm, nw, :branch)
+                JuMP.set_lower_bound(csv[l], 0.0)
+        end
+    end
+
+    if aux_fix
+        JuMP.fix.(csv, 0.0; force=true)
+    end
+
+    report && sol_component_value(pm, nw, :branch, :csv, _PMs.ids(pm, nw, :branch), csv)
+    # report && _IMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
 end
 
 "variable: `css[l,i,j]` for `(l,i,j)` in `arcs_from`"

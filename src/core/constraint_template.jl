@@ -215,6 +215,20 @@ end
 
 # chance constraint limit
 ""
+function constraint_bus_voltage_cc_limit(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+    vmin = _PMs.ref(pm, nw, :bus, i, "vmin")
+    vmax = _PMs.ref(pm, nw, :bus, i, "vmax")
+    
+    λmin = _PMs.ref(pm, nw, :bus, i, "λvmin")
+    λmax = _PMs.ref(pm, nw, :bus, i, "λvmax")
+    
+    T2 = pm.data["T2"]
+    T4 = pm.data["T4"]
+
+    constraint_bus_voltage_cc_limit(pm, i, vmin, vmax, λmin, λmax, T2, T4)
+end
+
+""
 function constraint_bus_voltage_squared_cc_limit(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     vmin = _PMs.ref(pm, nw, :bus, i, "vmin")
     vmax = _PMs.ref(pm, nw, :bus, i, "vmax")
@@ -226,6 +240,21 @@ function constraint_bus_voltage_squared_cc_limit(pm::AbstractPowerModel, i::Int;
     mop = pm.data["mop"]
 
     constraint_bus_voltage_squared_cc_limit(pm, i, vmin, vmax, λmin, λmax, T2, mop)
+end
+
+""
+function constraint_branch_series_current_cc_limit(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
+    cmax = _PMs.ref(pm, nw, :branch, b, "cmax")
+    λmax = _PMs.ref(pm, nw, :branch, b, "λcmax")
+
+    branch = _PMs.ref(pm, nw, :branch, b)
+
+    gs, bs = _PMs.calc_branch_y(branch)
+    
+    T2 = pm.data["T2"]
+    T4 = pm.data["T4"]
+
+    constraint_branch_series_current_cc_limit(pm, b, cmax, λmax, T2, T4,gs,bs)
 end
 
 ""
@@ -257,6 +286,25 @@ function constraint_gen_power_cc_limit(pm::AbstractPowerModel, g::Int; nw::Int=n
     
     constraint_gen_power_real_cc_limit(pm, g, pmin, pmax, λpmin, λpmax, T2, mop)
     constraint_gen_power_imaginary_cc_limit(pm, g, qmin, qmax, λqmin, λqmax, T2, mop)
+end
+
+""
+function constraint_gen_power_cc_limit_wo_aux(pm::AbstractPowerModel, g::Int; nw::Int=nw_id_default)
+    pmin = _PMs.ref(pm, nw, :gen, g, "pmin")
+    pmax = _PMs.ref(pm, nw, :gen, g, "pmax")
+    qmin = _PMs.ref(pm, nw, :gen, g, "qmin")
+    qmax = _PMs.ref(pm, nw, :gen, g, "qmax")
+
+    λpmin = _PMs.ref(pm, nw, :gen, g, "λpmin")
+    λpmax = _PMs.ref(pm, nw, :gen, g, "λpmax")
+    λqmin = _PMs.ref(pm, nw, :gen, g, "λqmin")
+    λqmax = _PMs.ref(pm, nw, :gen, g, "λqmax")
+
+    T2  = pm.data["T2"]
+    mop = pm.data["mop"]
+    
+    constraint_gen_power_real_cc_limit_wo_aux(pm, g, pmin, pmax, λpmin, λpmax, T2, mop)
+    #constraint_gen_power_imaginary_cc_limit(pm, g, qmin, qmax, λqmin, λqmax, T2, mop)
 end
 
 

@@ -9,7 +9,7 @@
 ################################################################################
 
 ""
-function run_sopf_acr(data, model_constructor::Type, optimizer; deg::Int=1, kwargs...)
+function run_sopf_acr(data, model_constructor::Type, optimizer; aux::Bool=true,  deg::Int=1, kwargs...)
     sdata = build_stochastic_data(data, deg)
     
     return _PMs.run_model(sdata, model_constructor, optimizer, build_sopf_acr; multinetwork=true, kwargs...)
@@ -74,12 +74,10 @@ function build_sopf_acr(pm::AbstractPowerModel)
 
     end
     
-   
     # for d in _PMs.ids(pm, :dcline)                                                 # needs to be implemented, similar to constraint_branch_series_current_squared_cc_limit
     #     constraint_dcline_current_squared_cc_limit(pm, d)
     # end
 
     objective_min_expected_generation_cost(pm)
-    #objective_min_expected_fuel_cost(pm) 
     #objective_min_fuel_cost_poly(pm)                                      # needs to be implemented, based on final polynomial.
 end

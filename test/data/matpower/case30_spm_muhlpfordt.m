@@ -35,6 +35,13 @@
 %   Contact M.E. Brennan (me.brennan@ieee.org) for inquries on further reuse of
 %   this dataset.
 %
+%	Additional modifications based on:
+%		Mühlpfordt T., Roald L., Hagenmeyer H., Faulwasser T., Misra S., "Chance-
+%		constrained ac optimal power flow: A polynomial chaos approach" IEEE 
+%		Transactions on Power Systems, Vol. 34, No. 3, 2019, pp. 4806-4816.
+%
+%	Branch parameters are rounded to the nearest 0.01
+%
 %   Notes for stochastic extension:
 %	- shunt elements are neglected
 % 	- voltage magnitude at slack bus 1 is assumed constant at one

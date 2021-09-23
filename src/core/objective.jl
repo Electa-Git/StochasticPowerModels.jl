@@ -127,7 +127,7 @@ end
 #     return JuMP.@NLobjective(pm.model, Min,
 #         sum(gen_cost[g] for g in _PMs.ids(pm, :gen))
 #     )
-# end 
+# end
 
 # "only for 2nd degree/ square termed to be checked"
 # function _objective_min_fuel_cost_poly_based(pm::AbstractPowerModel; report::Bool=true)

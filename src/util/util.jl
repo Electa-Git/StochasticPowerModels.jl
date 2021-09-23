@@ -62,6 +62,7 @@ function build_stochastic_data(data, deg)
     # add the stochastic data 
     data["T2"] = _PCE.Tensor(2,mop)
     data["T3"] = _PCE.Tensor(3,mop)
+    data["T4"] = _PCE.Tensor(4,mop)
     data["mop"] = mop
     for nw in 1:Npce, nd in 1:Nd
         data["nw"]["$nw"]["load"]["$nd"]["pd"] = pd[nd,nw]
