@@ -54,34 +54,20 @@ end
 
 
 ""
-function variable_gen_power(pm::AbstractACRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
+function variable_gen_power(pm::AbstractACRModel; nw::Int=nw_id_default, bounded::Bool=true, aux::Bool=true,aux_fix::Bool=false, report::Bool=true, kwargs...)
   
     _PMs.variable_gen_power_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     _PMs.variable_gen_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
-end
 
-"real power gen"
-function variable_gen_power_real(pm::AbstractACRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
-    for g in _PMs.ids(pm, nw, :gen)
-        pmin = _PMs.ref(pm, nw, :gen, g, "pmin")
-        pmax = _PMs.ref(pm, nw, :gen, g, "pmax")
-        if pmax > pmin
-        pg = _PMs.var(pm, nw)[:pg] = JuMP.@variable(pm.model,
-             [g], base_name="$(nw)_pg",
-            start = comp_start_value(_PMs.ref(pm, nw, :gen, g), "pg_start", 0.0)
-    )
+    if !aux
+        if nw == 1
+            #variable_gen_power_real_expectation(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
+            variable_gen_power_real_variance(pm, nw=nw, bounded=true, report=report, aux_fix=aux_fix; kwargs...)
+            #variable_gen_power_imaginary_expectation(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
+            variable_gen_power_img_variance(pm, nw=nw, bounded=true, report=report, aux_fix=aux_fix; kwargs...)
         end
     end
-    
-    if bounded
-        for (g, gen) in _PMs.ref(pm, nw, :gen)
-            JuMP.set_lower_bound(pg[g], gen["pmin"])
-            JuMP.set_upper_bound(pg[g], gen["pmax"])
-        end
-    end
-    
-    report && _PMs.sol_component_value(pm, nw, :gen, :pg, _PMs.ids(pm, nw, :gen), pg)
-    end
+end
 
 
 
@@ -435,26 +421,66 @@ function constraint_gen_power_real_cc_limit(pm::AbstractACRModel, g, pmin, pmax,
 
  ""
  function constraint_gen_power_real_cc_limit_wo_aux(pm::AbstractACRModel, g, pmin, pmax, λmin, λmax, T2, mop)
-     pg  = [_PMs.var(pm, nw, :pg, g) for nw in sorted_nw_ids(pm)]
+    ntws = _PMs.nw_ids(pm)
+    
+    pg_mean = _PMs.var(pm, 1, :pg, g) 
+    pg = [_PMs.var(pm, nw, :pg, g) for nw in ntws]
+    pgv  = _PMs.var(pm,1, :pgv, g)
+    #T22 = Dict(n => T2.get([n-1,n-1]) for n in ntws)
  
       # bounds on the expectation 
-      JuMP.@constraint(pm.model,  pmin <= _PCE.mean(pg, mop))
+      JuMP.@constraint(pm.model, pgv^2 +pg_mean^2 == sum((pg[n]^2) *  T2.get([n-1,n-1]) for n in ntws))
+      #JuMP.@constraint(pm.model,  pmin <= _PCE.mean(pg, mop))
       #JuMP.@constraint(pm.model,  0 <= _PCE.var(pg, T2) <= 100) #used in Tillmans code
       #JuMP.@constraint(pm.model,   sum([pg[n]*T2.get([n-1,n-1]) for n in _PMs.nw_ids(pm)]) <= pmax) #given in Tillmans code
-      JuMP.@constraint(pm.model,  _PCE.mean(pg, mop) <= pmax)
+      #JuMP.@constraint(pm.model,  _PCE.mean(pg, mop) <= pmax)
       # chance constraint bounds
       #JuMP.@constraint(pm.model,  _PCE.var(pg, T2)
       #                            <=
       #                           ((_PCE.mean(pg, mop) - pmin) / λmin)^2
       #              )
       
-      JuMP.@constraint(pm.model,  _PCE.var(pg, T2)
-                                  <=
-                                  ((pmax - _PCE.mean(pg, mop)) / λmax)^2
-     
-                    )
-  end
+      JuMP.@constraint(pm.model,  pmin
+                                <=
+                                pg[1] - λmin * pgv)
 
+    JuMP.@constraint(pm.model,  pg[1] + λmax * pgv
+                                <=
+                                pmax)
+  end
+  
+  ""
+  function constraint_gen_power_imaginary_cc_limit_wo_aux(pm::AbstractACRModel, g, qmin, qmax, λmin, λmax, T2, mop)
+    ntws = _PMs.nw_ids(pm)
+    
+    qg_mean = _PMs.var(pm, 1, :qg, g) 
+    qg  = [_PMs.var(pm, nw, :qg, g) for nw in ntws]
+    qgv  = _PMs.var(pm, 1, :qgv, g)
+    T22 = Dict(n => T2.get([n-1,n-1]) for n in ntws)
+ 
+      # bounds on the expectation 
+      JuMP.@constraint(pm.model, qgv^2 +qg_mean^2 == sum((qg[n]^2) * T2.get([n-1,n-1]) for n in ntws))
+      #JuMP.@constraint(pm.model,  pmin <= _PCE.mean(pg, mop))
+      #JuMP.@constraint(pm.model,  0 <= _PCE.var(pg, T2) <= 100) #used in Tillmans code
+      #JuMP.@constraint(pm.model,   sum([pg[n]*T2.get([n-1,n-1]) for n in _PMs.nw_ids(pm)]) <= pmax) #given in Tillmans code
+      #JuMP.@constraint(pm.model,  _PCE.mean(pg, mop) <= pmax)
+      # chance constraint bounds
+      #JuMP.@constraint(pm.model,  _PCE.var(pg, T2)
+      #                            <=
+      #                           ((_PCE.mean(pg, mop) - pmin) / λmin)^2
+      #              )
+      
+      JuMP.@constraint(pm.model,  qmin
+                                <=
+                                qg[1] - λmin * qgv)
+
+    JuMP.@constraint(pm.model,  qg[1] + λmax * qgv
+                                <=
+                                qmax)
+end
+
+
+""
 function constraint_gen_power_imaginary_cc_limit(pm::AbstractACRModel, g, qmin, qmax, λmin, λmax, T2, mop)
     qg  = [_PMs.var(pm, nw, :qg, g) for nw in sorted_nw_ids(pm)]
 
