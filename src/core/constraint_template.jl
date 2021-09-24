@@ -289,7 +289,7 @@ function constraint_gen_power_cc_limit(pm::AbstractPowerModel, g::Int; nw::Int=n
 end
 
 ""
-function constraint_gen_power_cc_limit_wo_aux(pm::AbstractPowerModel, g::Int; nw::Int=nw_id_default)
+function constraint_gen_power_cc_limit_without_aux(pm::AbstractPowerModel, g::Int; nw::Int=nw_id_default)
     pmin = _PMs.ref(pm, nw, :gen, g, "pmin")
     pmax = _PMs.ref(pm, nw, :gen, g, "pmax")
     qmin = _PMs.ref(pm, nw, :gen, g, "qmin")
@@ -304,7 +304,7 @@ function constraint_gen_power_cc_limit_wo_aux(pm::AbstractPowerModel, g::Int; nw
     mop = pm.data["mop"]
     
     constraint_gen_power_real_cc_limit_wo_aux(pm, g, pmin, pmax, λpmin, λpmax, T2, mop)
-    #constraint_gen_power_imaginary_cc_limit(pm, g, qmin, qmax, λqmin, λqmax, T2, mop)
+    constraint_gen_power_imaginary_cc_limit_wo_aux(pm, g, qmin, qmax, λqmin, λqmax, T2, mop)
 end
 
 
