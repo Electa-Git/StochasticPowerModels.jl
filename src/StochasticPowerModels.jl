@@ -54,6 +54,7 @@ module StochasticPowerModels
     include("prob/sopf_iv_red.jl")
     include("prob/sopf_iv_itr.jl")
     include("prob/sopf_acr_red.jl")
+    include("prob/sopf_acr_itr.jl")
 
     include("util/util.jl")
     # include("util/plot.jl")
@@ -62,5 +63,5 @@ module StochasticPowerModels
     export BASE_DIR
 
     export run_sopf_iv, run_sopf_acr, run_sopf_iv_reduced
-    export run_sopf_iv_itr
+    export run_sopf_iv_itr, run_sopf_acr_itr
 end 

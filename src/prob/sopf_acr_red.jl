@@ -24,7 +24,7 @@ end
 function build_sopf_acr_reduced_with_aux(pm::AbstractPowerModel)
     for (n, network) in _PMs.nws(pm) 
         variable_bus_voltage(pm, nw=n,aux=true)
-        variable_gen_power(pm, nw=n, bounded=false)
+        variable_gen_power(pm, nw=n, bounded=false, aux=true)
 
         variable_branch_power(pm, nw=n, bounded=false)
         variable_branch_current(pm, nw=n, bounded=false, aux=true) 
@@ -95,7 +95,7 @@ end
 function build_sopf_acr_reduced_without_aux(pm::AbstractPowerModel)
     for (n, network) in _PMs.nws(pm) 
         variable_bus_voltage(pm, nw=n, aux=false)
-        variable_gen_power(pm, nw=n, bounded=false)
+        variable_gen_power(pm, nw=n, bounded=false, aux=false)
 
         variable_branch_power(pm, nw=n, bounded=false)
         variable_branch_current(pm, nw=n, bounded=true, aux=false) 
@@ -107,7 +107,7 @@ function build_sopf_acr_reduced_without_aux(pm::AbstractPowerModel)
     end
 
     for g in _PMs.ids(pm, :gen, nw=1)
-        constraint_gen_power_cc_limit_wo_aux(pm, g,nw=1)
+        constraint_gen_power_cc_limit_without_aux(pm, g,nw=1)
     end
 
     for b in _PMs.ids(pm, :branch, nw=1)

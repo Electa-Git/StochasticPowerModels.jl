@@ -231,6 +231,44 @@ function variable_branch_series_current_variance(pm::AbstractPowerModel; nw::Int
     # report && _IMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
 end
 
+
+"variable:"
+function variable_gen_power_real_variance(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, aux_fix::Bool=false, report::Bool=true)
+    pgv = _PMs.var(pm, nw)[:pgv] = JuMP.@variable(pm.model,
+        [g in _PMs.ids(pm, nw, :gen)], base_name="$(nw)_pgv",
+        start = comp_start_value(_PMs.ref(pm, nw, :gen, g), "pgv_start", 0.0)
+    )
+
+    if bounded
+        for g in _PMs.ids(pm, nw, :gen)
+                JuMP.set_lower_bound(pgv[g], 0.0)
+                JuMP.set_upper_bound(pgv[g], 10.0)
+        end
+    end
+
+    report && sol_component_value(pm, nw, :gen, :pgv, _PMs.ids(pm, nw, :gen), pgv)
+    # report && _IMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
+end
+
+"variable:"
+function variable_gen_power_img_variance(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, aux_fix::Bool=false, report::Bool=true)
+    qgv = _PMs.var(pm, nw)[:qgv] = JuMP.@variable(pm.model,
+        [g in _PMs.ids(pm, nw, :gen)], base_name="$(nw)_qgv",
+        start = comp_start_value(_PMs.ref(pm, nw, :gen, g), "qgv_start", 0.0)
+    )
+
+    if bounded
+        for g in _PMs.ids(pm, nw, :gen)
+                JuMP.set_lower_bound(qgv[g], 0.0)
+                JuMP.set_upper_bound(qgv[g], 10.0)
+        end
+    end
+
+    report && sol_component_value(pm, nw, :gen, :qgv, _PMs.ids(pm, nw, :gen), qgv)
+    # report && _IMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
+end
+
+
 "variable: `css[l,i,j]` for `(l,i,j)` in `arcs_from`"
 function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, aux_fix::Bool=false, report::Bool=true)
     css = _PMs.var(pm, nw)[:css] = JuMP.@variable(pm.model,
