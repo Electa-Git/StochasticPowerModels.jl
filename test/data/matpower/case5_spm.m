@@ -43,6 +43,15 @@ mpc.bus = [
 	5	 2	 0.0	 0.0	 0.0	 0.0	 1	    1.00000	    0.00000	 230.0	 1	    1.10000	    0.90000;
 ];
 
+%column_names%  dst_id
+mpc.bus_sdata = [
+                0; % 1
+                1; % 2
+                0; % 3
+                0; % 4
+                0; % 5
+]
+
 %% generator data
 %	bus	Pg	Qg	Qmax	Qmin	Vg	mBase	status	Pmax	Pmin
 mpc.gen = [
