@@ -21,7 +21,8 @@ function run_case_30(path_to_result::String)
     # solver
     solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer, 
                                             "print_level" => 0, 
-                                            "max_cpu_time" => 3600.0)
+                                            "max_cpu_time" => 3600.0,
+                                            "linear_solver" => "ma27")
 
     # test loop
     for deg in [1,2], aux in [true,false], ε in [0.05, 0.10, 0.15], σ in [0.10, 0.15] if !(deg == 2 && !aux)
