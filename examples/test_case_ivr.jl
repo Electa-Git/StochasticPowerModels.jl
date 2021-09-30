@@ -17,8 +17,8 @@ const _PMs = PowerModels
 const _SPM = StochasticPowerModels
 
 # data
-deg  = 2
-aux  = false
+deg  = 1
+aux  = true
 path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case30_spm_muhlpfordt.m")
 data = _PMs.parse_file(path)
 

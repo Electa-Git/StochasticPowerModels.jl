@@ -10,6 +10,10 @@
 module StochasticPowerModels
 
     # import pkgs
+    import CSV
+    import DataFrames
+    import Distributions
+    import Ipopt
     import JuMP
     import PolyChaos
     import PowerModels
@@ -23,9 +27,12 @@ module StochasticPowerModels
     import InfrastructureModels: sol_component_value, sol_component_value_edge
 
     # pkgs const
+    const _DFs = DataFrames
+    const _DST = Distributions
     const _PCE = PolyChaos
     const _PMs = PowerModels
     const _IMs = InfrastructureModels
+    const _SPM = StochasticPowerModels
 
     # memento logger
     function __init__()
@@ -58,6 +65,12 @@ module StochasticPowerModels
 
     include("util/util.jl")
     # include("util/plot.jl")
+    
+    include("server/case_5.jl")
+    include("server/case_14.jl")
+    include("server/case_30.jl")
+    include("server/case_57.jl")
+    include("server/case_118.jl")
 
     # export
     export BASE_DIR
