@@ -73,7 +73,7 @@ function variable_gen_power(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded
     _PMs.variable_gen_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 end
 
-# constraints
+# general constraints
 ""
 function constraint_bus_voltage_ref(pm::AbstractIVRModel, n::Int, i::Int)
     vr = _PMs.var(pm, n, :vr, i)
@@ -112,6 +112,7 @@ function constraint_current_balance(pm::AbstractIVRModel, n::Int, i, bus_arcs, b
                                 )
 end
 
+# galerkin projection
 ""
 function constraint_gp_bus_voltage_squared(pm::AbstractIVRModel, n::Int, i, T2, T3)
     vs  = _PMs.var(pm, n, :vs, i)
@@ -219,7 +220,6 @@ function constraint_bus_voltage_cc_limit(pm::AbstractIVRModel, i, vmin, vmax, λ
     vr  = Dict(n => _PMs.var(pm, n, :vr, i) for n in ntws)
     vi  = Dict(n => _PMs.var(pm, n, :vi, i) for n in ntws)
     
-    T22 = Dict(n => T2.get([n-1,n-1]) for n in ntws)
     T44 = Dict((n1,n2,n3,n4) => T4.get([n1-1,n2-1,n3-1,n4-1]) for n1 in ntws, n2 in ntws, n3 in ntws, n4 in ntws)
 
     # expectation
@@ -266,52 +266,6 @@ function constraint_bus_voltage_squared_cc_limit(pm::AbstractIVRModel, i, vmin, 
 end
 
 ""
-function constraint_branch_series_current_cc_limit(pm::AbstractIVRModel, b, cmax, λmax, T2, T4,gs,bs)
-    ntws = _PMs.nw_ids(pm)
-
-    cse  = _PMs.var(pm, nw_id_default, :cse, b)
-    csv  = _PMs.var(pm, nw_id_default, :csv, b)
-
-    csr  = Dict(n => _PMs.var(pm, n, :csr, b) for n in ntws)
-    csi  = Dict(n => _PMs.var(pm, n, :csi, b) for n in ntws)
-    
-    T22 = Dict(n => T2.get([n-1,n-1]) for n in ntws)
-    T44 = Dict((n1,n2,n3,n4) => T4.get([n1-1,n2-1,n3-1,n4-1]) for n1 in ntws, n2 in ntws, n3 in ntws, n4 in ntws)
-
-    # expectation
-    JuMP.@constraint(pm.model, cse == sum((csr[n]^2 + csi[n]^2) * T2.get([n-1,n-1]) for n in ntws))
-    # 'variance'
-    JuMP.@NLconstraint(pm.model, cse^2 + csv^2 
-                                 ==
-                                 sum(
-                                    (csr[n1] * csr[n2] * csr[n3] * csr[n4] + 
-                                     2 * csr[n1] * csr[n2] * csi[n3] * csi[n4] +
-                                     csi[n1] * csi[n2] * csi[n3] * csi[n4]
-                                    ) *
-                                    T44[(n1,n2,n3,n4)]
-                                    for n1 in ntws, n2 in ntws, n3 in ntws, n4 in ntws
-                                 ) 
-                    )  
-    # chance constraint bounds
-    JuMP.@constraint(pm.model,  cse + λmax * csv
-                                <=
-                                cmax^2
-                    )
-end
-""
-function constraint_branch_series_current_squared_cc_limit(pm::AbstractIVRModel, b, imax, λmax, T2, mop)
-    css = [_PMs.var(pm, nw, :css, b) for nw in sorted_nw_ids(pm)]
-
-    # bound on the expectation
-    JuMP.@constraint(pm.model,  _PCE.mean(css, mop) <= imax^2)
-    # chance constraint bound
-    JuMP.@constraint(pm.model,  _PCE.var(css,T2)
-                                <=
-                                ((imax^2 - _PCE.mean(css, mop)) / λmax)^2
-                    )
-end
-
-""
 function constraint_gen_power_real_cc_limit(pm::AbstractIVRModel, g, pmin, pmax, λmin, λmax, T2, mop)
     pg  = [_PMs.var(pm, nw, :pg, g) for nw in sorted_nw_ids(pm)]
 
@@ -336,7 +290,7 @@ function constraint_gen_power_imaginary_cc_limit(pm::AbstractIVRModel, g, qmin, 
     # bounds on the expectation 
     JuMP.@constraint(pm.model,  qmin <= _PCE.mean(qg, mop))
     JuMP.@constraint(pm.model,  _PCE.mean(qg, mop) <= qmax)
-    #
+    # chance constraint bounds
     JuMP.@constraint(pm.model,  _PCE.var(qg,T2)
                                 <=
                                 ((_PCE.mean(qg,mop) - qmin) / λmin)^2
@@ -344,5 +298,51 @@ function constraint_gen_power_imaginary_cc_limit(pm::AbstractIVRModel, g, qmin, 
     JuMP.@constraint(pm.model,  _PCE.var(qg,T2)
                                 <=
                                 ((qmax - _PCE.mean(qg,mop)) / λmax)^2
+                    )
+end
+
+""
+function constraint_branch_series_current_cc_limit(pm::AbstractIVRModel, b, cmax, λmax, T2, T4, gs, bs)
+    ntws = _PMs.nw_ids(pm)
+
+    cse  = _PMs.var(pm, nw_id_default, :cse, b)
+    csv  = _PMs.var(pm, nw_id_default, :csv, b)
+
+    csr  = Dict(n => _PMs.var(pm, n, :csr, b) for n in ntws)
+    csi  = Dict(n => _PMs.var(pm, n, :csi, b) for n in ntws)
+    
+    T44 = Dict((n1,n2,n3,n4) => T4.get([n1-1,n2-1,n3-1,n4-1]) for n1 in ntws, n2 in ntws, n3 in ntws, n4 in ntws)
+
+    # expectation
+    JuMP.@constraint(pm.model, cse == sum((csr[n]^2 + csi[n]^2) * T2.get([n-1,n-1]) for n in ntws))
+    # 'variance'
+    JuMP.@NLconstraint(pm.model, cse^2 + csv^2 
+                                 ==
+                                 sum(
+                                    (csr[n1] * csr[n2] * csr[n3] * csr[n4] + 
+                                     2 * csr[n1] * csr[n2] * csi[n3] * csi[n4] +
+                                     csi[n1] * csi[n2] * csi[n3] * csi[n4]
+                                    ) *
+                                    T44[(n1,n2,n3,n4)]
+                                    for n1 in ntws, n2 in ntws, n3 in ntws, n4 in ntws
+                                 ) 
+                    )  
+    # chance constraint bounds
+    JuMP.@constraint(pm.model,  cse + λmax * csv
+                                <=
+                                cmax^2
+                    )
+end
+
+""
+function constraint_branch_series_current_squared_cc_limit(pm::AbstractIVRModel, b, cmax, λcmax, T2, mop)
+    css = [_PMs.var(pm, nw, :css, b) for nw in sorted_nw_ids(pm)]
+
+    # bound on the expectation
+    JuMP.@constraint(pm.model,  _PCE.mean(css, mop) <= cmax^2)
+    # chance constraint bound
+    JuMP.@constraint(pm.model,  _PCE.var(css,T2)
+                                <=
+                                ((cmax^2 - _PCE.mean(css, mop)) / λcmax)^2
                     )
 end

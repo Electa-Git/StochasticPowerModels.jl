@@ -6,33 +6,28 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
+# input -- subject to change
+deg  = 1
+aux  = true
+case = "matpower/case30_spm.m"
+
 # using pkgs
 using JuMP
 using Ipopt
 using PowerModels
 using StochasticPowerModels
 
-# constants 
+# pkg constants 
 const _PMs = PowerModels
 const _SPM = StochasticPowerModels
 
 # data
-deg  = 1
-aux  = true
-path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case30_spm_muhlpfordt.m")
-data = _PMs.parse_file(path)
+path  = joinpath(_SPM.BASE_DIR,"test/data/$case")
+data  = _PMs.parse_file(path)
+sdata = _SPM.build_stochastic_data(data, deg)
 
 # initialize solver
 solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer)
 
 # solve problem
-result_stc = _SPM.run_sopf_acr(data, _PMs.ACRPowerModel, solver, aux=aux, deg=deg)
-
-# solve problem
-result_red = _SPM.run_sopf_acr_reduced(data, _PMs.ACRPowerModel, solver, aux=aux, deg=deg)
-
-# solve problem iteratively
-(result_dtr, result_itr) = _SPM.run_sopf_acr_itr(data, _PMs.ACRPowerModel, solver, aux=aux, deg=deg);
-
-# assert
-#@assert isapprox(result_stc["objective"], result_itr["objective"], rtol=1e-5)
+result = _SPM.run_sopf_acr(sdata, _PMs.ACRPowerModel, solver, aux=aux, deg=deg)

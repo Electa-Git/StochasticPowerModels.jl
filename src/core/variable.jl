@@ -6,6 +6,7 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
+# bus voltage
 "variable: `ve[i]` for `i` in `bus`es"
 function variable_bus_voltage_expectation(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false)
     ve = _PMs.var(pm, nw)[:ve] = JuMP.@variable(pm.model,
@@ -15,7 +16,7 @@ function variable_bus_voltage_expectation(pm::AbstractPowerModel; nw::Int=nw_id_
 
     if bounded
         for (i, bus) in _PMs.ref(pm, nw, :bus)
-            JuMP.set_lower_bound(ve[i],  0.0)
+            JuMP.set_lower_bound(ve[i], 0.0)
         end
     end
     
@@ -23,8 +24,7 @@ function variable_bus_voltage_expectation(pm::AbstractPowerModel; nw::Int=nw_id_
         JuMP.fix.(ve, 1.0; force=true)
     end
 
-    report && sol_component_value(pm, nw, :bus, :ve, _PMs.ids(pm, nw, :bus), ve)
-    # report && _IMs.sol_component_value(pm, nw, :bus, :vs, _PMs.ids(pm, nw, :bus), vs)
+    report && _PMs.sol_component_value(pm, nw, :bus, :ve, _PMs.ids(pm, nw, :bus), ve)
 end
 
 "variable: `vv[i]` for `i` in `bus`es"
@@ -44,8 +44,7 @@ function variable_bus_voltage_variance(pm::AbstractPowerModel; nw::Int=nw_id_def
         JuMP.fix.(vv, 1.0; force=true)
     end
 
-    report && sol_component_value(pm, nw, :bus, :vv, _PMs.ids(pm, nw, :bus), vv)
-    # report && _IMs.sol_component_value(pm, nw, :bus, :vs, _PMs.ids(pm, nw, :bus), vs)
+    report && _PMs.sol_component_value(pm, nw, :bus, :vv, _PMs.ids(pm, nw, :bus), vv)
 end
 
 "variable: `vs[i]` for `i` in `bus`es"
@@ -66,10 +65,10 @@ function variable_bus_voltage_squared(pm::AbstractPowerModel; nw::Int=nw_id_defa
         JuMP.fix.(vs, 1.0; force=true)
     end
 
-    report && sol_component_value(pm, nw, :bus, :vs, _PMs.ids(pm, nw, :bus), vs)
-    # report && _IMs.sol_component_value(pm, nw, :bus, :vs, _PMs.ids(pm, nw, :bus), vs)
+    report && _PMs.sol_component_value(pm, nw, :bus, :vs, _PMs.ids(pm, nw, :bus), vs)
 end
 
+# load current
 "variable: `crd[j]` for `j` in `load`"
 function variable_load_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     crd = _PMs.var(pm, nw)[:crd] = JuMP.@variable(pm.model,
@@ -77,8 +76,7 @@ function variable_load_current_real(pm::AbstractPowerModel; nw::Int=nw_id_defaul
         start = comp_start_value(_PMs.ref(pm, nw, :load, i), "crd_start")
     )
 
-    report && sol_component_value(pm, nw, :load, :crd, _PMs.ids(pm, nw, :load), crd)
-    # report && _IMs.sol_component_value(pm, nw, :load, :crd, _PMs.ids(pm, nw, :load), crd)
+    report && _PMs.sol_component_value(pm, nw, :load, :crd, _PMs.ids(pm, nw, :load), crd)
 end
 
 
@@ -89,10 +87,10 @@ function variable_load_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_d
         start = comp_start_value(_PMs.ref(pm, nw, :load, i), "cid_start")
     )
 
-    report && sol_component_value(pm, nw, :load, :cid, _PMs.ids(pm, nw, :load), cid)
-    # report && _IMs.sol_component_value(pm, nw, :load, :cid, _PMs.ids(pm, nw, :load), cid)
+    report && _PMs.sol_component_value(pm, nw, :load, :cid, _PMs.ids(pm, nw, :load), cid)
 end
 
+# branch current
 "variable: `cr[l,i,j]` for `(l,i,j)` in `arcs`"
 function expression_variable_branch_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     cr = _PMs.var(pm, nw)[:cr] = Dict()
@@ -116,8 +114,8 @@ function expression_variable_branch_current_real(pm::AbstractPowerModel; nw::Int
         csr_fr = _PMs.var(pm, nw, :csr, l)
         csi_fr = _PMs.var(pm, nw, :csi, l)
 
-        cr[(l,i,j)] = (tr*csr_fr - ti*csi_fr + g_sh_fr*vr_fr - b_sh_fr*vi_fr)/tm^2
-        cr[(l,j,i)] = -csr_fr + g_sh_to*vr_to - b_sh_to*vi_to
+        cr[(l,i,j)] = (tr * csr_fr - ti * csi_fr + g_sh_fr * vr_fr - b_sh_fr * vi_fr) / tm^2
+        cr[(l,j,i)] = -csr_fr + g_sh_to * vr_to - b_sh_to * vi_to
 
         # ub = Inf
         # if haskey(b, "rate_a")
@@ -164,8 +162,8 @@ function expression_variable_branch_current_imaginary(pm::AbstractPowerModel; nw
         csr_fr = _PMs.var(pm, nw, :csr, l)
         csi_fr = _PMs.var(pm, nw, :csi, l)
 
-        ci[(l,i,j)] = (tr*csi_fr + ti*csr_fr + g_sh_fr*vi_fr + b_sh_fr*vr_fr)/tm^2
-        ci[(l,j,i)] = -csi_fr + g_sh_to*vi_to + b_sh_to*vr_to
+        ci[(l,i,j)] = (tr * csi_fr + ti * csr_fr + g_sh_fr * vi_fr + b_sh_fr * vr_fr) / tm^2
+        ci[(l,j,i)] = -csi_fr + g_sh_to * vi_to + b_sh_to * vr_to
 
         # ub = Inf
         # if haskey(b, "rate_a")
@@ -198,7 +196,7 @@ function variable_branch_series_current_expectation(pm::AbstractPowerModel; nw::
 
     if bounded
         for l in _PMs.ids(pm, nw, :branch)
-                #JuMP.set_lower_bound(cse[l], 0.0)
+            JuMP.set_lower_bound(cse[l], 0.0)
         end
     end
 
@@ -206,8 +204,7 @@ function variable_branch_series_current_expectation(pm::AbstractPowerModel; nw::
         JuMP.fix.(cse, 0.0; force=true)
     end
 
-    report && sol_component_value(pm, nw, :branch, :cse, _PMs.ids(pm, nw, :branch), cse)
-    # report && _IMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
+    report && _PMs.sol_component_value(pm, nw, :branch, :cse, _PMs.ids(pm, nw, :branch), cse)
 end
 
 "variable: `csv[l,i,j]` for `(l,i,j)` in `arcs_from`"
@@ -227,47 +224,8 @@ function variable_branch_series_current_variance(pm::AbstractPowerModel; nw::Int
         JuMP.fix.(csv, 0.0; force=true)
     end
 
-    report && sol_component_value(pm, nw, :branch, :csv, _PMs.ids(pm, nw, :branch), csv)
-    # report && _IMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
+    report && _PMs.sol_component_value(pm, nw, :branch, :csv, _PMs.ids(pm, nw, :branch), csv)
 end
-
-
-"variable:"
-function variable_gen_power_real_variance(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, aux_fix::Bool=false, report::Bool=true)
-    pgv = _PMs.var(pm, nw)[:pgv] = JuMP.@variable(pm.model,
-        [g in _PMs.ids(pm, nw, :gen)], base_name="$(nw)_pgv",
-        start = comp_start_value(_PMs.ref(pm, nw, :gen, g), "pgv_start", 0.0)
-    )
-
-    if bounded
-        for g in _PMs.ids(pm, nw, :gen)
-                JuMP.set_lower_bound(pgv[g], 0.0)
-                JuMP.set_upper_bound(pgv[g], 10.0)
-        end
-    end
-
-    report && sol_component_value(pm, nw, :gen, :pgv, _PMs.ids(pm, nw, :gen), pgv)
-    # report && _IMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
-end
-
-"variable:"
-function variable_gen_power_img_variance(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, aux_fix::Bool=false, report::Bool=true)
-    qgv = _PMs.var(pm, nw)[:qgv] = JuMP.@variable(pm.model,
-        [g in _PMs.ids(pm, nw, :gen)], base_name="$(nw)_qgv",
-        start = comp_start_value(_PMs.ref(pm, nw, :gen, g), "qgv_start", 0.0)
-    )
-
-    if bounded
-        for g in _PMs.ids(pm, nw, :gen)
-                JuMP.set_lower_bound(qgv[g], 0.0)
-                JuMP.set_upper_bound(qgv[g], 10.0)
-        end
-    end
-
-    report && sol_component_value(pm, nw, :gen, :qgv, _PMs.ids(pm, nw, :gen), qgv)
-    # report && _IMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
-end
-
 
 "variable: `css[l,i,j]` for `(l,i,j)` in `arcs_from`"
 function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, aux_fix::Bool=false, report::Bool=true)
@@ -284,18 +242,18 @@ function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=
             b = branch[l]
             ub = Inf
             if haskey(b, "rate_a")
-                rate = b["rate_a"]*b["tap"]
-                y_fr = abs(b["g_fr"] + im*b["b_fr"])
-                y_to = abs(b["g_to"] + im*b["b_to"])
-                shunt_current = max(y_fr*bus[i]["vmax"]^2, y_to*bus[j]["vmax"]^2)
-                series_current = max(rate/bus[i]["vmin"], rate/bus[j]["vmin"])
+                rate = b["rate_a"] * b["tap"]
+                y_fr = abs(b["g_fr"] + im * b["b_fr"])
+                y_to = abs(b["g_to"] + im * b["b_to"])
+                shunt_current = max(y_fr * bus[i]["vmax"]^2, y_to * bus[j]["vmax"]^2)
+                series_current = max(rate / bus[i]["vmin"], rate / bus[j]["vmin"])
                 ub = series_current + shunt_current
             end
             if haskey(b, "c_rating_a")
                 total_current = b["c_rating_a"]
-                y_fr = abs(b["g_fr"] + im*b["b_fr"])
-                y_to = abs(b["g_to"] + im*b["b_to"])
-                shunt_current = max(y_fr*bus[i]["vmax"]^2, y_to*bus[j]["vmax"]^2)
+                y_fr = abs(b["g_fr"] + im * b["b_fr"])
+                y_to = abs(b["g_to"] + im * b["b_to"])
+                shunt_current = max(y_fr * bus[i]["vmax"]^2, y_to * bus[j]["vmax"]^2)
                 ub = total_current + shunt_current
             end
 
@@ -310,21 +268,21 @@ function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=
         JuMP.fix.(css, 0.0; force=true)
     end
 
-    report && sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
-    # report && _IMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
+    report && _PMs.sol_component_value(pm, nw, :branch, :css, _PMs.ids(pm, nw, :branch), css)
 end
 
-"variable: voltage drop real for `(l,i,j)` in `arcs_from`"
+# branch voltage drop
+"variable: `vbdr[l,i,j]` for `(l,i,j)` in `arcs_from`"
 function variable_branch_voltage_drop_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     vbdr = _PMs.var(pm, nw)[:vbdr] = JuMP.@variable(pm.model,
         [l in _PMs.ids(pm, nw, :branch)], base_name="$(nw)_vbdr",
         start = comp_start_value(_PMs.ref(pm, nw, :branch, l), "vbdr_start", 0.0)
     )
     
-    report && sol_component_value(pm, nw, :branch, :vbdr, _PMs.ids(pm, nw, :branch), vbdr)
-    # report && _IMs.sol_component_value(pm, nw, :branch, :vbdr, _PMs.ids(pm, nw, :branch), vbdr)
+    report && _PMs.sol_component_value(pm, nw, :branch, :vbdr, _PMs.ids(pm, nw, :branch), vbdr)
 end
-"variable: voltage drop img for `(l,i,j)` in `arcs_from`"
+
+"variable: `vbdi[l,i,j]` for `(l,i,j)` in `arcs_from`"
 function variable_branch_voltage_drop_img(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
 
     vbdi = _PMs.var(pm, nw)[:vbdi] = JuMP.@variable(pm.model,
@@ -332,6 +290,5 @@ function variable_branch_voltage_drop_img(pm::AbstractPowerModel; nw::Int=nw_id_
         start = comp_start_value(_PMs.ref(pm, nw, :branch, l), "vbdi_start", 0.0)
     )
 
-    report && sol_component_value(pm, nw, :branch, :vbdi, _PMs.ids(pm, nw, :branch), vbdi)
-    # report && _IMs.sol_component_value(pm, nw, :branch, :vbdi, _PMs.ids(pm, nw, :branch), vbdi)
+    report && _PMs.sol_component_value(pm, nw, :branch, :vbdi, _PMs.ids(pm, nw, :branch), vbdi)
 end

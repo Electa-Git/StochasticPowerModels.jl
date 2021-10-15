@@ -1,18 +1,12 @@
 ################################################################################
-#  Copyright 2021, Tom Van Acker                                               #
+#  Copyright 2021, Tom Van Acker, Arpan Koirala                                #
 ################################################################################
 # StochasticPowerModels.jl                                                     #
 # An extention package of PowerModels.jl for Stochastic (Optimal) Power Flow   #
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
-""
-var_min(var, λ) = var[1] - λ * sqrt(sum(var[2:end].^2))
-var_max(var, λ) = var[1] + λ * sqrt(sum(var[2:end].^2))
-
-""
-is_constrained(pm, cmp, idx) = _PMs.ref(pm, 1, cmp, idx, "cstr")
-
+# input data
 ""
 function parse_dst(dst, pa, pb, deg)
     dst == "Beta"    && return _PCE.Beta01OrthoPoly(deg, pa, pb; Nrec=5*deg)
@@ -21,9 +15,9 @@ function parse_dst(dst, pa, pb, deg)
 end
 
 """
-    build_stochastic_data!(data::Dict{String,Any}, deg::Int)
+    StochasticPowerModels.build_stochastic_data(data::Dict{String,Any}, deg::Int)
 """
-function build_stochastic_data(data, deg)
+function build_stochastic_data(data::Dict{String,Any}, deg::Int)
     # add maximum current
     for (nb, branch) in data["branch"]
         f_bus = branch["f_bus"]
@@ -72,27 +66,16 @@ function build_stochastic_data(data, deg)
     return data
 end
 
-# ""
-# function create_mop(data_dist)
-#     m=Vector{Symbol}()
-#     for id in sort!(collect(keys(data_dist)))
-#         push!(m, Symbol(data_dist[id]["distribution"]))
-#     end
-
-#     m2=[]
-#     for i=1:length(m)
-#         dist_sym=m[i]
-#         d=data_dist["$i"]
-#         degree = d["deg"]
-#         No_rec = (d["deg"] *d["Nrec"])
-#         alpha= d["alpha"]
-#         beta=d["beta"]
-#         if dist_sym == :Beta01OrthoPoly
-#             a = Meta.parse(string("$dist_sym($degree, $alpha, $beta; Nrec=$No_rec)"))
-#         else
-#             a = Meta.parse(string("$dist_sym($degree; Nrec=$No_rec)"))
-#         end
-#         push!(m2, a)
-#     end
-#     return m2
-# end
+# output data
+""
+function sample(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000)
+    coeff = [result["solution"]["nw"]["$nw"][element]["$id"][var] for nw in 1:no_coeff]
+    return _PCE.samplePCE(sample_size, coeff, sdata["mop"])
+ end
+ 
+ ""
+ function density(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000)
+    coeff = [result["solution"]["nw"]["$nw"][element]["$id"][var] for nw in 1:no_coeff]
+    return _KDE.kde(_PCE.samplePCE(sample_size, coeff, sdata["mop"]))
+ end
+ 

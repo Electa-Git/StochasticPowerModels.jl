@@ -10,28 +10,24 @@
 module StochasticPowerModels
 
     # import pkgs
-    import CSV
-    import DataFrames
-    import Distributions
+    import InfrastructureModels
     import Ipopt
     import JuMP
+    import KernelDensity
+    import Memento
     import PolyChaos
     import PowerModels
-    import InfrastructureModels
-    import Memento
 
-    # import types
-    import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
-    import PowerModels: comp_start_value, sol_component_value
+    # import types -- this needs to be cleaned up
     import InfrastructureModels: ids, ref, var, con, sol, nw_ids, nws
-    import InfrastructureModels: sol_component_value, sol_component_value_edge
+    import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
+    import PowerModels: comp_start_value
 
     # pkgs const
-    const _DFs = DataFrames
-    const _DST = Distributions
+    const _IMs = InfrastructureModels
+    const _KDE = KernelDensity
     const _PCE = PolyChaos
     const _PMs = PowerModels
-    const _IMs = InfrastructureModels
     const _SPM = StochasticPowerModels
 
     # memento logger
@@ -58,23 +54,13 @@ module StochasticPowerModels
 
     include("prob/sopf_acr.jl")
     include("prob/sopf_iv.jl")
-    include("prob/sopf_iv_red.jl")
-    include("prob/sopf_iv_itr.jl")
-    include("prob/sopf_acr_red.jl")
-    include("prob/sopf_acr_itr.jl")
 
     include("util/util.jl")
-    # include("util/plot.jl")
-    
-    include("server/case_5.jl")
-    include("server/case_14.jl")
-    include("server/case_30.jl")
-    include("server/case_57.jl")
-    include("server/case_118.jl")
 
     # export
     export BASE_DIR
 
-    export run_sopf_iv, run_sopf_acr, run_sopf_iv_reduced
-    export run_sopf_iv_itr, run_sopf_acr_itr
+    export run_sopf_iv, run_sopf_acr
+
+    export sample, density
 end 
