@@ -34,7 +34,7 @@ function variable_branch_power(pm::AbstractACRModel; nw::Int=nw_id_default, boun
     _PMs.variable_branch_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 end
 
-""
+"" # this should be renamed to more accurately reflect the variable, i.e., voltage drop
 function variable_branch_current(pm::AbstractACRModel; nw::Int=nw_id_default, aux::Bool=true, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false, kwargs...)
     variable_branch_voltage_drop_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     variable_branch_voltage_drop_img(pm, nw=nw, bounded=bounded, report=report; kwargs...)
@@ -210,7 +210,6 @@ function constraint_bus_voltage_cc_limit(pm::AbstractACRModel, i, vmin, vmax, λ
     vr  = Dict(n => _PMs.var(pm, n, :vr, i) for n in ntws)
     vi  = Dict(n => _PMs.var(pm, n, :vi, i) for n in ntws)
     
-    T22 = Dict(n => T2.get([n-1,n-1]) for n in ntws)
     T44 = Dict((n1,n2,n3,n4) => T4.get([n1-1,n2-1,n3-1,n4-1]) for n1 in ntws, n2 in ntws, n3 in ntws, n4 in ntws)
 
     # expectation
@@ -302,7 +301,6 @@ function constraint_branch_series_current_cc_limit(pm::AbstractACRModel, b, cmax
     vbdr = Dict(n => _PMs.var(pm, n, :vbdr, b) for n in ntws)
     vbdi  = Dict(n => _PMs.var(pm, n, :vbdi, b) for n in ntws)
     
-    T22 = Dict(n => T2.get([n-1,n-1]) for n in ntws)
     T44 = Dict((n1,n2,n3,n4) => T4.get([n1-1,n2-1,n3-1,n4-1]) for n1 in ntws, n2 in ntws, n3 in ntws, n4 in ntws)
 
     # expectation
