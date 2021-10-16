@@ -69,13 +69,13 @@ end
 # output data
 ""
 function sample(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000)
-    coeff = [result["solution"]["nw"]["$nw"][element]["$id"][var] for nw in 1:no_coeff]
+    coeff = [nw[element]["$id"][var] for nw in values(result["solution"]["nw"])]
     return _PCE.samplePCE(sample_size, coeff, sdata["mop"])
  end
  
  ""
  function density(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000)
-    coeff = [result["solution"]["nw"]["$nw"][element]["$id"][var] for nw in 1:no_coeff]
+    coeff = [nw[element]["$id"][var] for nw in values(result["solution"]["nw"])]
     return _KDE.kde(_PCE.samplePCE(sample_size, coeff, sdata["mop"]))
  end
  
