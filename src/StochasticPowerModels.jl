@@ -18,10 +18,8 @@ module StochasticPowerModels
     import PolyChaos
     import PowerModels
 
-    # import types -- this needs to be cleaned up
-    import InfrastructureModels: ids, ref, var, con, sol, nw_ids, nws
+    # import types
     import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
-    import PowerModels: comp_start_value
 
     # pkgs const
     const _IMs = InfrastructureModels
