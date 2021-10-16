@@ -16,6 +16,9 @@ end
 
 """
     StochasticPowerModels.build_stochastic_data(data::Dict{String,Any}, deg::Int)
+
+Function to build the multi-network data representative of the polynomial chaos
+expansion of a single-network data dictionary.
 """
 function build_stochastic_data(data::Dict{String,Any}, deg::Int)
     # add maximum current
@@ -67,15 +70,30 @@ function build_stochastic_data(data::Dict{String,Any}, deg::Int)
 end
 
 # output data
-""
-pce_coeff(result, element::String, id::Int, var::String) =
-    [nw[element]["$id"][var] for nw in values(result["solution"]["nw"])]
+"""
+    StochasticPowerModels.pce_coeff(result, element::String, id::Int, var::String)
 
-""
+Returns all polynomial chaos coefficients associated with the variable `var` of 
+the `id`th element `element`.
+"""
+pce_coeff(result, element::String, id::Int, var::String) =
+    [nw[2][element]["$id"][var] for nw in sort(collect(result["solution"]["nw"]), by=x->x[1])]
+
+"""
+    StochasticPowerModels.sample(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000)
+
+Return an `sample_size` sample of the variable `var` of the `id`th element 
+`element`.
+"""
 sample(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000) =
     _PCE.samplePCE(sample_size, pce_coeff(result, element, id, var), sdata["mop"])
 
-""
+"""
+    StochasticPowerModels.density(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000)
+
+Return an kernel density estimate of the variable `var` of the `id`th element 
+`element`.
+"""
 density(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000) =
     _KDE.kde(sample(sdata, result, element, id, var; sample_size=sample_size))
  
