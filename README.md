@@ -15,15 +15,24 @@ uncertainty in Steady-State Power Network Optimization.
 
 - Exact
     - ACR
-    - IVR
+    - IVR (reduced)
 
 ## Core Stochastic Specification
 
 - Polynomial Chaos Expansion
+    - with/without auxiliary variables/constraints
 
 ## Network Data Formats
 
 - Matpower ".m" files
+
+## Stochastic Data Extension
+
+- Matpower ".m" files, extended to include:
+    - stochastic germ: `mpc.sdata`,
+    - stochastic bus data: `mpc.bus_sdata`, including: `dst_id`, `μ`, `σ`, `λvmin` and `λvmax`,
+    - stochastic gen data: `mpc.gen_sdata`, including: `λpmin`, `λpmax`, `λqmin` and `λqmax`, and
+    - stochastic branch data: `mpc.branch_sdata`, including: `λcmax`.
 
 ## Installation
 
