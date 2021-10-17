@@ -34,6 +34,8 @@ uncertainty in Steady-State Power Network Optimization.
     - stochastic gen data: `mpc.gen_sdata`, including: `λpmin`, `λpmax`, `λqmin` and `λqmax`, and
     - stochastic branch data: `mpc.branch_sdata`, including: `λcmax`.
 
+For an example, the user is referred to `/test/data/matpower/case5_spm.m`
+
 ## Installation
 
 The latest stable release of StochasticPowerModels can be installed using the 
