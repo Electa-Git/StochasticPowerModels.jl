@@ -77,7 +77,7 @@ Returns all polynomial chaos coefficients associated with the variable `var` of
 the `id`th element `element`.
 """
 pce_coeff(result, element::String, id::Int, var::String) =
-    [nw[2][element]["$id"][var] for nw in sort(collect(result["solution"]["nw"]), by=x->x[1])]
+    [nw[2][element]["$id"][var] for nw in sort(collect(result["solution"]["nw"]), by=x->parse(Int,x[1]))]
 
 """
     StochasticPowerModels.sample(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000)
