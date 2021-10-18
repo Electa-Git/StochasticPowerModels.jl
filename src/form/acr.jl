@@ -348,7 +348,7 @@ function _sol_data_model_acr!(solution::Dict)
     if haskey(solution, "bus")
         for (i, bus) in solution["bus"]
             if haskey(bus, "vr") && haskey(bus, "vi")
-                bus["vm"] = sqrt(bus["vr"]^2 + bus["vi"]^2)
+                bus["vm"] = hypot(bus["vr"], bus["vi"])
                 bus["va"] = atan(bus["vi"], bus["vr"])
             end
         end

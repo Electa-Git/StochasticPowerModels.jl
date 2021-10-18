@@ -16,7 +16,7 @@
         case = "case5_spm.m"
 
         # data
-        path  = joinpath("../test/data/matpower",case)
+        path  = joinpath("../test/data/matpower", case)
         data  = _PM.parse_file(path)
         sdata = _SPM.build_stochastic_data(data, deg)
 
@@ -71,7 +71,7 @@
         case = "case5_spm.m"
 
         # data
-        path  = joinpath("../test/data/matpower",case)
+        path  = joinpath("../test/data/matpower", case)
         data  = _PM.parse_file(path)
         sdata = _SPM.build_stochastic_data(data, deg)
 
@@ -126,7 +126,7 @@
         case = "case5_spm.m"
 
         # data
-        path  = joinpath("../test/data/matpower",case)
+        path  = joinpath("../test/data/matpower", case)
         data  = _PM.parse_file(path)
         sdata = _SPM.build_stochastic_data(data, deg)
 
@@ -180,7 +180,7 @@
         case = "case5_spm.m"
 
         # data
-        path  = joinpath("../test/data/matpower",case)
+        path  = joinpath("../test/data/matpower", case)
         data  = _PM.parse_file(path)
         sdata = _SPM.build_stochastic_data(data, deg)
 
@@ -235,7 +235,7 @@
         case = "case5_spm.m"
 
         # data
-        path  = joinpath("../test/data/matpower",case)
+        path  = joinpath("../test/data/matpower", case)
         data  = _PM.parse_file(path)
         sdata = _SPM.build_stochastic_data(data, deg)
 
