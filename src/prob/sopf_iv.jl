@@ -10,7 +10,8 @@
 
 ""
 function run_sopf_iv(data::Dict, model_constructor, optimizer; aux::Bool=true, deg::Int=1, red::Bool=true, solution_processors=[sol_data_model!], kwargs...)
-    @assert _IM.ismultinetwork(data) == false
+    @assert _IM.ismultinetwork(data) == false "The data supplied is multinetwork, it should be single-network"
+    @assert model_constructor <: _PM.AbstractIVRModel "This problem type only supports the IVRModel"
     sdata = build_stochastic_data(data, deg)
     if aux && red
         result = _PM.run_model(sdata, model_constructor, optimizer, build_sopf_iv_reduced_with_aux; multinetwork=true, solution_processors=solution_processors, kwargs...)
