@@ -197,3 +197,21 @@ function constraint_branch_series_current_cc_limit(pm::AbstractIVRModel, b, cmax
                                 cmax^2
                     )
 end
+
+""
+function sol_data_model!(pm::AbstractIVRModel, solution::Dict)
+    _PM.apply_pm!(_sol_data_model_ivr!, solution)
+end
+
+
+""
+function _sol_data_model_ivr!(solution::Dict)
+    if haskey(solution, "bus")
+        for (i, bus) in solution["bus"]
+            if haskey(bus, "vr") && haskey(bus, "vi")
+                bus["vm"] = hypot(bus["vr"], bus["vi"])
+                bus["va"] = atan(bus["vi"], bus["vr"])
+            end
+        end
+    end
+end

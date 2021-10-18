@@ -8,6 +8,56 @@
 
 @testset "Problem Formulations" begin
 
+    @testset "Convenience functions for IVR stochastic OPF" begin
+        deg  = 1
+        aux  = true
+        red  = true
+        case = "case5_spm.m"
+
+        file  = joinpath("../test/data/matpower", case)
+        result_ivr = _SPM.run_sopf_iv(file, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
+        @test result_ivr["termination_status"] == LOCALLY_SOLVED
+        obj1 = result_ivr["objective"]
+
+        data  = _PM.parse_file(file)
+        result_ivr2 = _SPM.run_sopf_iv(data, _PM.IVRPowerModel, ipopt_solver; aux=aux, deg=deg, red=red)
+        @test result_ivr2["termination_status"] == LOCALLY_SOLVED
+        obj2 = result_ivr2["objective"]
+
+        sdata = _SPM.build_stochastic_data(data, deg)
+        result_ivr3 = _PM.run_model(sdata, _PM.IVRPowerModel, ipopt_solver, _SPM.build_sopf_iv_reduced_with_aux; multinetwork=true, solution_processors=[_PM.sol_data_model!])
+        @test result_ivr3["termination_status"] == LOCALLY_SOLVED
+        obj3 = result_ivr3["objective"]
+
+        @test isapprox(obj1, obj2)
+        @test isapprox(obj1, obj3)
+    end
+
+    @testset "Convenience functions for ACR stochastic OPF" begin
+        deg  = 1
+        aux  = true
+        case = "case5_spm.m"
+
+        file  = joinpath("../test/data/matpower", case)
+        result_acr = _SPM.run_sopf_acr(file, _PM.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
+        @test result_acr["termination_status"] == LOCALLY_SOLVED
+        obj1 = result_acr["objective"]
+
+        data  = _PM.parse_file(file)
+        result_acr2 = _SPM.run_sopf_acr(data, _PM.ACRPowerModel, ipopt_solver; aux=aux, deg=deg)
+        @test result_acr2["termination_status"] == LOCALLY_SOLVED
+        obj2 = result_acr2["objective"]
+
+        sdata = _SPM.build_stochastic_data(data, deg)
+        result_acr3 = _PM.run_model(sdata, _PM.ACRPowerModel, ipopt_solver, _SPM.build_sopf_acr_with_aux; multinetwork=true, solution_processors=[_PM.sol_data_model!])
+        @test result_acr3["termination_status"] == LOCALLY_SOLVED
+        obj3 = result_acr3["objective"]
+
+        @test isapprox(obj1, obj2)
+        @test isapprox(obj1, obj3)
+    end
+
+
     @testset "IVR vs ACR - deg = 1, aux = true, case = 5-bus" begin
         # input
         deg  = 1
@@ -18,15 +68,14 @@
         # data
         path  = joinpath("../test/data/matpower", case)
         data  = _PM.parse_file(path)
-        sdata = _SPM.build_stochastic_data(data, deg)
 
         # element cardinality
         Nb = length(data["bus"])
         Ng = length(data["gen"])
     
         # solve problem
-        result_ivr = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
-        result_acr = _SPM.run_sopf_acr(sdata, _PM.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
+        result_ivr = _SPM.run_sopf_iv(data, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
+        result_acr = _SPM.run_sopf_acr(data, _PM.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
 
         @test result_ivr["termination_status"] == LOCALLY_SOLVED
         @test result_acr["termination_status"] == LOCALLY_SOLVED
@@ -73,15 +122,14 @@
         # data
         path  = joinpath("../test/data/matpower", case)
         data  = _PM.parse_file(path)
-        sdata = _SPM.build_stochastic_data(data, deg)
 
         # element cardinality
         Nb = length(data["bus"])
         Ng = length(data["gen"])
     
         # solve problem
-        result_ivr = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
-        result_acr = _SPM.run_sopf_acr(sdata, _PM.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
+        result_ivr = _SPM.run_sopf_iv(data, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
+        result_acr = _SPM.run_sopf_acr(data, _PM.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
 
         @test result_ivr["termination_status"] == LOCALLY_SOLVED
         @test result_acr["termination_status"] == LOCALLY_SOLVED
@@ -128,15 +176,14 @@
         # data
         path  = joinpath("../test/data/matpower", case)
         data  = _PM.parse_file(path)
-        sdata = _SPM.build_stochastic_data(data, deg)
 
         # element cardinality
         Nb = length(data["bus"])
         Ng = length(data["gen"])
     
         # solve problem
-        result_ivr = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
-        result_acr = _SPM.run_sopf_acr(sdata, _PM.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
+        result_ivr = _SPM.run_sopf_iv(data, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
+        result_acr = _SPM.run_sopf_acr(data, _PM.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
 
         @test result_ivr["termination_status"] == LOCALLY_SOLVED
         @test result_acr["termination_status"] == LOCALLY_SOLVED
@@ -182,15 +229,14 @@
         # data
         path  = joinpath("../test/data/matpower", case)
         data  = _PM.parse_file(path)
-        sdata = _SPM.build_stochastic_data(data, deg)
 
         # element cardinality
         Nb = length(data["bus"])
         Ng = length(data["gen"])
     
         # solve problem
-        result_w_aux  = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=true, deg=deg, red=red)
-        result_wo_aux = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=false, deg=deg, red=red)
+        result_w_aux  = _SPM.run_sopf_iv(data, _PM.IVRPowerModel, ipopt_solver, aux=true, deg=deg, red=red)
+        result_wo_aux = _SPM.run_sopf_iv(data, _PM.IVRPowerModel, ipopt_solver, aux=false, deg=deg, red=red)
 
         @test result_w_aux["termination_status"] == LOCALLY_SOLVED
         @test result_wo_aux["termination_status"] == LOCALLY_SOLVED
@@ -237,15 +283,14 @@
         # data
         path  = joinpath("../test/data/matpower", case)
         data  = _PM.parse_file(path)
-        sdata = _SPM.build_stochastic_data(data, deg)
 
         # element cardinality
         Nb = length(data["bus"])
         Ng = length(data["gen"])
     
         # solve problem
-        result_ivr = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=false)
-        result_red = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=true)
+        result_ivr = _SPM.run_sopf_iv(data, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=false)
+        result_red = _SPM.run_sopf_iv(data, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=true)
 
         @test result_ivr["termination_status"] == LOCALLY_SOLVED
         @test result_red["termination_status"] == LOCALLY_SOLVED

@@ -9,12 +9,22 @@
 ################################################################################
 
 ""
-function run_sopf_acr(sdata, model_constructor::Type, optimizer; aux::Bool=true, deg::Int=1, solution_processors=[sol_data_model!], kwargs...)
+function run_sopf_acr(data::Dict, model_constructor::Type, optimizer; aux::Bool=true, deg::Int=1, solution_processors=[sol_data_model!], kwargs...)
+    @assert _IM.ismultinetwork(data) == false
+    sdata = build_stochastic_data(data, deg)
     if aux
-        return _PM.run_model(sdata, model_constructor, optimizer, build_sopf_acr_with_aux; multinetwork=true, solution_processors=solution_processors, kwargs...)
+        result = _PM.run_model(sdata, model_constructor, optimizer, build_sopf_acr_with_aux; multinetwork=true, solution_processors=solution_processors, kwargs...)
     else
-        return _PM.run_model(sdata, model_constructor, optimizer, build_sopf_acr_without_aux; multinetwork=true, solution_processors=solution_processors, kwargs...)
+        result = _PM.run_model(sdata, model_constructor, optimizer, build_sopf_acr_without_aux; multinetwork=true, solution_processors=solution_processors, kwargs...)
     end
+    result["mop"] = sdata["mop"]
+    return result
+end
+
+""
+function run_sopf_acr(file::String, model_constructor, optimizer; aux::Bool=true, deg::Int=1, solution_processors=[sol_data_model!], kwargs...)
+    data = _PM.parse_file(file)
+    return run_sopf_acr(data, model_constructor, optimizer; aux=aux, deg=deg, solution_processors=solution_processors, kwargs...)
 end
 
 ""

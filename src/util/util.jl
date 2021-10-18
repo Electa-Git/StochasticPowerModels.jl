@@ -85,8 +85,8 @@ pce_coeff(result, element::String, id::Int, var::String) =
 Return an `sample_size` sample of the variable `var` of the `id`th element 
 `element`.
 """
-sample(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000) =
-    _PCE.samplePCE(sample_size, pce_coeff(result, element, id, var), sdata["mop"])
+sample(result, element::String, id::Int, var::String; sample_size::Int=1000) =
+    _PCE.samplePCE(sample_size, pce_coeff(result, element, id, var), result["mop"])
 
 """
     StochasticPowerModels.density(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000)
@@ -94,8 +94,8 @@ sample(sdata, result, element::String, id::Int, var::String; sample_size::Int=10
 Return an kernel density estimate of the variable `var` of the `id`th element 
 `element`.
 """
-density(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000) =
-    _KDE.kde(sample(sdata, result, element, id, var; sample_size=sample_size))
+density(result, element::String, id::Int, var::String; sample_size::Int=1000) =
+    _KDE.kde(sample(result, element, id, var; sample_size=sample_size))
 
 function print_summary(obj::Dict{String,<:Any}; kwargs...)
     if _IM.ismultinetwork(obj)
