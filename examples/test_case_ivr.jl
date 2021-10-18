@@ -24,11 +24,11 @@ const _SPM = StochasticPowerModels
 
 # data
 path  = joinpath(_SPM.BASE_DIR,"test/data/$case")
-data  = _PMs.parse_file(path)
+data  = _PM.parse_file(path)
 sdata = build_stochastic_data(data, deg)
 
 # initialize solver
 solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer)
 
 # solve problem
-result = _SPM.run_sopf_iv(sdata, _PMs.IVRPowerModel, solver, aux=aux, deg=deg, red=red)
+result = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, solver, aux=aux, deg=deg, red=red)

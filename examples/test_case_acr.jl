@@ -23,11 +23,11 @@ const _SPM = StochasticPowerModels
 
 # data
 path  = joinpath(_SPM.BASE_DIR,"test/data/$case")
-data  = _PMs.parse_file(path)
+data  = _PM.parse_file(path)
 sdata = _SPM.build_stochastic_data(data, deg)
 
 # initialize solver
 solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer)
 
 # solve problem
-result = _SPM.run_sopf_acr(sdata, _PMs.ACRPowerModel, solver, aux=aux, deg=deg)
+result = _SPM.run_sopf_acr(sdata, _PM.ACRPowerModel, solver, aux=aux, deg=deg)

@@ -12,8 +12,8 @@ function objective_min_expected_generation_cost(pm::AbstractPowerModel; kwargs..
 
     T2 = pm.data["T2"]
 
-    for (g, gen) in _PMs.ref(pm, :gen, nw=1)
-        pg = Dict(nw => _PMs.var(pm, nw, :pg, g) for nw in _PMs.nw_ids(pm))
+    for (g, gen) in _PM.ref(pm, :gen, nw=1)
+        pg = Dict(nw => _PM.var(pm, nw, :pg, g) for nw in _PM.nw_ids(pm))
 
         if length(gen["cost"]) == 1
             gen_cost[g] = gen["cost"][1]
@@ -21,7 +21,7 @@ function objective_min_expected_generation_cost(pm::AbstractPowerModel; kwargs..
             gen_cost[g] = gen["cost"][1]*pg[1] + 
                           gen["cost"][2]
         elseif length(gen["cost"]) == 3
-            gen_cost[g] = gen["cost"][1]*sum(T2.get([n-1,n-1]) * pg[n]^2 for n in _PMs.nw_ids(pm)) + 
+            gen_cost[g] = gen["cost"][1]*sum(T2.get([n-1,n-1]) * pg[n]^2 for n in _PM.nw_ids(pm)) + 
                           gen["cost"][2]*pg[1] + 
                           gen["cost"][3]
         else
@@ -30,6 +30,6 @@ function objective_min_expected_generation_cost(pm::AbstractPowerModel; kwargs..
     end
 
     return JuMP.@objective(pm.model, Min,
-            sum(gen_cost[g] for g in _PMs.ids(pm, :gen, nw=1))
+            sum(gen_cost[g] for g in _PM.ids(pm, :gen, nw=1))
     )
 end

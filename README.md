@@ -7,6 +7,8 @@ StochasticPowerModels.jl is an extension package of PowerModels.jl for
 Stochastic (Optimal) Power Flow. It is designed to enable inclusion of 
 uncertainty in Steady-State Power Network Optimization. 
 
+Note that development is ongoing, and changes can be breaking without notice. We plan to register the package once we feel comfortable with the state of the implementation.
+
 ## Core Problem Specification
 
 - Stochastic Optimal Power Flow (sOPF)
@@ -15,18 +17,15 @@ uncertainty in Steady-State Power Network Optimization.
 
 - Exact
     - ACR
-    - IVR (reduced)
+    - IVR 
 
 ## Core Stochastic Specification
+For now, we only support Polynomial Chaos Expansion. We may add alternative stochastic optimization methods at a later stage.
 
 - Polynomial Chaos Expansion
     - with/without auxiliary variables/constraints
 
-## Network Data Formats
-
-- Matpower ".m" files
-
-## Stochastic Data Extension
+## Network Data with Stochastic Data Extension
 
 - Matpower ".m" files, extended to include:
     - stochastic germ: `mpc.sdata`,

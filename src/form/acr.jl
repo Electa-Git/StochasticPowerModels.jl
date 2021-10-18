@@ -9,8 +9,8 @@
 # variables
 ""
 function variable_bus_voltage(pm::AbstractACRModel; nw::Int=nw_id_default, aux::Bool=true, aux_fix::Bool=false, bounded::Bool=true, report::Bool=true, kwargs...)
-    _PMs.variable_bus_voltage_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
-    _PMs.variable_bus_voltage_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    _PM.variable_bus_voltage_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    _PM.variable_bus_voltage_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 
     if aux
         variable_bus_voltage_squared(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
@@ -24,14 +24,14 @@ end
 
 ""
 function variable_gen_power(pm::AbstractACRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
-    _PMs.variable_gen_power_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
-    _PMs.variable_gen_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    _PM.variable_gen_power_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    _PM.variable_gen_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 end
 
 ""
 function variable_branch_power(pm::AbstractACRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
-    _PMs.variable_branch_power_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
-    _PMs.variable_branch_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    _PM.variable_branch_power_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    _PM.variable_branch_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 end
 
 "" # this should be renamed to more accurately reflect the variable, i.e., voltage drop
@@ -52,8 +52,8 @@ end
 # general constraints
 ""
 function constraint_bus_voltage_ref(pm::AbstractACRModel, n::Int, i::Int)
-    vr = _PMs.var(pm, n, :vr, i)
-    vi = _PMs.var(pm, n, :vi, i)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
 
     vn = ifelse(n == 1, 1.0, 0.0)
 
@@ -62,14 +62,14 @@ function constraint_bus_voltage_ref(pm::AbstractACRModel, n::Int, i::Int)
 end
 
 function constraint_power_balance(pm::AbstractACRModel, n::Int, i::Int, bus_arcs, bus_gens, bus_pd, bus_qd, bus_gs, bus_bs)
-    vr = _PMs.var(pm, n, :vr, i)
-    vi = _PMs.var(pm, n, :vi, i)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
 
-    p    = _PMs.get(_PMs.var(pm, n),    :p, Dict()); _PMs._check_var_keys(p, bus_arcs, "active power", "branch")
-    q    = _PMs.get(_PMs.var(pm, n),    :q, Dict()); _PMs._check_var_keys(q, bus_arcs, "reactive power", "branch")
+    p    = _PM.get(_PM.var(pm, n),    :p, Dict()); _PM._check_var_keys(p, bus_arcs, "active power", "branch")
+    q    = _PM.get(_PM.var(pm, n),    :q, Dict()); _PM._check_var_keys(q, bus_arcs, "reactive power", "branch")
     
-    pg   = _PMs.get(_PMs.var(pm, n),   :pg, Dict()); _PMs._check_var_keys(pg, bus_gens, "active power", "generator")
-    qg   = _PMs.get(_PMs.var(pm, n),   :qg, Dict()); _PMs._check_var_keys(qg, bus_gens, "reactive power", "generator")
+    pg   = _PM.get(_PM.var(pm, n),   :pg, Dict()); _PM._check_var_keys(pg, bus_gens, "active power", "generator")
+    qg   = _PM.get(_PM.var(pm, n),   :qg, Dict()); _PM._check_var_keys(qg, bus_gens, "reactive power", "generator")
 
     JuMP.@constraint(pm.model,
         sum(p[a] for a in bus_arcs)
@@ -89,45 +89,45 @@ end
 
 ""
 function constraint_branch_voltage(pm::AbstractACRModel, i::Int; nw::Int=nw_id_default)
-    branch = _PMs.ref(pm, nw, :branch, i)
+    branch = _PM.ref(pm, nw, :branch, i)
     f_bus = branch["f_bus"]
     t_bus = branch["t_bus"]
     
-    vbdr  = _PMs.var(pm, nw, :vbdr, i)
-    vbdi  = _PMs.var(pm, nw, :vbdi, i)
+    vbdr  = _PM.var(pm, nw, :vbdr, i)
+    vbdi  = _PM.var(pm, nw, :vbdi, i)
     
-    vr_fr = _PMs.var(pm, nw, :vr, f_bus)
-    vr_to = _PMs.var(pm, nw, :vr, t_bus)
-    vi_fr = _PMs.var(pm, nw, :vi, f_bus)
-    vi_to = _PMs.var(pm, nw, :vi, t_bus)
+    vr_fr = _PM.var(pm, nw, :vr, f_bus)
+    vr_to = _PM.var(pm, nw, :vr, t_bus)
+    vi_fr = _PM.var(pm, nw, :vi, f_bus)
+    vi_to = _PM.var(pm, nw, :vi, t_bus)
 
-    JuMP.@constraint(pm.model,  vbdr== (vr_fr-vr_to))
-    JuMP.@constraint(pm.model,  vbdi== (vi_fr-vi_to))         
+    JuMP.@constraint(pm.model,  vbdr == (vr_fr-vr_to))
+    JuMP.@constraint(pm.model,  vbdi == (vi_fr-vi_to))         
 end
 
 # galerkin projection
 ""
 function constraint_gp_bus_voltage_squared(pm::AbstractACRModel, n::Int, i, T2, T3)
-    vs  = _PMs.var(pm, n, :vs, i)
-    vr  = Dict(nw => _PMs.var(pm, nw, :vr, i) for nw in _PMs.nw_ids(pm))
-    vi  = Dict(nw => _PMs.var(pm, nw, :vi, i) for nw in _PMs.nw_ids(pm))
+    vs  = _PM.var(pm, n, :vs, i)
+    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _PM.nw_ids(pm))
+    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _PM.nw_ids(pm))
 
     JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * vs 
                                 ==
                                 sum(T3.get([n1-1,n2-1,n-1]) * 
                                     (vr[n1] * vr[n2] + vi[n1] * vi[n2]) 
-                                    for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
+                                    for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
                     )
 end
 
 function constraint_gp_power_branch_to(pm::AbstractACRModel, n::Int, f_bus, t_bus, f_idx, t_idx, g, b, g_to, b_to, tr, ti, tm, T2, T3)
-    p_to = _PMs.var(pm, n, :p, t_idx)
-    q_to = _PMs.var(pm, n, :q, t_idx)  
+    p_to = _PM.var(pm, n, :p, t_idx)
+    q_to = _PM.var(pm, n, :q, t_idx)  
     
-    vr_fr = Dict(nw => _PMs.var(pm, nw, :vr, f_bus) for nw in _PMs.nw_ids(pm))
-    vr_to = Dict(nw => _PMs.var(pm, nw, :vr, t_bus) for nw in _PMs.nw_ids(pm))
-    vi_fr = Dict(nw => _PMs.var(pm, nw, :vi, f_bus) for nw in _PMs.nw_ids(pm))
-    vi_to = Dict(nw => _PMs.var(pm, nw, :vi, t_bus) for nw in _PMs.nw_ids(pm))
+    vr_fr = Dict(nw => _PM.var(pm, nw, :vr, f_bus) for nw in _PM.nw_ids(pm))
+    vr_to = Dict(nw => _PM.var(pm, nw, :vr, t_bus) for nw in _PM.nw_ids(pm))
+    vi_fr = Dict(nw => _PM.var(pm, nw, :vi, f_bus) for nw in _PM.nw_ids(pm))
+    vi_to = Dict(nw => _PM.var(pm, nw, :vi, t_bus) for nw in _PM.nw_ids(pm))
    
     JuMP.@constraint(pm.model,  p_to * T2.get([n-1,n-1])
                                 ==
@@ -136,7 +136,7 @@ function constraint_gp_power_branch_to(pm::AbstractACRModel, n::Int, f_bus, t_bu
                                      (-g * tr - b * ti) / tm^2 * (vr_fr[n1] * vr_to[n2] + vi_fr[n1] * vi_to[n2]) + 
                                      (-b * tr + g * ti) / tm^2 * (-(vi_fr[n1] * vr_to[n2] - vr_fr[n1] * vi_to[n2]))
                                     )
-                                    for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
+                                    for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
                     )
    
     JuMP.@constraint(pm.model,  q_to * T2.get([n-1,n-1])
@@ -146,19 +146,19 @@ function constraint_gp_power_branch_to(pm::AbstractACRModel, n::Int, f_bus, t_bu
                                      (-b * tr + g * ti) / tm^2 * (vr_fr[n1] * vr_to[n2] + vi_fr[n1] * vi_to[n2]) + 
                                      (-g * tr - b * ti) / tm^2 * (-(vi_fr[n1] * vr_to[n2] - vr_fr[n1] * vi_to[n2]))
                                     )
-                                    for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
+                                    for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
                     )
 end
 
 ""
 function constraint_gp_power_branch_from(pm::AbstractACRModel, n::Int,f_bus, t_bus, f_idx, t_idx, g, b, g_fr, b_fr, tr, ti, tm, T2, T3)
-    p_fr = _PMs.var(pm, n, :p, f_idx)
-    q_fr = _PMs.var(pm, n, :q, f_idx)
+    p_fr = _PM.var(pm, n, :p, f_idx)
+    q_fr = _PM.var(pm, n, :q, f_idx)
 
-    vr_fr = Dict(nw => _PMs.var(pm, nw, :vr, f_bus) for nw in _PMs.nw_ids(pm))
-    vr_to = Dict(nw => _PMs.var(pm, nw, :vr, t_bus) for nw in _PMs.nw_ids(pm))
-    vi_fr = Dict(nw => _PMs.var(pm, nw, :vi, f_bus) for nw in _PMs.nw_ids(pm))
-    vi_to = Dict(nw => _PMs.var(pm, nw, :vi, t_bus) for nw in _PMs.nw_ids(pm))
+    vr_fr = Dict(nw => _PM.var(pm, nw, :vr, f_bus) for nw in _PM.nw_ids(pm))
+    vr_to = Dict(nw => _PM.var(pm, nw, :vr, t_bus) for nw in _PM.nw_ids(pm))
+    vi_fr = Dict(nw => _PM.var(pm, nw, :vi, f_bus) for nw in _PM.nw_ids(pm))
+    vi_to = Dict(nw => _PM.var(pm, nw, :vi, t_bus) for nw in _PM.nw_ids(pm))
 
     JuMP.@constraint(pm.model,  p_fr * T2.get([n-1,n-1])
                                 ==
@@ -167,7 +167,7 @@ function constraint_gp_power_branch_from(pm::AbstractACRModel, n::Int,f_bus, t_b
                                      (-g * tr + b * ti) / tm^2 * (vr_fr[n1] * vr_to[n2] + vi_fr[n1] * vi_to[n2]) + 
                                      (-b * tr - g * ti) / tm^2 * (vi_fr[n1] * vr_to[n2] - vr_fr[n1] * vi_to[n2])
                                     )
-                                for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
+                                for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
                     )
 
     JuMP.@constraint(pm.model,  q_fr * T2.get([n-1,n-1])
@@ -177,38 +177,38 @@ function constraint_gp_power_branch_from(pm::AbstractACRModel, n::Int,f_bus, t_b
                                      (-b * tr - g * ti) / tm^2 * (vr_fr[n1] * vr_to[n2] + vi_fr[n1] * vi_to[n2]) + 
                                      (-g * tr + b * ti) / tm^2 * (vi_fr[n1] * vr_to[n2] - vr_fr[n1] * vi_to[n2]) 
                                     )
-                                for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
+                                for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
                     )
 end
 
 ""
 function constraint_gp_current_squared(pm::AbstractACRModel, n::Int, i, T2, T3)
-    css = _PMs.var(pm, n, :css, i)
+    css = _PM.var(pm, n, :css, i)
     
-    branch = _PMs.ref(pm, n, :branch, i)
-    g, b  = _PMs.calc_branch_y(branch)
+    branch = _PM.ref(pm, n, :branch, i)
+    g, b  = _PM.calc_branch_y(branch)
     
-    vbdr = Dict(nw => _PMs.var(pm, nw, :vbdr, i) for nw in _PMs.nw_ids(pm))
-    vbdi = Dict(nw => _PMs.var(pm, nw, :vbdi, i) for nw in _PMs.nw_ids(pm))
+    vbdr = Dict(nw => _PM.var(pm, nw, :vbdr, i) for nw in _PM.nw_ids(pm))
+    vbdi = Dict(nw => _PM.var(pm, nw, :vbdi, i) for nw in _PM.nw_ids(pm))
 
     JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * css
                                 ==
                                 (g^2 + b^2) * sum(  T3.get([n1-1,n2-1,n-1]) * 
                                                     (vbdr[n1] * vbdr[n2] + vbdi[n1] * vbdi[n2])
-                                                    for n1 in _PMs.nw_ids(pm), n2 in _PMs.nw_ids(pm))
+                                                    for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
                     )
 end
 
 # chance constraints
 ""
 function constraint_bus_voltage_cc_limit(pm::AbstractACRModel, i, vmin, vmax, λmin, λmax, T2, T4)
-    ntws = _PMs.nw_ids(pm)
+    ntws = _PM.nw_ids(pm)
 
-    ve  = _PMs.var(pm, nw_id_default, :ve, i)
-    vv  = _PMs.var(pm, nw_id_default, :vv, i)
+    ve  = _PM.var(pm, nw_id_default, :ve, i)
+    vv  = _PM.var(pm, nw_id_default, :vv, i)
 
-    vr  = Dict(n => _PMs.var(pm, n, :vr, i) for n in ntws)
-    vi  = Dict(n => _PMs.var(pm, n, :vi, i) for n in ntws)
+    vr  = Dict(n => _PM.var(pm, n, :vr, i) for n in ntws)
+    vi  = Dict(n => _PM.var(pm, n, :vi, i) for n in ntws)
     
     T44 = Dict((n1,n2,n3,n4) => T4.get([n1-1,n2-1,n3-1,n4-1]) for n1 in ntws, n2 in ntws, n3 in ntws, n4 in ntws)
 
@@ -239,7 +239,7 @@ end
 
 ""
 function constraint_bus_voltage_squared_cc_limit(pm::AbstractACRModel, i, vmin, vmax, λmin, λmax, T2, mop)
-    vs  = [_PMs.var(pm, n, :vs, i) for n in sorted_nw_ids(pm)]
+    vs  = [_PM.var(pm, n, :vs, i) for n in sorted_nw_ids(pm)]
     
     # bounds on the expectation
     JuMP.@constraint(pm.model, vmin^2 <= _PCE.mean(vs, mop))
@@ -257,7 +257,7 @@ end
 
 ""
 function constraint_gen_power_real_cc_limit(pm::AbstractACRModel, g, pmin, pmax, λmin, λmax, T2, mop)
-    pg  = [_PMs.var(pm, nw, :pg, g) for nw in sorted_nw_ids(pm)]
+    pg  = [_PM.var(pm, nw, :pg, g) for nw in sorted_nw_ids(pm)]
 
      # bounds on the expectation 
      JuMP.@constraint(pm.model,  pmin <= _PCE.mean(pg, mop))
@@ -275,7 +275,7 @@ end
 
 ""
 function constraint_gen_power_imaginary_cc_limit(pm::AbstractACRModel, g, qmin, qmax, λmin, λmax, T2, mop)
-    qg  = [_PMs.var(pm, nw, :qg, g) for nw in sorted_nw_ids(pm)]
+    qg  = [_PM.var(pm, nw, :qg, g) for nw in sorted_nw_ids(pm)]
 
     # bounds on the expectation 
     JuMP.@constraint(pm.model,  qmin <= _PCE.mean(qg, mop))
@@ -292,14 +292,14 @@ function constraint_gen_power_imaginary_cc_limit(pm::AbstractACRModel, g, qmin, 
 end
 
 ""
-function constraint_branch_series_current_cc_limit(pm::AbstractACRModel, b, cmax, λmax, T2, T4,gs,bs)
-    ntws = _PMs.nw_ids(pm)
+function constraint_branch_series_current_cc_limit(pm::AbstractACRModel, b, cmax, λmax, T2, T4, gs, bs)
+    ntws = _PM.nw_ids(pm)
 
-    cse  = _PMs.var(pm, nw_id_default, :cse, b)
-    csv  = _PMs.var(pm, nw_id_default, :csv, b)
+    cse  = _PM.var(pm, nw_id_default, :cse, b)
+    csv  = _PM.var(pm, nw_id_default, :csv, b)
 
-    vbdr = Dict(n => _PMs.var(pm, n, :vbdr, b) for n in ntws)
-    vbdi  = Dict(n => _PMs.var(pm, n, :vbdi, b) for n in ntws)
+    vbdr = Dict(n => _PM.var(pm, n, :vbdr, b) for n in ntws)
+    vbdi = Dict(n => _PM.var(pm, n, :vbdi, b) for n in ntws)
     
     T44 = Dict((n1,n2,n3,n4) => T4.get([n1-1,n2-1,n3-1,n4-1]) for n1 in ntws, n2 in ntws, n3 in ntws, n4 in ntws)
 
@@ -326,7 +326,7 @@ end
 
 ""
 function constraint_branch_series_current_squared_cc_limit(pm::AbstractACRModel, b, cmax, λcmax, T2, mop)
-    css = [_PMs.var(pm, nw, :css, b) for nw in sorted_nw_ids(pm)]
+    css = [_PM.var(pm, nw, :css, b) for nw in sorted_nw_ids(pm)]
 
     # bound on the expectation
     JuMP.@constraint(pm.model,  _PCE.mean(css, mop) <= cmax^2)
@@ -335,4 +335,22 @@ function constraint_branch_series_current_squared_cc_limit(pm::AbstractACRModel,
                                 <=
                                 ((cmax^2 - _PCE.mean(css,mop)) / λcmax)^2
                     )
+end
+
+""
+function sol_data_model!(pm::AbstractACRModel, solution::Dict)
+    _PM.apply_pm!(_sol_data_model_acr!, solution)
+end
+
+
+""
+function _sol_data_model_acr!(solution::Dict)
+    if haskey(solution, "bus")
+        for (i, bus) in solution["bus"]
+            if haskey(bus, "vr") && haskey(bus, "vi")
+                bus["vm"] = sqrt(bus["vr"]^2 + bus["vi"]^2)
+                bus["va"] = atan(bus["vi"], bus["vr"])
+            end
+        end
+    end
 end

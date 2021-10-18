@@ -13,11 +13,11 @@
         deg  = 1
         aux  = true
         red  = false
-        case = "matpower/case5_spm.m"
+        case = "case5_spm.m"
 
         # data
-        path  = joinpath(_SPM.BASE_DIR,"test/data/$case")
-        data  = _PMs.parse_file(path)
+        path  = joinpath("../test/data/matpower",case)
+        data  = _PM.parse_file(path)
         sdata = _SPM.build_stochastic_data(data, deg)
 
         # element cardinality
@@ -25,9 +25,12 @@
         Ng = length(data["gen"])
     
         # solve problem
-        result_ivr = _SPM.run_sopf_iv(sdata, _PMs.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
-        result_acr = _SPM.run_sopf_acr(sdata, _PMs.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
-        
+        result_ivr = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
+        result_acr = _SPM.run_sopf_acr(sdata, _PM.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
+
+        @test result_ivr["termination_status"] == LOCALLY_SOLVED
+        @test result_acr["termination_status"] == LOCALLY_SOLVED
+
         # test for objective
         @test isapprox(result_ivr["objective"], result_acr["objective"], rtol=1e-8)
 
@@ -65,11 +68,11 @@
         deg  = 2
         aux  = true
         red  = false
-        case = "matpower/case5_spm.m"
+        case = "case5_spm.m"
 
         # data
-        path  = joinpath(_SPM.BASE_DIR,"test/data/$case")
-        data  = _PMs.parse_file(path)
+        path  = joinpath("../test/data/matpower",case)
+        data  = _PM.parse_file(path)
         sdata = _SPM.build_stochastic_data(data, deg)
 
         # element cardinality
@@ -77,8 +80,11 @@
         Ng = length(data["gen"])
     
         # solve problem
-        result_ivr = _SPM.run_sopf_iv(sdata, _PMs.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
-        result_acr = _SPM.run_sopf_acr(sdata, _PMs.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
+        result_ivr = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
+        result_acr = _SPM.run_sopf_acr(sdata, _PM.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
+
+        @test result_ivr["termination_status"] == LOCALLY_SOLVED
+        @test result_acr["termination_status"] == LOCALLY_SOLVED
         
         # test for objective
         @test isapprox(result_ivr["objective"], result_acr["objective"], rtol=1e-8)
@@ -117,11 +123,11 @@
         deg  = 1
         aux  = false
         red  = false
-        case = "matpower/case5_spm.m"
+        case = "case5_spm.m"
 
         # data
-        path  = joinpath(_SPM.BASE_DIR,"test/data/$case")
-        data  = _PMs.parse_file(path)
+        path  = joinpath("../test/data/matpower",case)
+        data  = _PM.parse_file(path)
         sdata = _SPM.build_stochastic_data(data, deg)
 
         # element cardinality
@@ -129,8 +135,11 @@
         Ng = length(data["gen"])
     
         # solve problem
-        result_ivr = _SPM.run_sopf_iv(sdata, _PMs.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
-        result_acr = _SPM.run_sopf_acr(sdata, _PMs.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
+        result_ivr = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
+        result_acr = _SPM.run_sopf_acr(sdata, _PM.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
+
+        @test result_ivr["termination_status"] == LOCALLY_SOLVED
+        @test result_acr["termination_status"] == LOCALLY_SOLVED
         
         # test for objective
         @test isapprox(result_ivr["objective"], result_acr["objective"], rtol=1e-8)
@@ -168,11 +177,11 @@
         # input
         deg  = 1
         red  = false
-        case = "matpower/case5_spm.m"
+        case = "case5_spm.m"
 
         # data
-        path  = joinpath(_SPM.BASE_DIR,"test/data/$case")
-        data  = _PMs.parse_file(path)
+        path  = joinpath("../test/data/matpower",case)
+        data  = _PM.parse_file(path)
         sdata = _SPM.build_stochastic_data(data, deg)
 
         # element cardinality
@@ -180,8 +189,12 @@
         Ng = length(data["gen"])
     
         # solve problem
-        result_w_aux  = _SPM.run_sopf_iv(sdata, _PMs.IVRPowerModel, ipopt_solver, aux=true, deg=deg, red=red)
-        result_wo_aux = _SPM.run_sopf_iv(sdata, _PMs.IVRPowerModel, ipopt_solver, aux=false, deg=deg, red=red)
+        result_w_aux  = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=true, deg=deg, red=red)
+        result_wo_aux = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=false, deg=deg, red=red)
+
+        @test result_w_aux["termination_status"] == LOCALLY_SOLVED
+        @test result_wo_aux["termination_status"] == LOCALLY_SOLVED
+
         
         # test for objective
         @test isapprox(result_w_aux["objective"], result_wo_aux["objective"], rtol=1e-8)
@@ -219,11 +232,11 @@
         # input
         deg  = 1
         aux  = true
-        case = "matpower/case5_spm.m"
+        case = "case5_spm.m"
 
         # data
-        path  = joinpath(_SPM.BASE_DIR,"test/data/$case")
-        data  = _PMs.parse_file(path)
+        path  = joinpath("../test/data/matpower",case)
+        data  = _PM.parse_file(path)
         sdata = _SPM.build_stochastic_data(data, deg)
 
         # element cardinality
@@ -231,8 +244,11 @@
         Ng = length(data["gen"])
     
         # solve problem
-        result_ivr = _SPM.run_sopf_iv(sdata, _PMs.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=false)
-        result_red = _SPM.run_sopf_iv(sdata, _PMs.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=true)
+        result_ivr = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=false)
+        result_red = _SPM.run_sopf_iv(sdata, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=true)
+
+        @test result_ivr["termination_status"] == LOCALLY_SOLVED
+        @test result_red["termination_status"] == LOCALLY_SOLVED
         
         # test for objective
         @test isapprox(result_ivr["objective"], result_red["objective"], rtol=1e-8)

@@ -22,10 +22,10 @@ module StochasticPowerModels
     import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
 
     # pkgs const
-    const _IMs = InfrastructureModels
+    const _IM = InfrastructureModels
     const _KDE = KernelDensity
     const _PCE = PolyChaos
-    const _PMs = PowerModels
+    const _PM = PowerModels
     const _SPM = StochasticPowerModels
 
     # memento logger
@@ -37,7 +37,7 @@ module StochasticPowerModels
     const nw_id_default = 1
 
     # funct
-    sorted_nw_ids(pm) = sort(collect(_PMs.nw_ids(pm)))
+    sorted_nw_ids(pm) = sort(collect(_PM.nw_ids(pm)))
 
     # paths
     const BASE_DIR = dirname(@__DIR__)

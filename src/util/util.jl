@@ -54,7 +54,7 @@ function build_stochastic_data(data::Dict{String,Any}, deg::Int)
     end
 
     # replicate the data
-    data = _PMs.replicate(data, Npce)
+    data = _PM.replicate(data, Npce)
 
     # add the stochastic data 
     data["T2"] = _PCE.Tensor(2,mop)
@@ -96,4 +96,13 @@ Return an kernel density estimate of the variable `var` of the `id`th element
 """
 density(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000) =
     _KDE.kde(sample(sdata, result, element, id, var; sample_size=sample_size))
- 
+
+function print_summary(obj::Dict{String,<:Any}; kwargs...)
+    if _IM.ismultinetwork(obj)
+        for (n,nw) in obj["nw"]
+            println("----------------")
+            println("PCE index $n")
+            _PM.summary(stdout, nw; kwargs...)
+        end
+    end
+end
