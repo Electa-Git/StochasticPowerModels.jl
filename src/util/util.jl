@@ -1,18 +1,12 @@
 ################################################################################
-#  Copyright 2021, Tom Van Acker                                               #
+#  Copyright 2021, Tom Van Acker, Arpan Koirala                                #
 ################################################################################
 # StochasticPowerModels.jl                                                     #
 # An extention package of PowerModels.jl for Stochastic (Optimal) Power Flow   #
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
-""
-var_min(var, λ) = var[1] - λ * sqrt(sum(var[2:end].^2))
-var_max(var, λ) = var[1] + λ * sqrt(sum(var[2:end].^2))
-
-""
-is_constrained(pm, cmp, idx) = _PMs.ref(pm, 1, cmp, idx, "cstr")
-
+# input data
 ""
 function parse_dst(dst, pa, pb, deg)
     dst == "Beta"    && return _PCE.Beta01OrthoPoly(deg, pa, pb; Nrec=5*deg)
@@ -21,9 +15,12 @@ function parse_dst(dst, pa, pb, deg)
 end
 
 """
-    build_stochastic_data!(data::Dict{String,Any}, deg::Int)
+    StochasticPowerModels.build_stochastic_data(data::Dict{String,Any}, deg::Int)
+
+Function to build the multi-network data representative of the polynomial chaos
+expansion of a single-network data dictionary.
 """
-function build_stochastic_data(data, deg)
+function build_stochastic_data(data::Dict{String,Any}, deg::Int)
     # add maximum current
     for (nb, branch) in data["branch"]
         f_bus = branch["f_bus"]
@@ -57,7 +54,7 @@ function build_stochastic_data(data, deg)
     end
 
     # replicate the data
-    data = _PMs.replicate(data, Npce)
+    data = _PM.replicate(data, Npce)
 
     # add the stochastic data 
     data["T2"] = _PCE.Tensor(2,mop)
@@ -72,27 +69,40 @@ function build_stochastic_data(data, deg)
     return data
 end
 
-# ""
-# function create_mop(data_dist)
-#     m=Vector{Symbol}()
-#     for id in sort!(collect(keys(data_dist)))
-#         push!(m, Symbol(data_dist[id]["distribution"]))
-#     end
+# output data
+"""
+    StochasticPowerModels.pce_coeff(result, element::String, id::Int, var::String)
 
-#     m2=[]
-#     for i=1:length(m)
-#         dist_sym=m[i]
-#         d=data_dist["$i"]
-#         degree = d["deg"]
-#         No_rec = (d["deg"] *d["Nrec"])
-#         alpha= d["alpha"]
-#         beta=d["beta"]
-#         if dist_sym == :Beta01OrthoPoly
-#             a = Meta.parse(string("$dist_sym($degree, $alpha, $beta; Nrec=$No_rec)"))
-#         else
-#             a = Meta.parse(string("$dist_sym($degree; Nrec=$No_rec)"))
-#         end
-#         push!(m2, a)
-#     end
-#     return m2
-# end
+Returns all polynomial chaos coefficients associated with the variable `var` of 
+the `id`th element `element`.
+"""
+pce_coeff(result, element::String, id::Int, var::String) =
+    [nw[2][element]["$id"][var] for nw in sort(collect(result["solution"]["nw"]), by=x->parse(Int,x[1]))]
+
+"""
+    StochasticPowerModels.sample(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000)
+
+Return an `sample_size` sample of the variable `var` of the `id`th element 
+`element`.
+"""
+sample(result, element::String, id::Int, var::String; sample_size::Int=1000) =
+    _PCE.samplePCE(sample_size, pce_coeff(result, element, id, var), result["mop"])
+
+"""
+    StochasticPowerModels.density(sdata, result, element::String, id::Int, var::String; sample_size::Int=1000)
+
+Return an kernel density estimate of the variable `var` of the `id`th element 
+`element`.
+"""
+density(result, element::String, id::Int, var::String; sample_size::Int=1000) =
+    _KDE.kde(sample(result, element, id, var; sample_size=sample_size))
+
+function print_summary(obj::Dict{String,<:Any}; kwargs...)
+    if _IM.ismultinetwork(obj)
+        for (n,nw) in obj["nw"]
+            println("----------------")
+            println("PCE index $n")
+            _PM.summary(stdout, nw; kwargs...)
+        end
+    end
+end
