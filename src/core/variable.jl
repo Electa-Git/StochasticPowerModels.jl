@@ -276,7 +276,7 @@ end
 function variable_branch_voltage_drop_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     vbdr = _PM.var(pm, nw)[:vbdr] = JuMP.@variable(pm.model,
         [l in _PM.ids(pm, nw, :branch)], base_name="$(nw)_vbdr",
-        start = _PM.comp_start_value(_PM.ref(pm, nw, :branch, l), "vbdr_start", 0.0)
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :branch, l), "vbdr_start", 0.01)
     )
     
     report && _PM.sol_component_value(pm, nw, :branch, :vbdr, _PM.ids(pm, nw, :branch), vbdr)
@@ -287,7 +287,7 @@ function variable_branch_voltage_drop_img(pm::AbstractPowerModel; nw::Int=nw_id_
 
     vbdi = _PM.var(pm, nw)[:vbdi] = JuMP.@variable(pm.model,
         [l in _PM.ids(pm, nw, :branch)], base_name="$(nw)_vbdi",
-        start = _PM.comp_start_value(_PM.ref(pm, nw, :branch, l), "vbdi_start", 0.0)
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :branch, l), "vbdi_start", 0.01)
     )
 
     report && _PM.sol_component_value(pm, nw, :branch, :vbdi, _PM.ids(pm, nw, :branch), vbdi)

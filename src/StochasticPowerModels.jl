@@ -61,5 +61,5 @@ module StochasticPowerModels
     export run_sopf_iv, run_sopf_acr
 
     export build_stochastic_data
-    export pce_coeff, sample, density
+    export pce_coeff, sample, density, print_summary
 end 
