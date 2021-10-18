@@ -326,4 +326,37 @@
             @test all(isapprox.(bus_qg_ivr[ng], bus_qg_red[ng], atol=1e-6)) 
         end
     end
+
+    @testset "IVR: case30_spm_muhlpfordt.m, σ = 0.15 * μ, ε = 0.15" begin
+        # input
+        aux  = true
+        red  = true
+        case = "case30_spm_muhlpfordt.m"
+
+        # data
+        path  = joinpath("../test/data/matpower", case)
+        data  = _PM.parse_file(path)
+    
+        # solve problem
+        result_one = _SPM.run_sopf_iv(data, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=1, red=red)
+        result_two = _SPM.run_sopf_iv(data, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=2, red=red)
+
+        @test result_one["termination_status"] == LOCALLY_SOLVED
+        @test result_two["termination_status"] == LOCALLY_SOLVED
+        
+        # test for objective
+        @test isapprox(result_one["objective"], 599.35, atol=1e-2)
+        @test isapprox(result_two["objective"], 599.35, atol=1e-2)
+
+        # sample against chance constraint
+        sample_size = 10000
+        for ns in [("gen", 3, "pg", "pmax"), ("gen", 4, "pg", "pmax")]
+            elm, id, var, lim = ns 
+            limit = data[elm]["$id"][lim]
+            ε_one = count(x -> x <= limit, sample(result_one, elm, id, var, sample_size=sample_size)) / sample_size
+            ε_two = count(x -> x <= limit, sample(result_two, elm, id, var, sample_size=sample_size)) / sample_size
+            @test isapprox(ε_one, 1.0 - 0.15, atol = 1.25e-2)
+            @test isapprox(ε_two, 1.0 - 0.15, atol = 1.25e-2)
+        end
+    end
 end
