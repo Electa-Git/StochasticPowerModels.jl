@@ -36,8 +36,8 @@ end
 
 "" # this should be renamed to more accurately reflect the variable, i.e., voltage drop
 function variable_branch_current(pm::AbstractACRModel; nw::Int=nw_id_default, aux::Bool=true, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false, kwargs...)
-    variable_branch_voltage_drop_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
-    variable_branch_voltage_drop_img(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    #variable_branch_voltage_drop_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    #variable_branch_voltage_drop_img(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     
     if aux
         variable_branch_series_current_squared(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
@@ -353,4 +353,19 @@ function _sol_data_model_acr!(solution::Dict)
             end
         end
     end
+end
+
+
+""
+function  expression_branch_voltage_drop_real(pm::AbstractACRModel, n::Int, b::Int, f_bus, t_bus)
+    vr_fr = _PM.var(pm, n, :vr, f_bus)
+    vr_to = _PM.var(pm, n, :vr, t_bus)
+    _PM.var(pm, n, :vbdr)[b]=vr_fr-vr_to
+end
+
+""
+function  expression_branch_voltage_drop_img(pm::AbstractACRModel, n::Int, b::Int, f_bus, t_bus)
+    vi_fr = _PM.var(pm, n, :vi, f_bus)
+    vi_to = _PM.var(pm, n, :vi, t_bus)
+    _PM.var(pm, n, :vbdi)[b] = (vi_fr-vi_to)
 end

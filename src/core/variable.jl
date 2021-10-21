@@ -292,3 +292,33 @@ function variable_branch_voltage_drop_img(pm::AbstractPowerModel; nw::Int=nw_id_
 
     report && _PM.sol_component_value(pm, nw, :branch, :vbdi, _PM.ids(pm, nw, :branch), vbdi)
 end
+
+"expression: voltage drop real"
+function expression_branch_voltage_drop_real(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    if !haskey(_PM.var(pm, nw), :vbdr)
+         vbdr=_PM.var(pm, nw)[:vbdr] = Dict()
+    end
+
+        branch = _PM.ref(pm, nw, :branch, b)
+        f_bus = branch["f_bus"]
+        t_bus = branch["t_bus"]
+        
+        #vbdr[b] = (vr_fr-vr_to)
+
+        expression_branch_voltage_drop_real(pm, nw, b, f_bus, t_bus)
+end
+
+
+"expression: voltage drop img"
+function expression_branch_voltage_drop_img(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    if !haskey(_PM.var(pm, nw), :vbdi)
+        vbdi=_PM.var(pm, nw)[:vbdi] = Dict()
+    end
+        #branch = _PMs.ref(pm, nw, :branch)
+    branch = _PM.ref(pm, nw, :branch, b)
+    f_bus = branch["f_bus"]
+    t_bus = branch["t_bus"]
+    
+    expression_branch_voltage_drop_img(pm, nw, b, f_bus, t_bus)
+end
+
