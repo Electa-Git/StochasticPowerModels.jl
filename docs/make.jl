@@ -1,5 +1,5 @@
 push!(LOAD_PATH,"../src/")
-using Documenter
+using Documenter, StochasticPowerModels
 
 makedocs(sitename="StochasticPowerModels Documentation")
 
@@ -13,10 +13,20 @@ const _PDF = findfirst(isequal("--pdf"), ARGS) !== nothing || _IS_GITHUB_ACTIONS
 if _PDF
     latex_platform = _IS_GITHUB_ACTIONS ? "docker" : "native"
     @time Documenter.makedocs(
+        modules = [StochasticPowerModels],
+        format = Documenter.HTML(mathengine = Documenter.MathJax()),
         sitename = "StochasticPowerModels",
-        authors = "The StochasticPowerModels core developers and contributors",
-        format = Documenter.LaTeX(platform = latex_platform),
-        build = "latex_build",
+        authors = "Tom Van Acker and contributors.",
+        pages = [
+            "Home" => "index.md",
+            "Manual" => [
+                "Getting Started" => "quickguide.md",
+                "Mathematical Model" => "math-model.md",
+            ],
+            "Library" => [
+                "Network Formulations" => "formulations.md",
+            ],
+        ]
     )
     # Hack for deploying: copy the pdf (and only the PDF) into the HTML build
     # directory! We don't want to copy everything in `latex_build` because it
