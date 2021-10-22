@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Mathematical Model · StochasticPowerModels</title><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">StochasticPowerModels</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../quickguide/">Getting Started</a></li><li class="is-active"><a class="tocitem" href>Mathematical Model</a><ul class="internal"><li><a class="tocitem" href="#Sets-and-Parameters"><span>Sets and Parameters</span></a></li><li><a class="tocitem" href="#Stochastic-Optimal-Power-Flow-in-Current-Voltage-Variables"><span>Stochastic Optimal Power Flow in Current-Voltage Variables</span></a></li><li><a class="tocitem" href="#Stochastic-Optimal-Power-Flow-in-Power-Voltage-Variables"><span>Stochastic Optimal Power Flow in Power-Voltage Variables</span></a></li></ul></li></ul></li><li><span class="tocitem">Library</span><ul><li><a class="tocitem" href="../formulations/">Network Formulations</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Manual</a></li><li class="is-active"><a href>Mathematical Model</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Mathematical Model</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/timmyfaraday/StochasticPowerModels.jl/blob/master/docs/src/math-model.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="The-StochasticPowerModels-Mathematical-Model"><a class="docs-heading-anchor" href="#The-StochasticPowerModels-Mathematical-Model">The StochasticPowerModels Mathematical Model</a><a id="The-StochasticPowerModels-Mathematical-Model-1"></a><a class="docs-heading-anchor-permalink" href="#The-StochasticPowerModels-Mathematical-Model" title="Permalink"></a></h1><h2 id="Sets-and-Parameters"><a class="docs-heading-anchor" href="#Sets-and-Parameters">Sets and Parameters</a><a id="Sets-and-Parameters-1"></a><a class="docs-heading-anchor-permalink" href="#Sets-and-Parameters" title="Permalink"></a></h2><p>StochasticPowerModels implements a generalized polynomial chaos expansion version of the AC Optimal Power Flow problem from <a href="http://www.pserc.cornell.edu/matpower/">Matpower</a>.   The core generalizations of the deterministic OPF problem are,</p><ul><li>Support for multiple load (<span>$S^d_k$</span>) and shunt (<span>$Y^s_{k}$</span>) components on each bus <span>$i$</span></li><li>Line charging that supports a conductance and asymmetrical values (<span>$Y^c_{ij}, Y^c_{ji}$</span>)</li></ul><p class="math-container">\[\begin{align}
+%
+\mbox{sets:} &amp; \nonumber \\
+&amp; N \mbox{ - buses}\nonumber \\
+&amp; R \mbox{ - reference buses}\nonumber \\
+&amp; E, E^R \mbox{ - branches, forward and reverse orientation} \nonumber \\
+&amp; G, G_i \mbox{ - generators and generators at bus $i$} \nonumber \\
+&amp; L, L_i \mbox{ - loads and loads at bus $i$} \nonumber \\
+&amp; S, S_i \mbox{ - shunts and shunts at bus $i$} \nonumber \\
+%
+\mbox{data:} &amp; \nonumber \\
+&amp; S^{gl}_k, S^{gu}_k \;\; \forall k \in G \nonumber \mbox{ - generator complex power bounds}\\
+&amp; c_{2k}, c_{1k}, c_{0k} \;\; \forall k \in G \nonumber  \mbox{ - generator cost components}\\
+&amp; v^l_i, v^u_i \;\; \forall i \in N \nonumber \mbox{ - voltage bounds}\\
+&amp; S^d_k \;\; \forall k \in L \nonumber \mbox{ - load complex power consumption}\\
+&amp; Y^s_{k} \;\; \forall k \in S \nonumber \mbox{ - bus shunt admittance}\\
+&amp; Y_{ij}, Y^c_{ij}, Y^c_{ji} \;\; \forall (i,j) \in E \nonumber \mbox{ - branch pi-section parameters}\\
+&amp; {T}_{ij} \;\; \forall (i,j) \in E \nonumber \mbox{ - branch complex transformation ratio}\\
+&amp; s^u_{ij}  \;\; \forall (i,j) \in E \nonumber \mbox{ - branch apparent power limit}\\
+&amp; i^u_{ij}  \;\; \forall (i,j) \in E \nonumber \mbox{ - branch current limit}\\
+&amp; \theta^{\Delta l}_{ij}, \theta^{\Delta u}_{ij} \;\; \forall (i,j) \in E \nonumber \mbox{ - branch voltage angle difference bounds}\\
+%
+\end{align}\]</p><h2 id="Stochastic-Optimal-Power-Flow-in-Current-Voltage-Variables"><a class="docs-heading-anchor" href="#Stochastic-Optimal-Power-Flow-in-Current-Voltage-Variables">Stochastic Optimal Power Flow in Current-Voltage Variables</a><a id="Stochastic-Optimal-Power-Flow-in-Current-Voltage-Variables-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-Optimal-Power-Flow-in-Current-Voltage-Variables" title="Permalink"></a></h2><p>A variable <span>$I^{s}_{ij}$</span>, representing the current in the direction <span>$i$</span> to <span>$j$</span>, through the series part of the pi-section, is used. The mathematical structure for a current-voltage formulation is conceived as:</p><p class="math-container">\[\begin{align}
+%
+\mbox{variables: } &amp; \nonumber \\
+&amp; I^g_k \;\; \forall k\in G \nonumber \\
+&amp; V_i \;\; \forall i\in N \nonumber \\
+&amp; I^{s}_{ij} \;\; \forall (i,j) \in E \cup E^R  \mbox{ - branch complex (series) current}\\
+&amp; I_{ij} \;\; \forall (i,j) \in E \cup E^R  \mbox{ - branch complex (total) current} \label{var_total_current}\\
+%
+\mbox{minimize: } &amp; \sum_{k \in G} c_{2k} (\Re(S^g_k))^2 + c_{1k}\Re(S^g_k) + c_{0k} \nonumber\\
+%
+\mbox{subject to: } &amp; \nonumber \\
+&amp; \angle V_{r} = 0  \;\; \forall r \in R \nonumber \\
+&amp; S^{gl}_k \leq \Re(V_i (I^g_k)^*) + j \Im(V_i (I^g_k)^*) \leq S^{gu}_k \;\; \forall k \in G   \label{eq_complex_power_definition_gen}\\
+&amp; v^l_i \leq |V_i| \leq v^u_i \;\; \forall i \in N \nonumber\\
+&amp; \sum_{\substack{k \in G_i}} I^g_k - \sum_{\substack{k \in L_i}} (S^d_k/V_i)^{*} - \sum_{\substack{k \in S_i}} Y^s_k V_i = \sum_{\substack{(i,j)\in E_i \cup E_i^R}} I_{ij} \;\; \forall i\in N  \label{eq_kcl_current} \\
+&amp; I_{ij} =  \frac{I^{s}_{ij}}{T_{ij}^*} + Y^c_{ij} \frac{V_i}{|T_{ij}|^2}  \;\; \forall (i,j)\in E \label{eq_current_from} \\
+&amp; I_{ji} = -I^{s}_{ij} + Y^c_{ji} V_j  \;\; \forall (i,j)\in E \label{eq_current_to} \\
+&amp; \frac{V_i}{{T}_{ij}} = V_j + z_{ij} I^{s}_{ij}  \;\; \forall (i,j) \in E \label{eq_ohms_iv} \\
+&amp; |S_{ij}| = |V_{i}| |I_{ij}| \leq s^u_{ij} \;\; \forall (i,j) \in E \cup E^R \nonumber\\
+&amp; |I_{ij}| \leq i^u_{ij} \;\; \forall (i,j) \in E \cup E^R \nonumber\\
+&amp; \theta^{\Delta l}_{ij} \leq \angle (V_i V^*_j) \leq \theta^{\Delta u}_{ij} \;\; \forall (i,j) \in E \nonumber
+%
+\end{align}\]</p><h2 id="Stochastic-Optimal-Power-Flow-in-Power-Voltage-Variables"><a class="docs-heading-anchor" href="#Stochastic-Optimal-Power-Flow-in-Power-Voltage-Variables">Stochastic Optimal Power Flow in Power-Voltage Variables</a><a id="Stochastic-Optimal-Power-Flow-in-Power-Voltage-Variables-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-Optimal-Power-Flow-in-Power-Voltage-Variables" title="Permalink"></a></h2><p>A complete mathematical model is as follows,</p><p class="math-container">\[\begin{align}
+%
+\mbox{variables: } &amp; \nonumber \\
+&amp; S^g_k \;\; \forall k\in G \mbox{ - generator complex power dispatch} \label{var_generation}\\
+&amp; V_i \;\; \forall i\in N \label{var_voltage} \mbox{ - bus complex voltage}\\
+&amp; S_{ij} \;\; \forall (i,j) \in E \cup E^R  \label{var_complex_power} \mbox{ - branch complex power flow}\\
+%
+\mbox{minimize: } &amp; \sum_{k \in G} c_{2k} (\Re(S^g_k))^2 + c_{1k}\Re(S^g_k) + c_{0k} \label{eq_objective}\\
+%
+\mbox{subject to: } &amp; \nonumber \\
+&amp; \angle V_{r} = 0  \;\; \forall r \in R \label{eq_ref_bus}\\
+&amp; S^{gl}_k \leq S^g_k \leq S^{gu}_k \;\; \forall k \in G  \label{eq_gen_bounds}\\
+&amp; v^l_i \leq |V_i| \leq v^u_i \;\; \forall i \in N \label{eq_voltage_bounds}\\
+&amp; \sum_{\substack{k \in G_i}} S^g_k - \sum_{\substack{k \in L_i}} S^d_k - \sum_{\substack{k \in S_i}} (Y^s_k)^* |V_i|^2 = \sum_{\substack{(i,j)\in E_i \cup E_i^R}} S_{ij} \;\; \forall i\in N \label{eq_kcl_shunt} \\
+&amp; S_{ij} = \left( Y_{ij} + Y^c_{ij}\right)^* \frac{|V_i|^2}{|{T}_{ij}|^2} - Y^*_{ij} \frac{V_i V^*_j}{{T}_{ij}} \;\; \forall (i,j)\in E \label{eq_power_from}\\
+&amp; S_{ji} = \left( Y_{ij} + Y^c_{ji} \right)^* |V_j|^2 - Y^*_{ij} \frac{V^*_i V_j}{{T}^*_{ij}} \;\; \forall (i,j)\in E \label{eq_power_to}\\
+&amp; |S_{ij}| \leq s^u_{ij} \;\; \forall (i,j) \in E \cup E^R \label{eq_thermal_limit}\\
+&amp; |I_{ij}| \leq i^u_{ij} \;\; \forall (i,j) \in E \cup E^R \label{eq_current_limit}\\
+&amp; \theta^{\Delta l}_{ij} \leq \angle (V_i V^*_j) \leq \theta^{\Delta u}_{ij} \;\; \forall (i,j) \in E \label{eq_angle_difference}
+%
+\end{align}\]</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../quickguide/">« Getting Started</a><a class="docs-footer-nextpage" href="../formulations/">Network Formulations »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.10 on <span class="colophon-date" title="Friday 22 October 2021 09:59">Friday 22 October 2021</span>. Using Julia version 1.6.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
