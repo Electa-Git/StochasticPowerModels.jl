@@ -8,8 +8,7 @@ using Documenter, StochasticPowerModels
 const _IS_GITHUB_ACTIONS = get(ENV, "GITHUB_ACTIONS", "false") == "true"
 
 # Pass --pdf to build the PDF. On GitHub actions, we always build the PDF.
-# const _PDF = findfirst(isequal("--pdf"), ARGS) !== nothing || _IS_GITHUB_ACTIONS
-const _PDF = true
+const _PDF = findfirst(isequal("--pdf"), ARGS) !== nothing || _IS_GITHUB_ACTIONS
 
 const _PAGES = [
     "Home" => "index.md",
@@ -35,7 +34,7 @@ if _PDF
     latex_platform = "docker"
     @time Documenter.makedocs(
         sitename = "StochasticPowerModels",
-        authors = "Tom Van Acker and contributors.",
+        authors = "The StochasticPowerModels core developers and contributors",
         format = Documenter.LaTeX(platform = latex_platform),
         build = "latex_build",
         pages = _PAGES,
