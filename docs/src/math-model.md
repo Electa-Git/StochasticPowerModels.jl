@@ -9,7 +9,6 @@ The core generalizations of the deterministic OPF problem are,
 - Support for multiple load ($S^d_k$) and shunt ($Y^s_{k}$) components on each bus $i$
 - Line charging that supports a conductance and asymmetrical values ($Y^c_{ij}, Y^c_{ji}$)
 
-
 ```math
 \begin{align}
 %
@@ -20,7 +19,13 @@ The core generalizations of the deterministic OPF problem are,
 & G, G_i \mbox{ - generators and generators at bus $i$} \nonumber \\
 & L, L_i \mbox{ - loads and loads at bus $i$} \nonumber \\
 & S, S_i \mbox{ - shunts and shunts at bus $i$} \nonumber \\
-& K \mbox{ - polynomial chaos basis} \\
+& K \mbox{ - polynomial chaos basis} \nonumber
+%
+\end{align}
+```
+
+```math
+\begin{align}
 %
 \mbox{data:} & \nonumber \\
 & S^{gl}_k, S^{gu}_k \;\; \forall k \in G \nonumber \mbox{ - generator complex power bounds}\\
@@ -32,7 +37,7 @@ The core generalizations of the deterministic OPF problem are,
 & {T}_{ij} \;\; \forall (i,j) \in E \nonumber \mbox{ - branch complex transformation ratio}\\
 & s^u_{ij}  \;\; \forall (i,j) \in E \nonumber \mbox{ - branch apparent power limit}\\
 & i^u_{ij}  \;\; \forall (i,j) \in E \nonumber \mbox{ - branch current limit}\\
-& \theta^{\Delta l}_{ij}, \theta^{\Delta u}_{ij} \;\; \forall (i,j) \in E \nonumber \mbox{ - branch voltage angle difference bounds}\\
+& \theta^{\Delta l}_{ij}, \theta^{\Delta u}_{ij} \;\; \forall (i,j) \in E \nonumber \mbox{ - branch voltage angle difference bounds}
 %
 \end{align}
 ```
@@ -56,7 +61,7 @@ The mathematical structure for a current-voltage formulation is conceived as:
 \label{var_series_branch_current_ivr} \nonumber \\
 & I_{ij,k} \;\; \forall (i,j) \in E^F \cup E^R, k \in K 
 \mbox{ - branch complex (total) current} 
-\label{var_total_branch_current_ivr} \nonumbed \\
+\label{var_total_branch_current_ivr} \nonumber \\
 %
 \mbox{minimize: } & 
 \sum_{g \in G} \mathbb{E} \left[ 
@@ -80,32 +85,6 @@ The mathematical structure for a current-voltage formulation is conceived as:
 & \mathbb{P} \[ S_g \leq S^{max}_{g} \] \geq 1 - \varepsilon \;\;
 \forall g \in G
 \label{eq_complex_gen_power_ub_ivr} \\
-& \mathbb{P} \[ v^{min}_i \leq |V_i| \] \geq 1 - \varepsilon \;\; 
-\forall i \in I 
-\label{eq_voltage_bus_lb_ivr} \\
-& \mathbb{P} \[ |V_i| \leq v^{max}_i \] \geq 1 - \varepsilon \;\; 
-\forall i \in I 
-\label{eq_bus_voltage_ub_ivr} \\
-&   \sum_{\substack{g \in G_i}} I_{g,k} - 
-    \sum_{\substack{l \in L_i}} I_{l,k} - 
-    \sum_{\substack{s \in S_i}} Y_s V_{i,k} 
-    = 
-    \sum_{\substack{(i,j) \in E_i^F \cup E_i^R}} I_{ij,k} \;\; 
-\forall i \in I, k \in K
-\label{eq_kcl_current_ivr} \\
-& I_{ij,k} = \frac{I^{s}_{ij,k}}{T_{ij}^*} + Y^c_{ij} \frac{V_{i,k}}{|T_{ij}|^2} \;\; \forall (i,j) \in E^F, k \in K 
-\label{eq_current_from_ivr} \\
-& I_{ji,k} = -I^{s}_{ij,k} + Y^c_{ji} V_{j,k}  \;\; 
-\forall (j,i) \in E^R, k \in K 
-\label{eq_current_to_ivr} \\
-& \frac{V_{i,k}}{{T}_{ij}} = V_{j,k} + z_{ij} I^{s}_{ij,k}  \;\; 
-\forall (i,j) \in E^F, k \in K 
-\label{eq_ohms_ivr} \\
-& \mathbb{P} \[ |I_{ij}| \leq i^u_{ij} \] \geq 1 - \varepsilon \;\; 
-\forall (i,j) \in E^F \cup E^R 
-\label{eq_branch_current_ub_ivr} \\
-%& \theta^{\Delta l}_{ij} \leq \angle (V_i V^*_j) \leq \theta^{\Delta u}_{ij} \;\; \forall (i,j) \in E \nonumber --> is this necessary?
-%& |S_{ij,k}| = |V_{i}| |I_{ij}| \leq s^u_{ij} \;\; \forall (i,j) \in E \cup E^R \nonumber\\ --> is this necessary?
 %
 \end{align}
 ```

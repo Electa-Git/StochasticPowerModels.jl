@@ -1,14 +1,11 @@
 push!(LOAD_PATH,"../src/")
 using Documenter, StochasticPowerModels
 
-
-
-
 # A flag to check if we are running in a GitHub action.
 const _IS_GITHUB_ACTIONS = get(ENV, "GITHUB_ACTIONS", "false") == "true"
 
 # Pass --pdf to build the PDF. On GitHub actions, we always build the PDF.
-const _PDF = findfirst(isequal("--pdf"), ARGS) !== nothing || _IS_GITHUB_ACTIONS
+const _PDF = true # findfirst(isequal("--pdf"), ARGS) !== nothing || _IS_GITHUB_ACTIONS
 
 const _PAGES = [
     "Home" => "index.md",
