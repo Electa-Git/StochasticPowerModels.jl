@@ -13,13 +13,9 @@ PolyChaos = "8d666b04-775d-5f6e-b778-5ac7c70f65a3"
 PowerModels = "c36e90e8-916a-50a6-bd94-075b64ef4655"
 
 [compat]
-InfrastructureModels = "0.6.1"
-Ipopt = "0.7.0"
-JuMP = "0.21.10"
 KernelDensity = "0.6.3"
 Memento = "1.2.0"
 PolyChaos = "0.2.4"
-PowerModels = "0.18.3"
 julia = "1"
 
 [extras]

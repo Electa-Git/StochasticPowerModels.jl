@@ -53,6 +53,7 @@ module StochasticPowerModels
     include("prob/sopf_acr.jl")
     include("prob/sopf_iv.jl")
 
+    include("util/data.jl")
     include("util/util.jl")
 
     # export
@@ -61,5 +62,6 @@ module StochasticPowerModels
     export run_sopf_iv, run_sopf_acr
 
     export build_stochastic_data
+    export extend_matlab_file
     export pce_coeff, sample, density, print_summary
 end 
