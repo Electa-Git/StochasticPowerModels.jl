@@ -90,6 +90,28 @@ function variable_load_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_d
     report && _PM.sol_component_value(pm, nw, :load, :cid, _PM.ids(pm, nw, :load), cid)
 end
 
+# load current
+"variable: `crd[j]` for `j` in `load`"
+function variable_PV_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    crd_pv = _PM.var(pm, nw)[:crd_pv] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :load)], base_name="$(nw)_crd_pv",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :load, i), "crd_pv_start")
+    )
+
+    report && _PM.sol_component_value(pm, nw, :load, :crd_pv, _PM.ids(pm, nw, :load), crd_pv)
+end
+
+
+"variable: `cid[j]` for `j` in `load`"
+function variable_PV_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    cid_pv = _PM.var(pm, nw)[:cid_pv] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :load)], base_name="$(nw)_cid_pv",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :load, i), "cid_start")
+    )
+
+    report && _PM.sol_component_value(pm, nw, :load, :cid_pv, _PM.ids(pm, nw, :load), cid_pv)
+end
+
 # branch current
 "variable: `cr[l,i,j]` for `(l,i,j)` in `arcs`"
 function expression_variable_branch_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
