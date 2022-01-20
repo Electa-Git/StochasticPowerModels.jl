@@ -59,7 +59,7 @@ module StochasticPowerModels
     # export
     export BASE_DIR
 
-    export run_sopf_iv, run_sopf_acr
+    export run_sopf_iv, run_sopf_acr, run_sopf_hc
 
     export build_stochastic_data
     export pce_coeff, sample, density, print_summary

@@ -22,11 +22,11 @@ file  = joinpath(BASE_DIR, "test/data/matpower", case)
 data  = PM.parse_file(file)
 #remove the existing generators and keep onl;y in slack bus
 data["gen"] = Dict(k => v for (k, v) in data["gen"] if data["bus"][string(data["gen"][k]["gen_bus"])]["bus_type"] == 3)
-
+[data["bus"][k]["bus_type"]=1 for (k,v) in data["bus"] if data["bus"][k]["bus_type"]==2]
 
 #-----------------------------------
 # run the convenience functions for stochastic OPF for IVR and ACR
-result_ivr = run_sopf_iv(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
+#result_ivr = run_sopf_iv(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
 result_hc = run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
 
 @assert result_ivr["termination_status"] == PM.LOCALLY_SOLVED
