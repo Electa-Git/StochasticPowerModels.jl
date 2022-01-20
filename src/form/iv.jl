@@ -48,6 +48,12 @@ function variable_load_current(pm::AbstractIVRModel; nw::Int=nw_id_default, boun
 end
 
 ""
+function variable_PV_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
+    variable_PV_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    variable_PV_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+end
+
+""
 function variable_gen_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
     _PM.variable_gen_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     _PM.variable_gen_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)

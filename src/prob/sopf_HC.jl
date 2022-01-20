@@ -36,6 +36,7 @@ function build_sopf_hc(pm::AbstractPowerModel)
         variable_gen_power(pm, nw=n, bounded=false)                             # enforcing bounds alters the objective 
         variable_gen_current(pm, nw=n, bounded=false)                           # enforcing bounds makes problem infeasible
         variable_load_current(pm, nw=n)
+        variable_PV_current(pm, nw=n)
     end
 
     for i in _PM.ids(pm, :bus, nw=1)

@@ -106,7 +106,7 @@ end
 function variable_PV_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     cid_pv = _PM.var(pm, nw)[:cid_pv] = JuMP.@variable(pm.model,
         [i in _PM.ids(pm, nw, :load)], base_name="$(nw)_cid_pv",
-        start = _PM.comp_start_value(_PM.ref(pm, nw, :load, i), "cid_start")
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :load, i), "cid_pv_start")
     )
 
     report && _PM.sol_component_value(pm, nw, :load, :cid_pv, _PM.ids(pm, nw, :load), cid_pv)
