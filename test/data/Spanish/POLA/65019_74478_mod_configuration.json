@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65019_74478_mod_branches.json",
+        "buses_file":"POLA/65019_74478_mod_buses.json",
+        "cabineName":"CT TORREVIEJA",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65019_74478_mod_devices.json",
+        "id":74478,
+        "name":4,
+        "slack_voltage":1,
+        "totalNrOfEANS":52,
+        "trafoId":65019
+    }
+}

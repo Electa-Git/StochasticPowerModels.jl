@@ -1,0 +1,602 @@
+[
+    {
+        "branchId":0,
+        "cableLength":17.0,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":1,
+        "type":"Cable",
+        "upBusId":0
+    },
+    {
+        "branchId":1,
+        "cableLength":23.0,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":2,
+        "type":"Cable",
+        "upBusId":1
+    },
+    {
+        "branchId":2,
+        "cableLength":5.0,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId":3,
+        "type":"Cable",
+        "upBusId":2
+    },
+    {
+        "branchId":3,
+        "cableLength":10,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId":4,
+        "type":"Cable",
+        "upBusId":3
+    },
+    {
+        "branchId":4,
+        "cableLength":1.0,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":5,
+        "type":"Cable",
+        "upBusId":2
+    },
+    {
+        "branchId":5,
+        "cableLength":25.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":6,
+        "type":"Cable",
+        "upBusId":5
+    },
+    {
+        "branchId":6,
+        "cableLength":20.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":7,
+        "type":"Cable",
+        "upBusId":6
+    },
+    {
+        "branchId":7,
+        "cableLength":2.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*95 AL/54,6 ALM",
+        "downBusId":8,
+        "type":"Cable",
+        "upBusId":7
+    },
+    {
+        "branchId":8,
+        "cableLength":12.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*95 AL/54,6 ALM",
+        "downBusId":9,
+        "type":"Cable",
+        "upBusId":8
+    },
+    {
+        "branchId":9,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":10,
+        "type":"Cable",
+        "upBusId":9
+    },
+    {
+        "branchId":10,
+        "cableLength":4.34,
+        "cableType":"BT - MANGUERA",
+        "downBusId":11,
+        "type":"Cable",
+        "upBusId":9
+    },
+    {
+        "branchId":11,
+        "cableLength":4.16,
+        "cableType":"BT - MANGUERA",
+        "downBusId":12,
+        "type":"Cable",
+        "upBusId":9
+    },
+    {
+        "branchId":12,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":13,
+        "type":"Cable",
+        "upBusId":12
+    },
+    {
+        "branchId":13,
+        "cableLength":19.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*95 AL/54,6 ALM",
+        "downBusId":14,
+        "type":"Cable",
+        "upBusId":9
+    },
+    {
+        "branchId":14,
+        "cableLength":1.52,
+        "cableType":"BT - RZ 0,6/1 KV 3*50 AL/54,6 ALM",
+        "downBusId":15,
+        "type":"Cable",
+        "upBusId":14
+    },
+    {
+        "branchId":15,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":16,
+        "type":"Cable",
+        "upBusId":15
+    },
+    {
+        "branchId":16,
+        "cableLength":21.43,
+        "cableType":"BT - RZ 0,6/1 KV 3*50 AL/54,6 ALM",
+        "downBusId":17,
+        "type":"Cable",
+        "upBusId":15
+    },
+    {
+        "branchId":17,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":18,
+        "type":"Cable",
+        "upBusId":17
+    },
+    {
+        "branchId":18,
+        "cableLength":17.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*50 AL/54,6 ALM",
+        "downBusId":19,
+        "type":"Cable",
+        "upBusId":17
+    },
+    {
+        "branchId":19,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":20,
+        "type":"Cable",
+        "upBusId":19
+    },
+    {
+        "branchId":20,
+        "cableLength":18.0,
+        "cableType":"BT - RZ 0,6/1 KV 4*16 AL",
+        "downBusId":21,
+        "type":"Cable",
+        "upBusId":19
+    },
+    {
+        "branchId":21,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":22,
+        "type":"Cable",
+        "upBusId":21
+    },
+    {
+        "branchId":22,
+        "cableLength":2.0,
+        "cableType":"BT - MANGUERA",
+        "downBusId":23,
+        "type":"Cable",
+        "upBusId":21
+    },
+    {
+        "branchId":23,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":24,
+        "type":"Cable",
+        "upBusId":23
+    },
+    {
+        "branchId":24,
+        "cableLength":2.0,
+        "cableType":"BT - MANGUERA",
+        "downBusId":25,
+        "type":"Cable",
+        "upBusId":21
+    },
+    {
+        "branchId":25,
+        "cableLength":3.26,
+        "cableType":"BT - MANGUERA",
+        "downBusId":26,
+        "type":"Cable",
+        "upBusId":17
+    },
+    {
+        "branchId":26,
+        "cableLength":7.61,
+        "cableType":"BT - MANGUERA",
+        "downBusId":27,
+        "type":"Cable",
+        "upBusId":17
+    },
+    {
+        "branchId":27,
+        "cableLength":3.26,
+        "cableType":"BT - MANGUERA",
+        "downBusId":28,
+        "type":"Cable",
+        "upBusId":17
+    },
+    {
+        "branchId":28,
+        "cableLength":9.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*95 AL/54,6 ALM",
+        "downBusId":29,
+        "type":"Cable",
+        "upBusId":14
+    },
+    {
+        "branchId":29,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":30,
+        "type":"Cable",
+        "upBusId":29
+    },
+    {
+        "branchId":30,
+        "cableLength":2.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*95 AL/54,6 ALM",
+        "downBusId":31,
+        "type":"Cable",
+        "upBusId":29
+    },
+    {
+        "branchId":31,
+        "cableLength":16.0,
+        "cableType":"BT - RZ 0,6/1 KV 4*16 AL",
+        "downBusId":32,
+        "type":"Cable",
+        "upBusId":31
+    },
+    {
+        "branchId":32,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":33,
+        "type":"Cable",
+        "upBusId":32
+    },
+    {
+        "branchId":33,
+        "cableLength":2.0,
+        "cableType":"BT - MANGUERA",
+        "downBusId":34,
+        "type":"Cable",
+        "upBusId":32
+    },
+    {
+        "branchId":34,
+        "cableLength":2.0,
+        "cableType":"BT - MANGUERA",
+        "downBusId":35,
+        "type":"Cable",
+        "upBusId":32
+    },
+    {
+        "branchId":35,
+        "cableLength":48.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*95 AL/54,6 ALM",
+        "downBusId":36,
+        "type":"Cable",
+        "upBusId":31
+    },
+    {
+        "branchId":36,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":37,
+        "type":"Cable",
+        "upBusId":36
+    },
+    {
+        "branchId":37,
+        "cableLength":7.0,
+        "cableType":"BT - RZ 0,6/1 KV 2*16 AL",
+        "downBusId":38,
+        "type":"Cable",
+        "upBusId":36
+    },
+    {
+        "branchId":38,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":39,
+        "type":"Cable",
+        "upBusId":38
+    },
+    {
+        "branchId":39,
+        "cableLength":25.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*95 AL/54,6 ALM",
+        "downBusId":40,
+        "type":"Cable",
+        "upBusId":36
+    },
+    {
+        "branchId":40,
+        "cableLength":16.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*95 AL/54,6 ALM",
+        "downBusId":41,
+        "type":"Cable",
+        "upBusId":40
+    },
+    {
+        "branchId":41,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":42,
+        "type":"Cable",
+        "upBusId":41
+    },
+    {
+        "branchId":42,
+        "cableLength":34.0,
+        "cableType":"BT - RZ 0,6/1 KV 4*16 AL",
+        "downBusId":43,
+        "type":"Cable",
+        "upBusId":36
+    },
+    {
+        "branchId":43,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":44,
+        "type":"Cable",
+        "upBusId":43
+    },
+    {
+        "branchId":44,
+        "cableLength":9.0,
+        "cableType":"BT - RZ 0,6/1 KV 4*16 AL",
+        "downBusId":45,
+        "type":"Cable",
+        "upBusId":43
+    },
+    {
+        "branchId":45,
+        "cableLength":6.02,
+        "cableType":"BT - RZ 0,6/1 KV 4*16 AL",
+        "downBusId":46,
+        "type":"Cable",
+        "upBusId":45
+    },
+    {
+        "branchId":46,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":47,
+        "type":"Cable",
+        "upBusId":46
+    },
+    {
+        "branchId":47,
+        "cableLength":2.11,
+        "cableType":"BT - RZ 0,6/1 KV 4*16 AL",
+        "downBusId":48,
+        "type":"Cable",
+        "upBusId":46
+    },
+    {
+        "branchId":48,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":49,
+        "type":"Cable",
+        "upBusId":48
+    },
+    {
+        "branchId":49,
+        "cableLength":8.0,
+        "cableType":"BT - RZ 0,6/1 KV 2*16 AL",
+        "downBusId":50,
+        "type":"Cable",
+        "upBusId":48
+    },
+    {
+        "branchId":50,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":51,
+        "type":"Cable",
+        "upBusId":50
+    },
+    {
+        "branchId":51,
+        "cableLength":2.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*95 AL/54,6 ALM",
+        "downBusId":52,
+        "type":"Cable",
+        "upBusId":7
+    },
+    {
+        "branchId":52,
+        "cableLength":22.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*50 AL/54,6 ALM",
+        "downBusId":53,
+        "type":"Cable",
+        "upBusId":7
+    },
+    {
+        "branchId":53,
+        "cableLength":2.0,
+        "cableType":"BT - RZ 0,6/1 KV 4*16 AL",
+        "downBusId":54,
+        "type":"Cable",
+        "upBusId":53
+    },
+    {
+        "branchId":54,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":55,
+        "type":"Cable",
+        "upBusId":54
+    },
+    {
+        "branchId":55,
+        "cableLength":1.0,
+        "cableType":"BT - MANGUERA",
+        "downBusId":56,
+        "type":"Cable",
+        "upBusId":54
+    },
+    {
+        "branchId":56,
+        "cableLength":8.0,
+        "cableType":"BT - MANGUERA",
+        "downBusId":57,
+        "type":"Cable",
+        "upBusId":54
+    },
+    {
+        "branchId":57,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":58,
+        "type":"Cable",
+        "upBusId":57
+    },
+    {
+        "branchId":58,
+        "cableLength":57.06,
+        "cableType":"BT - RZ 0,6/1 KV 3*50 AL/54,6 ALM",
+        "downBusId":59,
+        "type":"Cable",
+        "upBusId":53
+    },
+    {
+        "branchId":59,
+        "cableLength":8.0,
+        "cableType":"BT - RZ 0,6/1 KV 2*16 AL",
+        "downBusId":60,
+        "type":"Cable",
+        "upBusId":59
+    },
+    {
+        "branchId":60,
+        "cableLength":10,
+        "cableType":"aansluitkabel",
+        "downBusId":61,
+        "type":"Cable",
+        "upBusId":60
+    },
+    {
+        "branchId":61,
+        "cableLength":1.0,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId":62,
+        "type":"Cable",
+        "upBusId":1
+    },
+    {
+        "branchId":62,
+        "cableLength":20,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId":63,
+        "type":"Cable",
+        "upBusId":62
+    },
+{
+        "branchId":64,
+        "cableLength":15,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId": 64,
+        "type":"Cable",
+        "upBusId":4
+    },
+{
+        "branchId":65,
+        "cableLength":20,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId": 65,
+        "type":"Cable",
+        "upBusId":64
+    },
+{
+        "branchId":66,
+        "cableLength":20,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId": 66,
+        "type":"Cable",
+        "upBusId":65
+    },
+{
+        "branchId":67,
+        "cableLength":20,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId": 67,
+        "type":"Cable",
+        "upBusId":66
+    },
+{
+        "branchId":68,
+        "cableLength":20,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId": 68,
+        "type":"Cable",
+        "upBusId":63
+    },
+{
+        "branchId":69,
+        "cableLength":25,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId": 69,
+        "type":"Cable",
+        "upBusId":68
+    },
+{
+        "branchId":70,
+        "cableLength":18,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId": 70,
+        "type":"Cable",
+        "upBusId":69
+    },
+{
+        "branchId":71,
+        "cableLength":22,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId": 71,
+        "type":"Cable",
+        "upBusId":70
+    },
+{
+        "branchId":72,
+        "cableLength":30,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId": 72,
+        "type":"Cable",
+        "upBusId":66
+    },
+{
+        "branchId":73,
+        "cableLength":15,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId": 73,
+        "type":"Cable",
+        "upBusId":72
+    },
+{
+        "branchId":74,
+        "cableLength":10,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId": 74,
+        "type":"Cable",
+        "upBusId":73
+    },
+{
+        "branchId":75,
+        "cableLength":20,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId": 75,
+        "type":"Cable",
+        "upBusId":74
+    }
+]

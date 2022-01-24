@@ -17,6 +17,10 @@ module StochasticPowerModels
     import Memento
     import PolyChaos
     import PowerModels
+    import JSON
+    import DataFrames
+    import CSV
+    import PowerModelsDistribution
 
     # import types
     import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel

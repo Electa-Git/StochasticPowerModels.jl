@@ -1,8 +1,13 @@
+using Pkg
+Pkg.activate(".")
 using JuMP
 using Ipopt
 using PowerModels
 using StochasticPowerModels
-
+using PowerModelsDistribution
+using JSON
+using DataFrames
+using CSV
 
 # constants 
 const PM = PowerModels
@@ -15,14 +20,14 @@ ipopt_solver = Ipopt.Optimizer
 deg  = 2
 aux  = true
 red  = false
-case = "case5_spm.m"
 
+feeder = "POLA/65019_74478_mod_configuration.json" 
 # data
-file  = joinpath(BASE_DIR, "test/data/matpower", case)
-data  = PM.parse_file(file)
+file  = joinpath(BASE_DIR, "test/data/Spanish/")
+data  = SPM.build_mathematical_model_single_phase(file, feeder)
 #remove the existing generators and keep onl;y in slack bus
-data["gen"] = Dict(k => v for (k, v) in data["gen"] if data["bus"][string(data["gen"][k]["gen_bus"])]["bus_type"] == 3)
-[data["bus"][k]["bus_type"]=1 for (k,v) in data["bus"] if data["bus"][k]["bus_type"]==2]
+#data["gen"] = Dict(k => v for (k, v) in data["gen"] if data["bus"][string(data["gen"][k]["gen_bus"])]["bus_type"] == 3)
+#[data["bus"][k]["bus_type"]=1 for (k,v) in data["bus"] if data["bus"][k]["bus_type"]==2]
 
 #-----------------------------------
 # run the convenience functions for stochastic OPF for IVR and ACR
