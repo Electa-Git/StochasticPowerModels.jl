@@ -21,6 +21,7 @@ module StochasticPowerModels
     import DataFrames
     import CSV
     import PowerModelsDistribution
+    using DataFrames
 
     # import types
     import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
@@ -65,6 +66,6 @@ module StochasticPowerModels
 
     export run_sopf_iv, run_sopf_acr, run_sopf_hc
 
-    export build_stochastic_data
+    export build_stochastic_data, build_stochastic_data_hc
     export pce_coeff, sample, density, print_summary
 end 

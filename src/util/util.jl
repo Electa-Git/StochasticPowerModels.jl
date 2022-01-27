@@ -14,6 +14,13 @@ function parse_dst(dst, pa, pb, deg)
     dst == "Uniform" && return _PCE.Uniform01OrthoPoly(deg; Nrec=5*deg)
 end
 
+
+""
+function parse_dst_beta(dst, pa, pb, deg)
+    dst == "Beta"    && return _PCE.Beta01OrthoPoly(deg, pa, pb; Nrec=5*deg)
+    #dst == "Normal"  && return _PCE.GaussOrthoPoly(deg; Nrec=5*deg)
+    #dst == "Uniform" && return _PCE.Uniform01OrthoPoly(deg; Nrec=5*deg)
+end
 """
     StochasticPowerModels.build_stochastic_data(data::Dict{String,Any}, deg::Int)
 
@@ -62,6 +69,7 @@ function build_stochastic_data(data::Dict{String,Any}, deg::Int)
     data["T4"] = _PCE.Tensor(4,mop)
     data["mop"] = mop
     for nw in 1:Npce, nd in 1:Nd
+        display(pd[nd,nw])
         data["nw"]["$nw"]["load"]["$nd"]["pd"] = pd[nd,nw]
         data["nw"]["$nw"]["load"]["$nd"]["qd"] = qd[nd,nw]
     end
@@ -127,6 +135,41 @@ kwpu = (1e-3)/power_base
 
 network_model = Dict{String,Any}()
 configuration_json_dict = Dict{Any,Any}()
+device_df=CSV.read(dir*config_file_name[1:length(config_file_name)-19]*".csv", DataFrame)
+
+dist_lv=CSV.read(dir*"beta_lm_2016_1_1"*".csv", DataFrame)
+dist_pv=CSV.read(dir*"beta_pm_2016_1_1"*".csv", DataFrame)
+dist_pv_ts= dist_pv[in([t_s]).(dist_pv.timeslot),:]
+dist_lv_ts=dist_lv[in([t_s]).(dist_lv.timeslot),:]
+
+dist_lv_ts_feeder = dist_lv_ts[in(unique(device_df.category)).(dist_lv_ts.cluster),:]
+s_dict=Dict()
+i=1
+for dist in eachrow(dist_lv_ts_feeder)
+    s=Dict()
+    s["dst"]= "Beta"
+    s["dst_id"] = dist["cluster"]
+    s["pa"]= dist["alpha"]
+    s["pb"]= dist["beta"]
+    s["pc"]= dist["lower"]
+    s["pd"]= dist["upper"]
+    s_dict[string(i)] = s
+    i=i+1
+end
+
+
+##add Irradiance if day time or there is some Irradiance
+if dist_pv_ts.upper[1]>0
+    s=Dict()
+    s["dst"]= "Beta"
+    s["dst_id"] = 55
+    s["pa"]= dist_pv_ts[!,"alpha"][1]
+    s["pb"]= dist_pv_ts[!,"beta"][1]
+    s["pc"]= dist_pv_ts[!,"lower"][1]
+    s["pd"]= dist_pv_ts[!,"upper"][1]
+    s_dict[string(i)] = s
+end
+
 
 #network_model["is_kron_reduced"] = true
 network_model["p_factor"] = 0.95
@@ -147,25 +190,29 @@ network_model["bus_lookup"] = Dict{Any,Int64}()
 network_model["run_type"] = 1
 network_model["load"] = Dict{String,Any}()
 network_model["gen"] = Dict{String,Any}("1" => Dict{String,Any}(
-"pg"            => 1.0,
+"pg"            => 0.2,
 "model"         => 2,
 #"connections"   => [1, 2, 3],
 "shutdown"      => 0.0,
 "startup"       => 0.0,
 #"configuration" => WYE,
 "name"          => "virtual_generator",
-"qg"            => 1.0,
+"qg"            => 0.0,
 "gen_bus"       => 1,
 "vbase"         =>  voltage_base,
-"source_id"     => "virtual_generator",
+"source_id"     => Any["gen",1],
 "index"         => 1,
-"cost"          => [0.0, 0.0],
+"cost"          => [20000.0, 1400.0, 0.0],
 "gen_status"    => 1,
-"qmax"          => 1.0,
-"qmin"          => -1.0,
-"pmax"          => 1.0,
-"pmin"          => -1.0,
-"ncost"         => 2
+"qmax"          => 1.275,
+"qmin"          => -1.275,
+"pmax"          => 1.5,
+"pmin"          => 0,
+"ncost"         => 3,
+"λpmin"         => 1.03643 ,
+"λpmax"         => 1.03643 ,
+"λqmin"         => 1.03643 ,
+"λqmax"         => 1.03643
 ))
 network_model["settings"] = Dict{String,Any}(
 "sbase_default"        => power_base,
@@ -205,10 +252,12 @@ buses_json_dict = JSON.parse(io)
                 "vbase"     =>  voltage_base,
                 "index"     => id,
                 "bus_i"     => id,
-                "vmin"      => 0.0,
-                "vmax"      => 1.5,
+                "λvmin"     => 1.03643,
+                "λvmax"     => 1.03643,
+                "vmin"      => 1.0,
+                "vmax"      => 1,
                 "va"        => 0.0,
-                "vm"        => 1.01, 
+                "vm"        => 1, 
                 #"LPp"       => Dict(c => Dict(b => 0.0 for b in 1:length(keys(buses_json_dict))) for c in 1:3),
                 #"LPq"       => Dict(c => Dict(b => 0.0 for b in 1:length(keys(buses_json_dict))) for c in 1:3),
                 #"LQp"       => Dict(c => Dict(b => 0.0 for b in 1:length(keys(buses_json_dict))) for c in 1:3),
@@ -224,7 +273,9 @@ buses_json_dict = JSON.parse(io)
                 "vbase"     =>  voltage_base,
                 "index"     => id,
                 "bus_i"     => id,
-                "vmin"      =>  0.0,
+                "λvmin"     => 1.03643,
+                "λvmax"     => 1.03643,
+                "vmin"      =>  0.85,
                 "vmax"      => 1.5, 
                 #"LPp"       => Dict(c => Dict(b => 0.0 for b in 1:length(keys(buses_json_dict))) for c in 1:3),
                 #"LPq"       => Dict(c => Dict(b => 0.0 for b in 1:length(keys(buses_json_dict))) for c in 1:3),
@@ -235,13 +286,16 @@ buses_json_dict = JSON.parse(io)
         end;
     end;
 end;
-device_df=CSV.read(dir*config_file_name[1:length(config_file_name)-19]*".csv", DataFrame)
+
+#print(device_df)
 open(dir * devices_file_name,"r") do io
 devices_json_dict = JSON.parse(io)
   for device in devices_json_dict["LVcustomers"]
     id = device["deviceId"] + 1 #Indexing starts at one in Julia
-    d=device_df[in(id).(device_df.dev_id),:]
+    d=device_df[in(id-1).(device_df.dev_id),:]
     id_s = string(id)
+    μ = dist_lv_ts_feeder[in(d[!,"category"][1]).(dist_lv_ts_feeder.cluster),:][!,"lower"][1]
+    σ  = dist_lv_ts_feeder[in(d[!,"category"][1]).(dist_lv_ts_feeder.cluster),:][!,"upper"][1] 
     cons = convert(Float64,device["yearlyNetConsumption"])
     network_model["load"][id_s] = Dict{String,Any}(
         #"connections"   => vec(Int.(device["phases"])),
@@ -260,7 +314,11 @@ devices_json_dict = JSON.parse(io)
         "p_inj"         => 0.0,
         "q_inj"         => 0.0,
         "conn_cap_kW"   => device["connectionCapacity"],
-        "cluster" => d["category"]
+        "dst_id" => d[!,"category"][1],
+        "cluster_id"  => d[!,"cat_index"][1]+1,
+        "μ"  => μ,
+        "σ"  => σ 
+
     )
     end;
 end;
@@ -333,13 +391,13 @@ currentmax_dict = Dict{String,Any}(
             "name"          => id_s,
             "switch"        => false,
             "g_to"          => 0.0,
-            "c_rating_a"    => 0.8,
+            "c_rating_a"    => currentmax_dict[branch["cableType"]],
             "vbase"         =>  voltage_base,
             "g_fr"          => 0.0,
             #"t_connections" => [1, 2, 3],
             "f_bus"         => branch["upBusId"]+1,
             "b_fr"          => 0.0,
-            "c_rating_b"    => 0.8,
+            "c_rating_b"    => currentmax_dict[branch["cableType"]],
             "br_status"     => 1,
             "t_bus"         => branch["downBusId"]+1,
             "b_to"          => 0.0,
@@ -348,7 +406,7 @@ currentmax_dict = Dict{String,Any}(
             "angmax"        => 1.0472,
             "transformer"   => false,
             "tap"           => 1.0,
-            "c_rating_c"    => 0.8, 
+            "c_rating_c"    => currentmax_dict[branch["cableType"]], 
             "λcmax"         => 1.03643    
             )
 
@@ -361,50 +419,19 @@ currentmax_dict = Dict{String,Any}(
         if haskey(currentmax_dict,branch["cableType"])
             network_model["branch"][id_s]["rate_a"] = ((currentmax_dict[branch["cableType"]]*voltage_base)/1e3)/power_base
             
-            network_model["branch"][id_s]["I_rating"] = currentmax_dict[branch["cableType"]]/current_base
+            #network_model["branch"][id_s]["I_rating"] = currentmax_dict[branch["cableType"]]/current_base
 
         end;
     end;
 end;
 end;
 
-dist_lv=CSV.read(dir*"beta_lm_2016_1_1"*".csv", DataFrame)
-dist_pv=CSV.read(dir*"beta_pm_2016_1_1"*".csv", DataFrame)
-dist_pv_ts= dist_pv[in([t_s]).(dist_pv.timeslot),:]
-dist_lv_ts=dist_lv[in([t_s]).(dist_lv.timeslot),:]
-
-dist_lv_ts_feeder = dist_lv_ts[in(unique(device_df.category)).(dist_lv_ts.cluster),:]
-s_dict=Dict()
-i=1
-for dist in eachrow(dist_lv_ts_feeder)
-    s=Dict()
-    s["dst"]= "Beta"
-    s["category"] = dist["cluster"]
-    s["pa"]= dist["alpha"]
-    s["pb"]= dist["beta"]
-    s["pc"]= dist["lower"]
-    s["pd"]= dist["upper"]
-    s_dict[string(i)] = s
-    i=i+1
-end
-
-
-##add Irradiance if day time or there is some Irradiance
-if dist_pv_ts.upper[1]>0
-    s=Dict()
-    s["dst"]= "Beta"
-    s["pa"]= dist_pv_ts["alpha"][1]
-    s["pb"]= dist_pv_ts["beta"][1]
-    s["pc"]= dist_pv_ts["lower"][1]
-    s["pd"]= dist_pv_ts["upper"][1]
-    s_dict[string(i)] = s
-end
-
-
 
 network_model["sdata"]= s_dict 
 
-network_model["PV"]=network_model["load"];
+network_model["PV"]=deepcopy(network_model["load"]);
+[network_model["PV"][d]["μ"]=s_dict[string(length(s_dict))]["pc"] for d in   keys(network_model["PV"])]
+[network_model["PV"][d]["σ"]=s_dict[string(length(s_dict))]["pd"] for d in   keys(network_model["PV"])]
 return network_model
 end;
 
@@ -424,29 +451,38 @@ function build_stochastic_data_hc(data::Dict{String,Any}, deg::Int, t_s=50)
 
 
     # build mop
-    opq = [parse_dst(ns[2]["dst"], ns[2]["pa"], ns[2]["pb"], deg) for ns in data["sdata"]]
+    opq = [parse_dst_beta(ns[2]["dst"], ns[2]["pa"], ns[2]["pb"], deg) for ns in data["sdata"]]
     mop = _PCE.MultiOrthoPoly(opq, deg)
 
     # build load matrix
     Nd, Npce = length(data["load"]), mop.dim
     pd, qd = zeros(Nd, Npce), zeros(Nd, Npce)
+    pd_g, qd_g = zeros(Nd, Npce), zeros(Nd, Npce)
     for nd in 1:Nd 
         # reactive power
         qd[nd,1] = data["load"]["$nd"]["qd"]
         # active power
         nb = data["load"]["$nd"]["load_bus"]
-        ni = data["bus"]["$nb"]["dst_id"]
-        if ni == 0
+        ni = data["load"]["$nd"]["cluster_id"]
+        if ni == 55
             pd[nd,1] = data["load"]["$nd"]["pd"]
         else
             base = data["baseMVA"]
-            μ, σ = data["bus"]["$nb"]["μ"] / base, data["bus"]["$nb"]["σ"] / base
+            μ, σ = data["load"]["$nd"]["μ"] /1e3/ base, data["load"]["$nd"]["σ"] /1e3/ base
             if mop.uni[ni] isa _PCE.GaussOrthoPoly
                 pd[nd,[1,ni+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[ni])
             else
-                pd[nd,[1,ni+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[ni], kind="μσ")
+                pd[nd,[1,ni+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[ni])
             end
         end
+        np = length(opq)
+        base = data["baseMVA"]
+        μ, σ = data["PV"]["1"]["μ"] / base, data["PV"]["1"]["σ"] / base
+            if mop.uni[np] isa _PCE.GaussOrthoPoly
+                pd_g[nd,[1,np+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np])
+            else
+                pd_g[nd,[1,np+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np])
+            end
     end
 
     # replicate the data
@@ -458,6 +494,7 @@ function build_stochastic_data_hc(data::Dict{String,Any}, deg::Int, t_s=50)
     data["T4"] = _PCE.Tensor(4,mop)
     data["mop"] = mop
     for nw in 1:Npce, nd in 1:Nd
+        #print(pd[nd,nw])
         data["nw"]["$nw"]["load"]["$nd"]["pd"] = pd[nd,nw]
         data["nw"]["$nw"]["load"]["$nd"]["qd"] = qd[nd,nw]
     end

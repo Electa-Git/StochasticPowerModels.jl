@@ -22,9 +22,12 @@ aux  = true
 red  = false
 
 feeder = "POLA/65019_74478_mod_configuration.json" 
+#feeder = "POLA/1136039_1465006_configuration.json"
 # data
 file  = joinpath(BASE_DIR, "test/data/Spanish/")
 data  = SPM.build_mathematical_model_single_phase(file, feeder)
+
+sdata = build_stochastic_data_hc(data, deg)
 #remove the existing generators and keep onl;y in slack bus
 #data["gen"] = Dict(k => v for (k, v) in data["gen"] if data["bus"][string(data["gen"][k]["gen_bus"])]["bus_type"] == 3)
 #[data["bus"][k]["bus_type"]=1 for (k,v) in data["bus"] if data["bus"][k]["bus_type"]==2]
@@ -41,17 +44,17 @@ obj_ivr = result_ivr["objective"]
 obj_acr = result_hc["objective"] 
 
 # print variables for all polynomial indices k
-SPM.print_summary(result_ivr["solution"])
+SPM.print_summary(result_hc["solution"])
 
 # print variables for a specific index k
 k=1
-SPM.print_summary(result_ivr["solution"]["nw"]["$k"])
+SPM.print_summary(result_hc["solution"]["nw"]["$k"])
 
 # get polynomial chaos coefficients for specific component
-pg_coeff = pce_coeff(result_ivr, "gen", 1, "pg") 
+pg_coeff = pce_coeff(result_hc, "gen", 1, "pg") 
 
 # obtain 10 samples of the generator active power output variable
-pg_sample = sample(result_ivr, "gen", 1, "pg"; sample_size=10) 
+pg_sample = sample(result_hc, "gen", 1, "pg"; sample_size=10) 
 
 # obtain an kernel density estimate of the generator active power output variable
 pg_density = density(result_ivr, "gen", 1, "pg"; sample_size=10) 

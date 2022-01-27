@@ -327,7 +327,6 @@ end
 ""
 function constraint_branch_series_current_squared_cc_limit(pm::AbstractACRModel, b, cmax, λcmax, T2, mop)
     css = [_PM.var(pm, nw, :css, b) for nw in sorted_nw_ids(pm)]
-
     # bound on the expectation
     JuMP.@constraint(pm.model,  _PCE.mean(css, mop) <= cmax^2)
     # chance constraint bounds

@@ -12,7 +12,7 @@
 function run_sopf_hc(data::Dict, model_constructor, optimizer; aux::Bool=true, deg::Int=1, red::Bool=false, solution_processors=[sol_data_model!], kwargs...)
     @assert _IM.ismultinetwork(data) == false "The data supplied is multinetwork, it should be single-network"
     @assert model_constructor <: _PM.AbstractIVRModel "This problem type only supports the IVRModel"
-    sdata = build_stochastic_data_HC(data, deg)
+    sdata = build_stochastic_data_hc(data, deg)
     if aux && !red #only with aux and without reduced variable
         result = _PM.run_model(sdata, model_constructor, optimizer, build_sopf_hc; multinetwork=true, solution_processors=solution_processors, kwargs...)
     end
