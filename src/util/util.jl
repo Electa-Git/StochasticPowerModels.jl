@@ -275,8 +275,8 @@ buses_json_dict = JSON.parse(io)
                 "bus_i"     => id,
                 "λvmin"     => 1.03643,
                 "λvmax"     => 1.03643,
-                "vmin"      =>  0.85,
-                "vmax"      => 1.5, 
+                "vmin"      =>  0.95,
+                "vmax"      => 1.05, 
                 #"LPp"       => Dict(c => Dict(b => 0.0 for b in 1:length(keys(buses_json_dict))) for c in 1:3),
                 #"LPq"       => Dict(c => Dict(b => 0.0 for b in 1:length(keys(buses_json_dict))) for c in 1:3),
                 #"LQp"       => Dict(c => Dict(b => 0.0 for b in 1:length(keys(buses_json_dict))) for c in 1:3),
@@ -477,12 +477,14 @@ function build_stochastic_data_hc(data::Dict{String,Any}, deg::Int, t_s=50)
         end
         np = length(opq)
         base = data["baseMVA"]
-        μ, σ = data["PV"]["1"]["μ"] / base, data["PV"]["1"]["σ"] / base
+        μ, σ = data["PV"]["1"]["μ"]/1e6 / base, data["PV"]["1"]["σ"] /1e6/ base
+        
             if mop.uni[np] isa _PCE.GaussOrthoPoly
                 pd_g[nd,[1,np+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np])
             else
                 pd_g[nd,[1,np+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np])
             end
+        
     end
 
     # replicate the data
@@ -494,9 +496,15 @@ function build_stochastic_data_hc(data::Dict{String,Any}, deg::Int, t_s=50)
     data["T4"] = _PCE.Tensor(4,mop)
     data["mop"] = mop
     for nw in 1:Npce, nd in 1:Nd
-        #print(pd[nd,nw])
+       
         data["nw"]["$nw"]["load"]["$nd"]["pd"] = pd[nd,nw]
         data["nw"]["$nw"]["load"]["$nd"]["qd"] = qd[nd,nw]
+    end
+    
+    for nw in 1:Npce, nd in 1:Nd
+
+        data["nw"]["$nw"]["PV"]["$nd"]["pd"] = pd_g[nd,nw]
+        data["nw"]["$nw"]["PV"]["$nd"]["qd"] = qd_g[nd,nw]
     end
 
     return data

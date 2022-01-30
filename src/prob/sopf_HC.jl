@@ -37,6 +37,9 @@ function build_sopf_hc(pm::AbstractPowerModel)
         variable_gen_current(pm, nw=n, bounded=false)                           # enforcing bounds makes problem infeasible
         variable_load_current(pm, nw=n)
         variable_PV_current(pm, nw=n)
+        if n==1
+        variable_PV_size(pm, nw=n, bounded=true)
+        end
     end
 
     for i in _PM.ids(pm, :bus, nw=1)
@@ -57,7 +60,7 @@ function build_sopf_hc(pm::AbstractPowerModel)
         end
 
         for i in _PM.ids(pm, :bus, nw=n)
-            constraint_current_balance(pm, i, nw=n)
+            constraint_current_balance_with_PV(pm, i, nw=n)
             constraint_gp_bus_voltage_squared(pm, i, nw=n)
         end
 
@@ -77,7 +80,11 @@ function build_sopf_hc(pm::AbstractPowerModel)
         for l in _PM.ids(pm, :load, nw=n)
             constraint_gp_load_power(pm, l, nw=n)
         end
+
+        for p in _PM.ids(pm, :PV, nw=n)
+            constraint_gp_pv_power(pm, p, nw=n)
+        end
     end
 
-    objective_min_expected_generation_cost(pm)
+    objective_max_PV(pm)
 end

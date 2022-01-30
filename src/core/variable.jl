@@ -94,23 +94,42 @@ end
 "variable: `crd[j]` for `j` in `load`"
 function variable_PV_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     crd_pv = _PM.var(pm, nw)[:crd_pv] = JuMP.@variable(pm.model,
-        [i in _PM.ids(pm, nw, :load)], base_name="$(nw)_crd_pv",
-        start = _PM.comp_start_value(_PM.ref(pm, nw, :load, i), "crd_pv_start")
+        [i in _PM.ids(pm, nw, :PV)], base_name="$(nw)_crd_pv",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :PV, i), "crd_pv_start")
     )
 
-    report && _PM.sol_component_value(pm, nw, :load, :crd_pv, _PM.ids(pm, nw, :load), crd_pv)
+    report && _PM.sol_component_value(pm, nw, :PV, :crd_pv, _PM.ids(pm, nw, :PV), crd_pv)
 end
 
 
 "variable: `cid[j]` for `j` in `load`"
 function variable_PV_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     cid_pv = _PM.var(pm, nw)[:cid_pv] = JuMP.@variable(pm.model,
-        [i in _PM.ids(pm, nw, :load)], base_name="$(nw)_cid_pv",
-        start = _PM.comp_start_value(_PM.ref(pm, nw, :load, i), "cid_pv_start")
+        [i in _PM.ids(pm, nw, :PV)], base_name="$(nw)_cid_pv",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :PV, i), "cid_pv_start")
     )
 
-    report && _PM.sol_component_value(pm, nw, :load, :cid_pv, _PM.ids(pm, nw, :load), cid_pv)
+    report && _PM.sol_component_value(pm, nw, :PV, :cid_pv, _PM.ids(pm, nw, :PV), cid_pv)
 end
+
+
+# PV size
+"variable: `p_size` for `j` in `load`"
+function variable_PV_size(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    p_size = _PM.var(pm, nw)[:p_size] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :PV)], base_name="$(nw)_p_size",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :PV, i), "p_size_start")
+    )
+    
+    if bounded
+        for (i, PV) in _PM.ref(pm, nw, :PV)
+            JuMP.set_lower_bound(p_size[i], 0)
+            JuMP.set_upper_bound(p_size[i],  1*PV["conn_cap_kW"])
+        end
+    end
+    report && _PM.sol_component_value(pm, nw, :PV, :p_size, _PM.ids(pm, nw, :PV), p_size)
+end
+
 
 # branch current
 "variable: `cr[l,i,j]` for `(l,i,j)` in `arcs`"

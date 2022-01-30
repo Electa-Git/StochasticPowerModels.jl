@@ -28,12 +28,37 @@ function constraint_current_balance(pm::AbstractPowerModel, i::Int; nw::Int=nw_i
     bus_loads = _PM.ref(pm, nw, :bus_loads, i)
     bus_shunts = _PM.ref(pm, nw, :bus_shunts, i)
 
+    #bus_PV = _PM.ref(pm, nw, :PV, i)
+
     bus_gs = Dict(k => _PM.ref(pm, nw, :shunt, k, "gs") for k in bus_shunts)
     bus_bs = Dict(k => _PM.ref(pm, nw, :shunt, k, "bs") for k in bus_shunts)
 
     constraint_current_balance(pm, nw, i, bus_arcs, bus_gens, bus_loads, bus_gs, bus_bs)
 end
 
+
+# current balance with PV
+""
+function constraint_current_balance_with_PV(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+    if !haskey(_PM.con(pm, nw), :kcl_cr)
+        _PM.con(pm, nw)[:kcl_cr] = Dict{Int,JuMP.ConstraintRef}()
+    end
+    if !haskey(_PM.con(pm, nw), :kcl_ci)
+        _PM.con(pm, nw)[:kcl_ci] = Dict{Int,JuMP.ConstraintRef}()
+    end
+
+    bus = _PM.ref(pm, nw, :bus, i)
+    bus_arcs = _PM.ref(pm, nw, :bus_arcs, i)
+    bus_gens = _PM.ref(pm, nw, :bus_gens, i)
+    bus_loads = _PM.ref(pm, nw, :bus_loads, i)
+    bus_shunts = _PM.ref(pm, nw, :bus_shunts, i)
+    bus_PV = _PM.ref(pm, nw, :bus_loads, i)  #to ask Tom to get :PV it works now as all load has PV
+
+    bus_gs = Dict(k => _PM.ref(pm, nw, :shunt, k, "gs") for k in bus_shunts)
+    bus_bs = Dict(k => _PM.ref(pm, nw, :shunt, k, "bs") for k in bus_shunts)
+
+    constraint_current_balance_with_PV(pm, nw, i, bus_arcs, bus_gens, bus_loads, bus_gs, bus_bs, bus_PV)
+end
 # power balance
 ""
 function constraint_power_balance(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
@@ -140,6 +165,21 @@ function constraint_gp_load_power(pm::AbstractPowerModel, l::Int; nw::Int=nw_id_
 
     constraint_gp_load_power_real(pm, nw, i, l, pd, T2, T3)
     constraint_gp_load_power_imaginary(pm, nw, i, l, qd, T2, T3)
+end
+
+function constraint_gp_pv_power(pm::AbstractPowerModel, p::Int; nw::Int=nw_id_default)
+    i   = _PM.ref(pm, nw, :PV, p, "load_bus") 
+
+    pd  = _PM.ref(pm, nw, :PV, p, "pd")
+    qd  = _PM.ref(pm, nw, :load, p, "qd")
+
+    p_size= _PM.var(pm, 1, :p_size,p)
+
+    T2  = pm.data["T2"]
+    T3  = pm.data["T3"]
+
+    constraint_gp_pv_power_real(pm, nw, i, p, pd, T2, T3, p_size)
+    constraint_gp_pv_power_imaginary(pm, nw, i, p, qd, T2, T3, p_size)
 end
 
 # chance constraint limit

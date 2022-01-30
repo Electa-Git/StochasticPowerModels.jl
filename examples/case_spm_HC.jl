@@ -21,13 +21,13 @@ deg  = 2
 aux  = true
 red  = false
 
-feeder = "POLA/65019_74478_mod_configuration.json" 
-#feeder = "POLA/1136039_1465006_configuration.json"
+#feeder = "POLA/65019_74478_mod_configuration.json" 
+feeder = "POLA/1136039_1465006_configuration.json"
 # data
 file  = joinpath(BASE_DIR, "test/data/Spanish/")
 data  = SPM.build_mathematical_model_single_phase(file, feeder)
 
-sdata = build_stochastic_data_hc(data, deg)
+#sdata = build_stochastic_data_hc(data, deg)
 #remove the existing generators and keep onl;y in slack bus
 #data["gen"] = Dict(k => v for (k, v) in data["gen"] if data["bus"][string(data["gen"][k]["gen_bus"])]["bus_type"] == 3)
 #[data["bus"][k]["bus_type"]=1 for (k,v) in data["bus"] if data["bus"][k]["bus_type"]==2]
@@ -35,7 +35,7 @@ sdata = build_stochastic_data_hc(data, deg)
 #-----------------------------------
 # run the convenience functions for stochastic OPF for IVR and ACR
 #result_ivr = run_sopf_iv(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
-result_hc = run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
+result_hc2 = run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
 
 @assert result_ivr["termination_status"] == PM.LOCALLY_SOLVED
 @assert result_hc["termination_status"] == PM.LOCALLY_SOLVED
