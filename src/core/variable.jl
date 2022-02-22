@@ -124,7 +124,7 @@ function variable_PV_size(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded
     if bounded
         for (i, PV) in _PM.ref(pm, nw, :PV)
             JuMP.set_lower_bound(p_size[i], 0)
-            JuMP.set_upper_bound(p_size[i],  1*PV["conn_cap_kW"])
+            #uMP.set_upper_bound(p_size[i], 15) #2*PV["conn_cap_kW"])
         end
     end
     report && _PM.sol_component_value(pm, nw, :PV, :p_size, _PM.ids(pm, nw, :PV), p_size)

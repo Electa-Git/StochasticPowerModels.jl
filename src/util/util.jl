@@ -118,7 +118,7 @@ end
 
 
 "Converts JSON file of three phase DN to single phase equivalent"
-function build_mathematical_model_single_phase(dir, config_file_name;t_s=50, pd = 0.0, qd = 0.0, scale_factor = 1.0)
+function build_mathematical_model_single_phase(dir, config_file_name;t_s=52, pd = 0.0, qd = 0.0, scale_factor = 1.0)
 #configuration = "star"
 
 """
@@ -137,8 +137,8 @@ network_model = Dict{String,Any}()
 configuration_json_dict = Dict{Any,Any}()
 device_df=CSV.read(dir*config_file_name[1:length(config_file_name)-19]*".csv", DataFrame)
 
-dist_lv=CSV.read(dir*"beta_lm_2016_1_1"*".csv", DataFrame)
-dist_pv=CSV.read(dir*"beta_pm_2016_1_1"*".csv", DataFrame)
+dist_lv=CSV.read(dir*"beta_lm_2016_8_6"*".csv", DataFrame)
+dist_pv=CSV.read(dir*"beta_pm_2016_8_6"*".csv", DataFrame)
 dist_pv_ts= dist_pv[in([t_s]).(dist_pv.timeslot),:]
 dist_lv_ts=dist_lv[in([t_s]).(dist_lv.timeslot),:]
 
@@ -152,7 +152,7 @@ for dist in eachrow(dist_lv_ts_feeder)
     s["pa"]= dist["alpha"]
     s["pb"]= dist["beta"]
     s["pc"]= dist["lower"]
-    s["pd"]= dist["upper"]
+    s["pd"]= dist["lower"]+dist["upper"]
     s_dict[string(i)] = s
     i=i+1
 end
@@ -166,7 +166,7 @@ if dist_pv_ts.upper[1]>0
     s["pa"]= dist_pv_ts[!,"alpha"][1]
     s["pb"]= dist_pv_ts[!,"beta"][1]
     s["pc"]= dist_pv_ts[!,"lower"][1]
-    s["pd"]= dist_pv_ts[!,"upper"][1]
+    s["pd"]= dist_pv_ts[!,"lower"][1]+dist_pv_ts[!,"upper"][1]
     s_dict[string(i)] = s
 end
 
@@ -207,12 +207,12 @@ network_model["gen"] = Dict{String,Any}("1" => Dict{String,Any}(
 "qmax"          => 1.275,
 "qmin"          => -1.275,
 "pmax"          => 1.5,
-"pmin"          => 0,
+"pmin"          => -1.5,
 "ncost"         => 3,
-"λpmin"         => 1.03643 ,
-"λpmax"         => 1.03643 ,
-"λqmin"         => 1.03643 ,
-"λqmax"         => 1.03643
+"λpmin"         => 1.65, #1.03643 ,
+"λpmax"         => 1.65, #1.03643 ,
+"λqmin"         => 1.65, #1.03643 ,
+"λqmax"         => 1.65 #1.03643
 ))
 network_model["settings"] = Dict{String,Any}(
 "sbase_default"        => power_base,
@@ -252,8 +252,8 @@ buses_json_dict = JSON.parse(io)
                 "vbase"     =>  voltage_base,
                 "index"     => id,
                 "bus_i"     => id,
-                "λvmin"     => 1.03643,
-                "λvmax"     => 1.03643,
+                "λvmin"     => 1.65, #1.03643,
+                "λvmax"     => 1.65, #1.03643,
                 "vmin"      => 1.0,
                 "vmax"      => 1,
                 "va"        => 0.0,
@@ -273,8 +273,8 @@ buses_json_dict = JSON.parse(io)
                 "vbase"     =>  voltage_base,
                 "index"     => id,
                 "bus_i"     => id,
-                "λvmin"     => 1.03643,
-                "λvmax"     => 1.03643,
+                "λvmin"     => 1.65,#1.03643,
+                "λvmax"     => 1.65, #1.03643,
                 "vmin"      =>  0.95,
                 "vmax"      => 1.05, 
                 #"LPp"       => Dict(c => Dict(b => 0.0 for b in 1:length(keys(buses_json_dict))) for c in 1:3),
@@ -315,7 +315,7 @@ devices_json_dict = JSON.parse(io)
         "q_inj"         => 0.0,
         "conn_cap_kW"   => device["connectionCapacity"],
         "dst_id" => d[!,"category"][1],
-        "cluster_id"  => d[!,"cat_index"][1]+1,
+        "cluster_id"  => findall(x->x==1,[s_dict["$i"]["dst_id"]==d[!,"category"][1] for i=1:length(s_dict)])[1],
         "μ"  => μ,
         "σ"  => σ 
 
@@ -359,26 +359,26 @@ currentmax_dict = Dict{String,Any}(
 "BT - MANGUERA" => 150, #200 certain  40.18#150
 "BT - RV 0,6/1 KV 2*16 KAL" => 75,
 "BT - RV 0,6/1 KV 2*25 KAL" => 100,
-"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL" => 264,
+"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL" => 305,
 "BT - RV 0,6/1 KV 3(1*240 KAL) + 1*150 KAL" => 344,
 "BT - RV 0,6/1 KV 3(1*240 KAL) + 1*95 KAL" => 344,
 "BT - RV 0,6/1 KV 4*25 KAL" => 100,
 "BT - RV 0,6/1 KV 4*50 KAL" => 150,
 "BT - RV 0,6/1 KV 4*95 KAL" => 230,
-"BT - RX 0,6/1 KV 2*16 Cu" => 95,
-"BT - RX 0,6/1 KV 2*2 Cu" => 30,
-"BT - RX 0,6/1 KV 2*4 Cu" => 40,
-"BT - RX 0,6/1 KV 2*6 Cu" => 50,
-"BT - RZ 0,6/1 KV 2*16 AL" => 75,
-"BT - RZ 0,6/1 KV 3*150 AL/80 ALM" => 264,
-"BT - RZ 0,6/1 KV 3*150 AL/95 ALM" => 264,
-"BT - RZ 0,6/1 KV 3*25 AL/54,6 ALM" => 78.98,
+"BT - RX 0,6/1 KV 2*16 Cu" => 75,#95,
+"BT - RX 0,6/1 KV 2*2 Cu" => 40, #30,
+"BT - RX 0,6/1 KV 2*4 Cu" => 60,#40,
+"BT - RX 0,6/1 KV 2*6 Cu" => 80, #50,
+"BT - RZ 0,6/1 KV 2*16 AL" => 20, #75,
+"BT - RZ 0,6/1 KV 3*150 AL/80 ALM" => 305, #264,
+"BT - RZ 0,6/1 KV 3*150 AL/95 ALM" => 305,#264,
+"BT - RZ 0,6/1 KV 3*25 AL/54,6 ALM" => 100, #78.98,
 "BT - RZ 0,6/1 KV 3*35 AL/54,6 ALM" => 120,
-"BT - RZ 0,6/1 KV 3*50 AL/54,6 ALM" => 118.47,
+"BT - RZ 0,6/1 KV 3*50 AL/54,6 ALM" => 150, #118.47,
 "BT - RZ 0,6/1 KV 3*70 ALM/54,6 AL" => 160,
-"BT - RZ 0,6/1 KV 3*95 AL/54,6 ALM" => 182.21,
+"BT - RZ 0,6/1 KV 3*95 AL/54,6 ALM" => 230, # 182.21,
 "BT - RZ 0,6/1 KV 4*16 AL" => 75,
-"aansluitkabel" => 200
+"aansluitkabel" => 120 #200
 )
 
 
@@ -407,7 +407,7 @@ currentmax_dict = Dict{String,Any}(
             "transformer"   => false,
             "tap"           => 1.0,
             "c_rating_c"    => currentmax_dict[branch["cableType"]], 
-            "λcmax"         => 1.03643    
+            "λcmax"         => 1.65 #1.65 #2.5 #1.03643    
             )
 
         if haskey(impedance_dict,branch["cableType"])
@@ -451,7 +451,7 @@ function build_stochastic_data_hc(data::Dict{String,Any}, deg::Int, t_s=50)
 
 
     # build mop
-    opq = [parse_dst_beta(ns[2]["dst"], ns[2]["pa"], ns[2]["pb"], deg) for ns in data["sdata"]]
+    opq = [parse_dst_beta(ns[2]["dst"], ns[2]["pa"], ns[2]["pb"], deg) for ns in sort(data["sdata"])]
     mop = _PCE.MultiOrthoPoly(opq, deg)
 
     # build load matrix
@@ -468,7 +468,7 @@ function build_stochastic_data_hc(data::Dict{String,Any}, deg::Int, t_s=50)
             pd[nd,1] = data["load"]["$nd"]["pd"]
         else
             base = data["baseMVA"]
-            μ, σ = data["load"]["$nd"]["μ"] /1e3/ base, data["load"]["$nd"]["σ"] /1e3/ base
+            μ, σ = data["load"]["$nd"]["μ"] /1e3/ base/ 3, data["load"]["$nd"]["σ"] /1e3/ base/3
             if mop.uni[ni] isa _PCE.GaussOrthoPoly
                 pd[nd,[1,ni+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[ni])
             else
@@ -477,7 +477,7 @@ function build_stochastic_data_hc(data::Dict{String,Any}, deg::Int, t_s=50)
         end
         np = length(opq)
         base = data["baseMVA"]
-        μ, σ = data["PV"]["1"]["μ"]/1e6 / base, data["PV"]["1"]["σ"] /1e6/ base
+        μ, σ = data["PV"]["1"]["μ"]/1e6 / base / 3, data["PV"]["1"]["σ"] /1e6/ base / 3
         
             if mop.uni[np] isa _PCE.GaussOrthoPoly
                 pd_g[nd,[1,np+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np])
