@@ -90,6 +90,47 @@ function variable_load_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_d
     report && _PM.sol_component_value(pm, nw, :load, :cid, _PM.ids(pm, nw, :load), cid)
 end
 
+# load current
+"variable: `crd[j]` for `j` in `load`"
+function variable_PV_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    crd_pv = _PM.var(pm, nw)[:crd_pv] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :PV)], base_name="$(nw)_crd_pv",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :PV, i), "crd_pv_start")
+    )
+
+    report && _PM.sol_component_value(pm, nw, :PV, :crd_pv, _PM.ids(pm, nw, :PV), crd_pv)
+end
+
+
+"variable: `cid[j]` for `j` in `load`"
+function variable_PV_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    cid_pv = _PM.var(pm, nw)[:cid_pv] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :PV)], base_name="$(nw)_cid_pv",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :PV, i), "cid_pv_start")
+    )
+
+    report && _PM.sol_component_value(pm, nw, :PV, :cid_pv, _PM.ids(pm, nw, :PV), cid_pv)
+end
+
+
+# PV size
+"variable: `p_size` for `j` in `load`"
+function variable_PV_size(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    p_size = _PM.var(pm, nw)[:p_size] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :PV)], base_name="$(nw)_p_size",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :PV, i), "p_size_start")
+    )
+    
+    if bounded
+        for (i, PV) in _PM.ref(pm, nw, :PV)
+            JuMP.set_lower_bound(p_size[i], 0)
+            #uMP.set_upper_bound(p_size[i], 15) #2*PV["conn_cap_kW"])
+        end
+    end
+    report && _PM.sol_component_value(pm, nw, :PV, :p_size, _PM.ids(pm, nw, :PV), p_size)
+end
+
+
 # branch current
 "variable: `cr[l,i,j]` for `(l,i,j)` in `arcs`"
 function expression_variable_branch_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
@@ -292,3 +333,33 @@ function variable_branch_voltage_drop_img(pm::AbstractPowerModel; nw::Int=nw_id_
 
     report && _PM.sol_component_value(pm, nw, :branch, :vbdi, _PM.ids(pm, nw, :branch), vbdi)
 end
+
+"expression: voltage drop real"
+function expression_branch_voltage_drop_real(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    if !haskey(_PM.var(pm, nw), :vbdr)
+         vbdr=_PM.var(pm, nw)[:vbdr] = Dict()
+    end
+
+        branch = _PM.ref(pm, nw, :branch, b)
+        f_bus = branch["f_bus"]
+        t_bus = branch["t_bus"]
+        
+        #vbdr[b] = (vr_fr-vr_to)
+
+        expression_branch_voltage_drop_real(pm, nw, b, f_bus, t_bus)
+end
+
+
+"expression: voltage drop img"
+function expression_branch_voltage_drop_img(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    if !haskey(_PM.var(pm, nw), :vbdi)
+        vbdi=_PM.var(pm, nw)[:vbdi] = Dict()
+    end
+        #branch = _PMs.ref(pm, nw, :branch)
+    branch = _PM.ref(pm, nw, :branch, b)
+    f_bus = branch["f_bus"]
+    t_bus = branch["t_bus"]
+    
+    expression_branch_voltage_drop_img(pm, nw, b, f_bus, t_bus)
+end
+

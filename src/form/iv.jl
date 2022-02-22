@@ -48,6 +48,12 @@ function variable_load_current(pm::AbstractIVRModel; nw::Int=nw_id_default, boun
 end
 
 ""
+function variable_PV_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
+    variable_PV_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    variable_PV_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+end
+
+""
 function variable_gen_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
     _PM.variable_gen_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     _PM.variable_gen_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
@@ -81,6 +87,40 @@ function constraint_current_balance(pm::AbstractIVRModel, n::Int, i, bus_arcs, b
                                 )
 end
 
+
+# current balance with PV
+""
+function constraint_current_balance_with_PV(pm::AbstractIVRModel, n::Int, i, bus_arcs, bus_gens, bus_loads, bus_gs, bus_bs, bus_PV)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
+
+    cr = _PM.var(pm, n, :cr)
+    ci = _PM.var(pm, n, :ci)
+
+    crd = _PM.var(pm, n, :crd)
+    cid = _PM.var(pm, n, :cid)
+    crg = _PM.var(pm, n, :crg)
+    cig = _PM.var(pm, n, :cig)
+
+    crd_pv = _PM.var(pm, n, :crd_pv)
+    cid_pv = _PM.var(pm, n, :cid_pv)
+    p_size = _PM.var(pm, 1, :p_size)
+
+    JuMP.@constraint(pm.model,  sum(cr[a] for a in bus_arcs)
+                                ==
+                                sum(crg[g] for g in bus_gens)
+                                - sum(crd[d] for d in bus_loads)
+                                + sum(crd_pv[p] for p in bus_PV)  #*p_size[p]
+                                - sum(gs for gs in values(bus_gs))*vr + sum(bs for bs in values(bus_bs))*vi
+                                )
+    JuMP.@constraint(pm.model,  sum(ci[a] for a in bus_arcs)
+                                ==
+                                sum(cig[g] for g in bus_gens)
+                                - sum(cid[d] for d in bus_loads)
+                                + sum(cid_pv[p] for p in bus_PV) #*p_size[p]
+                                - sum(gs for gs in values(bus_gs))*vi - sum(bs for bs in values(bus_bs))*vr
+                                )
+end
 # galerkin projection
 ""
 function constraint_gp_branch_series_current_squared(pm::AbstractIVRModel, n::Int, i, T2, T3)
@@ -149,6 +189,22 @@ function constraint_gp_load_power_real(pm::AbstractIVRModel, n::Int, i, l, pd, T
 end
 
 ""
+function constraint_gp_pv_power_real(pm::AbstractIVRModel, n::Int, i, p, pd, T2, T3, p_size)
+    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _PM.nw_ids(pm))
+    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _PM.nw_ids(pm))
+
+    crd_pv = Dict(nw => _PM.var(pm, nw, :crd_pv, p) for nw in _PM.nw_ids(pm))
+    cid_pv = Dict(nw => _PM.var(pm, nw, :cid_pv, p) for nw in _PM.nw_ids(pm))
+
+    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * pd * p_size
+                                ==
+                                sum(T3.get([n1-1,n2-1,n-1]) *
+                                    (vr[n1] * crd_pv[n2] + vi[n1] * cid_pv[n2])
+                                    for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
+                    )
+end
+
+""
 function constraint_gp_load_power_imaginary(pm::AbstractIVRModel, n::Int, i, l, qd, T2, T3)
     vr  = Dict(n => _PM.var(pm, n, :vr, i) for n in _PM.nw_ids(pm))
     vi  = Dict(n => _PM.var(pm, n, :vi, i) for n in _PM.nw_ids(pm))
@@ -164,6 +220,22 @@ function constraint_gp_load_power_imaginary(pm::AbstractIVRModel, n::Int, i, l, 
                     )
 end
 
+
+""
+function constraint_gp_pv_power_imaginary(pm::AbstractIVRModel, n::Int, i, p, qd, T2, T3, p_size)
+    vr  = Dict(n => _PM.var(pm, n, :vr, i) for n in _PM.nw_ids(pm))
+    vi  = Dict(n => _PM.var(pm, n, :vi, i) for n in _PM.nw_ids(pm))
+
+    crd_pv = Dict(n => _PM.var(pm, n, :crd_pv, p) for n in _PM.nw_ids(pm))
+    cid_pv = Dict(n => _PM.var(pm, n, :cid_pv, p) for n in _PM.nw_ids(pm))
+
+    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * qd * p_size
+                                ==
+                                sum(T3.get([n1-1,n2-1,n-1]) *
+                                    (vi[n1] * crd_pv[n2] - vr[n1] * cid_pv[n2])
+                                    for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
+                    )
+end
 # chance constraints
 ""
 function constraint_branch_series_current_cc_limit(pm::AbstractIVRModel, b, cmax, λmax, T2, T4, gs, bs)

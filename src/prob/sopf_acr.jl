@@ -38,6 +38,10 @@ function build_sopf_acr_with_aux(pm::AbstractPowerModel)
 
         variable_branch_power(pm, nw=n, bounded=false)
         variable_branch_current(pm, nw=n, bounded=false, aux=true) 
+        for b in _PM.ids(pm, :branch, nw=n)
+            expression_branch_voltage_drop_real(pm, b, nw=n)
+            expression_branch_voltage_drop_img(pm, b, nw=n)
+        end
     end
 
     for i in _PM.ids(pm, :bus,nw=1)
@@ -66,7 +70,7 @@ function build_sopf_acr_with_aux(pm::AbstractPowerModel)
             constraint_gp_power_branch_to(pm, b, nw=n)
             constraint_gp_power_branch_from(pm, b, nw=n)
 
-            constraint_branch_voltage(pm, b, nw=n)
+            #constraint_branch_voltage(pm, b, nw=n) #replaced by expression
 
             constraint_gp_current_squared(pm, b, nw=n)
         end
@@ -84,6 +88,10 @@ function build_sopf_acr_without_aux(pm::AbstractPowerModel)
 
         variable_branch_power(pm, nw=n, bounded=false)
         variable_branch_current(pm, nw=n, bounded=true, aux=false) 
+        for b in _PMs.ids(pm, :branch, nw=n)
+            expression_branch_voltage_drop_real(pm, b, nw=n)
+            expression_branch_voltage_drop_img(pm, b, nw=n)
+        end
     end
 
     for i in _PM.ids(pm, :bus,nw=1)
@@ -112,7 +120,7 @@ function build_sopf_acr_without_aux(pm::AbstractPowerModel)
             constraint_gp_power_branch_to(pm, b, nw=n)
             constraint_gp_power_branch_from(pm, b, nw=n)
 
-            constraint_branch_voltage(pm, b, nw=n)
+            #constraint_branch_voltage(pm, b, nw=n) #replaced by expression
         end
     end
 

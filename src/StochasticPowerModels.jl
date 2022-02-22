@@ -17,6 +17,11 @@ module StochasticPowerModels
     import Memento
     import PolyChaos
     import PowerModels
+    import JSON
+    import DataFrames
+    import CSV
+    import PowerModelsDistribution
+    using DataFrames
 
     # import types
     import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
@@ -52,14 +57,15 @@ module StochasticPowerModels
 
     include("prob/sopf_acr.jl")
     include("prob/sopf_iv.jl")
+    include("prob/sopf_hc.jl")
 
     include("util/util.jl")
 
     # export
     export BASE_DIR
 
-    export run_sopf_iv, run_sopf_acr
+    export run_sopf_iv, run_sopf_acr, run_sopf_hc
 
-    export build_stochastic_data
+    export build_stochastic_data, build_stochastic_data_hc
     export pce_coeff, sample, density, print_summary
 end 

@@ -33,3 +33,31 @@ function objective_min_expected_generation_cost(pm::AbstractPowerModel; kwargs..
             sum(gen_cost[g] for g in _PM.ids(pm, :gen, nw=1))
     )
 end
+
+"expected max PV generation"
+function objective_max_PV(pm::AbstractPowerModel; kwargs...)
+    p_size = Dict()
+
+
+    for (p, PV) in _PM.ref(pm, :PV, nw=1)
+        p_size[p] = Dict(nw => _PM.var(pm, nw, :p_size, p) for nw in [1])
+    end
+
+    return JuMP.@objective(pm.model, Max,
+            sum(p_size[p][1] for p in _PM.ids(pm, :PV, nw=1))
+    )
+end
+
+"objective_max_PV_equal_for_all_consumer"
+function objective_max_PV_equal_for_all_consumer(pm::AbstractPowerModel; kwargs...)
+    p_size = Dict()
+
+
+    for (p, PV) in _PM.ref(pm, :PV, nw=1)
+        p_size[p] = Dict(nw => _PM.var(pm, nw, :p_size, p) for nw in [1])
+    end
+
+    return JuMP.@objective(pm.model, Max,
+            p_size[1][1]
+    )
+end
