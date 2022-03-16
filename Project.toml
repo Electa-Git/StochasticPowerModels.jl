@@ -19,7 +19,7 @@ JuMP = "0.21.10"
 KernelDensity = "0.6.3"
 Memento = "1.2.0"
 PolyChaos = "0.2.4"
-PowerModels = "0.18.3"
+PowerModels = "0.18.4"
 julia = "1"
 
 [extras]
