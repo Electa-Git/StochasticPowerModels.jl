@@ -14,7 +14,7 @@
         red  = true
         case = "case5_spm.m"
 
-        file  = joinpath(_SPM.BASE_DIR, "test/data/matpower", case)
+        file  = joinpath("../test/data/matpower", case)
         result_ivr = _SPM.run_sopf_iv(file, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
         @test result_ivr["termination_status"] == LOCALLY_SOLVED
         obj1 = result_ivr["objective"]
