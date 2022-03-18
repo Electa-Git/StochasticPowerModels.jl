@@ -20,8 +20,8 @@ solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer,
                                         "max_cpu_time" => 3600.0)
 
 # data
-path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case30_spm_muhlpfordt.m")
-data = _PMs.parse_file(path)
+# path = joinpath(_SPM.BASE_DIR,"test/data/matpower/case30_spm_muhlpfordt.m")
+# data = _PMs.parse_file(path)
 
 # solution dataframe
 df = _DFs.DataFrame(case=String[],
@@ -39,6 +39,8 @@ iter = [1]
 
 global result_ivr_stc = [1]
 reduced  = false
+
+cases = ["case5_spm.m", "case14_ieee_spm.m", "case30_spm_muhlpfordt.m", "case57_ieee_spm.m", "case118_ieee_spm.m"]
 
 for case in ["case30_spm_muhlpfordt.m"]
     # data
@@ -69,12 +71,13 @@ for case in ["case30_spm_muhlpfordt.m"]
             branch["λcmax"] = λ
         end
 
-        # # add load mean and variance
-        # for (l, load) in data["load"]
-        #     bus_id = load["load_bus"]
-        #     data["bus"]["$(bus_id)"]["μ"] = load["pd"]
-        #     data["bus"]["$(bus_id)"]["σ"] = load["pd"] * σ
-        # end
+        #### CHECK WITH TOM
+        # add load mean and variance
+        for (l, load) in data["load"]
+            bus_id = load["load_bus"]
+            data["bus"]["$(bus_id)"]["μ"] = load["pd"] * data["baseMVA"]
+            data["bus"]["$(bus_id)"]["σ"] = load["pd"] * data["baseMVA"] * σ
+        end
 
         # solve problem
         println("acr full")
@@ -83,19 +86,20 @@ for case in ["case30_spm_muhlpfordt.m"]
 
         # solve ivr problem
         println("ivr full")
-        result_ivr_stc = run_sopf_iv(data, _PMs.IVRPowerModel, solver, aux=aux, deg=deg)
+        result_ivr_stc = run_sopf_iv(data, _PMs.IVRPowerModel, solver, aux=aux, deg=deg, red = false)
         push!(df, [case, "ivr", "full", deg, aux_bool, ε, σ, result_ivr_stc["solve_time"], string(result_ivr_stc["termination_status"]), result_ivr_stc["objective"]])
+
+        # solve reduced ivr problem
+        println("ivr reduced")
+        result_ivr_red = run_sopf_iv(data, _PMs.IVRPowerModel, solver, aux=aux, deg=deg, red = true)
+        push!(df, [case, "ivr", "reduced", deg, aux_bool, ε, σ, result_ivr_red["solve_time"], string(result_ivr_red["termination_status"]), result_ivr_red["objective"]])
+
 
         if reduced == true
             # solve problem
             println("acr reduced")
             result_acr_red = _SPM.run_sopf_acr_reduced(data, _PMs.ACRPowerModel, solver, aux=aux, deg=deg)
-            push!(df, [case, "acr", "reduced", deg, aux_bool, ε, σ, result_acr_red["solve_time"], string(result_acr_red["termination_status"]), result_acr_red["objective"]])
-
-            # solve reduced ivr problem
-            println("ivr reduced")
-            result_ivr_red = run_sopf_iv_reduced(data, _PMs.IVRPowerModel, solver, aux=aux, deg=deg)
-            push!(df, [case, "ivr", "reduced", deg, aux_bool, ε, σ, result_ivr_red["solve_time"], string(result_ivr_red["termination_status"]), result_ivr_red["objective"]])
+            push!(df, [case, "acr", "reduced", deg, aux_bool, ε, σ, result_acr_red["solve_time"], string(result_acr_red["termination_status"]), result_acr_red["objective"]])            
         end
         iter[1] += 1
 end end end
