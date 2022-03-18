@@ -1,0 +1,10 @@
+[
+    {
+        "branchId":0,
+        "cableLength":11.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":1,
+        "type":"Cable",
+        "upBusId":0
+    }
+]

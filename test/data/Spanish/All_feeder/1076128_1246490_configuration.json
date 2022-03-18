@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/1076128_1246490_branches.json",
+        "buses_file":"POLA/1076128_1246490_buses.json",
+        "cabineName":"CT ERIA DEL HOSPITAL",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/1076128_1246490_devices.json",
+        "id":1246490,
+        "name":3,
+        "slack_voltage":1,
+        "totalNrOfEANS":49,
+        "trafoId":1076128
+    }
+}

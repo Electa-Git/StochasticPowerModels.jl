@@ -1,0 +1,122 @@
+[
+    {
+        "branchId":0,
+        "cableLength":6.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":1,
+        "type":"Cable",
+        "upBusId":0
+    },
+    {
+        "branchId":1,
+        "cableLength":11,
+        "cableType":"aansluitkabel",
+        "downBusId":2,
+        "type":"Cable",
+        "upBusId":1
+    },
+    {
+        "branchId":2,
+        "cableLength":37.29,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":3,
+        "type":"Cable",
+        "upBusId":1
+    },
+    {
+        "branchId":3,
+        "cableLength":1,
+        "cableType":"aansluitkabel",
+        "downBusId":4,
+        "type":"Cable",
+        "upBusId":3
+    },
+    {
+        "branchId":4,
+        "cableLength":14.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":5,
+        "type":"Cable",
+        "upBusId":3
+    },
+    {
+        "branchId":5,
+        "cableLength":16,
+        "cableType":"aansluitkabel",
+        "downBusId":6,
+        "type":"Cable",
+        "upBusId":5
+    },
+    {
+        "branchId":6,
+        "cableLength":9.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":7,
+        "type":"Cable",
+        "upBusId":5
+    },
+    {
+        "branchId":7,
+        "cableLength":13.0,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":8,
+        "type":"Cable",
+        "upBusId":7
+    },
+    {
+        "branchId":8,
+        "cableLength":22.0,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":9,
+        "type":"Cable",
+        "upBusId":8
+    },
+    {
+        "branchId":9,
+        "cableLength":2.0,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId":10,
+        "type":"Cable",
+        "upBusId":9
+    },
+    {
+        "branchId":10,
+        "cableLength":8,
+        "cableType":"aansluitkabel",
+        "downBusId":11,
+        "type":"Cable",
+        "upBusId":10
+    },
+    {
+        "branchId":11,
+        "cableLength":12.67,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":12,
+        "type":"Cable",
+        "upBusId":9
+    },
+    {
+        "branchId":12,
+        "cableLength":2.89,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":13,
+        "type":"Cable",
+        "upBusId":12
+    },
+    {
+        "branchId":13,
+        "cableLength":2.0,
+        "cableType":"BT - RV 0,6/1 KV 4*95 KAL",
+        "downBusId":14,
+        "type":"Cable",
+        "upBusId":8
+    },
+    {
+        "branchId":14,
+        "cableLength":2,
+        "cableType":"aansluitkabel",
+        "downBusId":15,
+        "type":"Cable",
+        "upBusId":14
+    }
+]

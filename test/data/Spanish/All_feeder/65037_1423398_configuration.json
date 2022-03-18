@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65037_1423398_branches.json",
+        "buses_file":"POLA/65037_1423398_buses.json",
+        "cabineName":"CT FALO MORO",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65037_1423398_devices.json",
+        "id":1423398,
+        "name":6,
+        "slack_voltage":1,
+        "totalNrOfEANS":27,
+        "trafoId":65037
+    }
+}

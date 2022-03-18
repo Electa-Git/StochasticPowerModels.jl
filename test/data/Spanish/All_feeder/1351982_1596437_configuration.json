@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/1351982_1596437_branches.json",
+        "buses_file":"POLA/1351982_1596437_buses.json",
+        "cabineName":"CT EDIFICIO PLAZA",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/1351982_1596437_devices.json",
+        "id":1596437,
+        "name":3,
+        "slack_voltage":1,
+        "totalNrOfEANS":22,
+        "trafoId":1351982
+    }
+}

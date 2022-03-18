@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65049_2366490_branches.json",
+        "buses_file":"POLA/65049_2366490_buses.json",
+        "cabineName":"CT RENAULT",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65049_2366490_devices.json",
+        "id":2366490,
+        "name":2,
+        "slack_voltage":1,
+        "totalNrOfEANS":16,
+        "trafoId":65049
+    }
+}

@@ -1,0 +1,26 @@
+[
+    {
+        "branchId":0,
+        "cableLength":80.0,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":1,
+        "type":"Cable",
+        "upBusId":0
+    },
+    {
+        "branchId":1,
+        "cableLength":94.0,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":2,
+        "type":"Cable",
+        "upBusId":1
+    },
+    {
+        "branchId":2,
+        "cableLength":12.0,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":3,
+        "type":"Cable",
+        "upBusId":2
+    }
+]

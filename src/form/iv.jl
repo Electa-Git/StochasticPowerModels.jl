@@ -24,6 +24,24 @@ function variable_branch_current(pm::AbstractIVRModel; nw::Int=nw_id_default, au
     end end
 end
 
+
+# variables
+""
+function variable_branch_current_det(pm::AbstractIVRModel; nw::Int=nw_id_default, aux::Bool=true, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false, kwargs...)   
+    _PM.variable_branch_series_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    _PM.variable_branch_series_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    _PM.variable_branch_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    _PM.variable_branch_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    
+    if aux
+        variable_branch_series_current_squared_det(pm, nw=nw, bounded=true, report=report, aux_fix=aux_fix; kwargs...)
+    else
+        if nw == nw_id_default
+            variable_branch_series_current_expectation(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
+            variable_branch_series_current_variance(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
+    end end
+end
+
 ""
 function variable_branch_current_reduced(pm::AbstractIVRModel; nw::Int=nw_id_default, aux::Bool=true, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false, kwargs...)
     _PM.variable_branch_series_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
@@ -121,6 +139,41 @@ function constraint_current_balance_with_PV(pm::AbstractIVRModel, n::Int, i, bus
                                 - sum(gs for gs in values(bus_gs))*vi - sum(bs for bs in values(bus_bs))*vr
                                 )
 end
+
+
+# current balance with PV
+""
+function constraint_current_balance_with_PV_det(pm::AbstractIVRModel, n::Int, i, bus_arcs, bus_gens, bus_loads, bus_gs, bus_bs, bus_PV)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
+
+    cr = _PM.var(pm, n, :cr)
+    ci = _PM.var(pm, n, :ci)
+
+    crd = _PM.var(pm, n, :crd)
+    cid = _PM.var(pm, n, :cid)
+    crg = _PM.var(pm, n, :crg)
+    cig = _PM.var(pm, n, :cig)
+
+    crd_pv = _PM.var(pm, n, :crd_pv)
+    cid_pv = _PM.var(pm, n, :cid_pv)
+    #p_size = _PM.var(pm, n, :p_size)
+
+    JuMP.@constraint(pm.model,  sum(cr[a] for a in bus_arcs)
+                                ==
+                                sum(crg[g] for g in bus_gens)
+                                - sum(crd[d] for d in bus_loads)
+                                + sum(crd_pv[p] for p in bus_PV) 
+                                - sum(gs for gs in values(bus_gs))*vr + sum(bs for bs in values(bus_bs))*vi
+                                )
+    JuMP.@constraint(pm.model,  sum(ci[a] for a in bus_arcs)
+                                ==
+                                sum(cig[g] for g in bus_gens)
+                                - sum(cid[d] for d in bus_loads)
+                                + sum(cid_pv[p] for p in bus_PV) #*p_size[p]
+                                - sum(gs for gs in values(bus_gs))*vi - sum(bs for bs in values(bus_bs))*vr
+                                )
+end
 # galerkin projection
 ""
 function constraint_gp_branch_series_current_squared(pm::AbstractIVRModel, n::Int, i, T2, T3)
@@ -173,9 +226,36 @@ function constraint_gp_gen_power_imaginary(pm::AbstractIVRModel, n::Int, i, g, T
 end
 
 ""
+function constraint_det_gen_power_real(pm::AbstractIVRModel, n::Int, i, g)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
+    
+    crg = _PM.var(pm, n, :crg ,g)
+    cig = _PM.var(pm, n, :cig ,g)
+
+    pg  = _PM.var(pm, n, :pg, g)
+    JuMP.@constraint(pm.model,pg ==  (vr * crg + vi * cig))
+end
+
+""
+function constraint_det_gen_power_imaginary(pm::AbstractIVRModel, n::Int, i, g)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
+    
+    crg = _PM.var(pm, n, :crg ,g)
+    cig = _PM.var(pm, n, :cig ,g)
+
+    qg  = _PM.var(pm, n, :qg, g)
+    
+    JuMP.@constraint(pm.model, qg == (vi * crg - vr * cig))
+                    
+end
+
+
+""
 function constraint_gp_load_power_real(pm::AbstractIVRModel, n::Int, i, l, pd, T2, T3)
-    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _PM.nw_ids(pm))
-    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _PM.nw_ids(pm))
+    vr  = Dict(n => _PM.var(pm, n, :vr, i) for n in _PM.nw_ids(pm))
+    vi  = Dict(n => _PM.var(pm, n, :vi, i) for n in _PM.nw_ids(pm))
 
     crd = Dict(nw => _PM.var(pm, nw, :crd, l) for nw in _PM.nw_ids(pm))
     cid = Dict(nw => _PM.var(pm, nw, :cid, l) for nw in _PM.nw_ids(pm))
@@ -205,6 +285,30 @@ function constraint_gp_pv_power_real(pm::AbstractIVRModel, n::Int, i, p, pd, T2,
 end
 
 ""
+function constraint_det_pv_power_real(pm::AbstractIVRModel, n::Int, i, p, pd, p_size)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
+
+    crd_pv = _PM.var(pm, n, :crd_pv,p)
+    cid_pv = _PM.var(pm, n, :cid_pv,p)
+
+    JuMP.@constraint(pm.model,  pd * p_size ==   (vr * crd_pv + vi * cid_pv))
+            
+end
+
+""
+function constraint_det_load_power_real(pm::AbstractIVRModel, n::Int, i, l, pd)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
+
+    crd = _PM.var(pm, n, :crd, l)
+    cid = _PM.var(pm, n, :cid, l)
+
+    JuMP.@constraint(pm.model, pd == (vr * crd + vi * cid))
+             
+end
+
+""
 function constraint_gp_load_power_imaginary(pm::AbstractIVRModel, n::Int, i, l, qd, T2, T3)
     vr  = Dict(n => _PM.var(pm, n, :vr, i) for n in _PM.nw_ids(pm))
     vi  = Dict(n => _PM.var(pm, n, :vi, i) for n in _PM.nw_ids(pm))
@@ -220,6 +324,16 @@ function constraint_gp_load_power_imaginary(pm::AbstractIVRModel, n::Int, i, l, 
                     )
 end
 
+""
+function constraint_det_load_power_imaginary(pm::AbstractIVRModel, n::Int, i, l, qd)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
+
+    crd = _PM.var(pm, n, :crd, l)
+    cid = _PM.var(pm, n, :cid, l)
+
+    JuMP.@constraint(pm.model, qd ==     (vi * crd - vr * cid))
+end
 
 ""
 function constraint_gp_pv_power_imaginary(pm::AbstractIVRModel, n::Int, i, p, qd, T2, T3, p_size)
@@ -235,6 +349,19 @@ function constraint_gp_pv_power_imaginary(pm::AbstractIVRModel, n::Int, i, p, qd
                                     (vi[n1] * crd_pv[n2] - vr[n1] * cid_pv[n2])
                                     for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
                     )
+end
+
+
+""
+function constraint_det_pv_power_imaginary(pm::AbstractIVRModel, n::Int, i, p, qd, p_size)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
+
+    crd_pv = _PM.var(pm, n, :crd_pv,p)
+    cid_pv = _PM.var(pm, n, :cid_pv,p)
+
+    JuMP.@constraint(pm.model, qd * p_size ==   (vi * crd_pv - vr * cid_pv))
+                
 end
 # chance constraints
 ""

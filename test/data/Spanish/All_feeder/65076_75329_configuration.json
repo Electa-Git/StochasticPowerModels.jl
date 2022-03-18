@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65076_75329_branches.json",
+        "buses_file":"POLA/65076_75329_buses.json",
+        "cabineName":"CT ESTACION",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65076_75329_devices.json",
+        "id":75329,
+        "name":1,
+        "slack_voltage":1,
+        "totalNrOfEANS":51,
+        "trafoId":65076
+    }
+}

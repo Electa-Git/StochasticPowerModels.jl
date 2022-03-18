@@ -1,0 +1,10 @@
+[
+    {
+        "branchId":0,
+        "cableLength":253.29,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":1,
+        "type":"Cable",
+        "upBusId":0
+    }
+]

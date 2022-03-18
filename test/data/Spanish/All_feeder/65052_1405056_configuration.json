@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65052_1405056_branches.json",
+        "buses_file":"POLA/65052_1405056_buses.json",
+        "cabineName":"CT LA GUAXA",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65052_1405056_devices.json",
+        "id":1405056,
+        "name":3,
+        "slack_voltage":1,
+        "totalNrOfEANS":76,
+        "trafoId":65052
+    }
+}

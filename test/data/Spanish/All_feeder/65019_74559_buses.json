@@ -1,0 +1,24 @@
+[
+    {
+        "busId":0,
+        "slackBus":true
+    },
+    {
+        "busId":1,
+        "lowerVoltageLimit":0.9,
+        "slackBus":false,
+        "upperVoltageLimit":1.1
+    },
+    {
+        "busId":2,
+        "lowerVoltageLimit":0.9,
+        "slackBus":false,
+        "upperVoltageLimit":1.1
+    },
+    {
+        "busId":3,
+        "lowerVoltageLimit":0.9,
+        "slackBus":false,
+        "upperVoltageLimit":1.1
+    }
+]

@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65068_80425_branches.json",
+        "buses_file":"POLA/65068_80425_buses.json",
+        "cabineName":"CT PARQUE DE LA LUZ",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65068_80425_devices.json",
+        "id":80425,
+        "name":4,
+        "slack_voltage":1,
+        "totalNrOfEANS":65,
+        "trafoId":65068
+    }
+}

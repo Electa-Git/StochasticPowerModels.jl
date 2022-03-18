@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/1830188_2181475_branches.json",
+        "buses_file":"POLA/1830188_2181475_buses.json",
+        "cabineName":"CT ANGEL EMBIL 11",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/1830188_2181475_devices.json",
+        "id":2181475,
+        "name":8,
+        "slack_voltage":1,
+        "totalNrOfEANS":76,
+        "trafoId":1830188
+    }
+}

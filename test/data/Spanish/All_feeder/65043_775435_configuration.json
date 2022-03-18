@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65043_775435_branches.json",
+        "buses_file":"POLA/65043_775435_buses.json",
+        "cabineName":"CT MARQUESA DE CANILLEJAS",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65043_775435_devices.json",
+        "id":775435,
+        "name":3,
+        "slack_voltage":1,
+        "totalNrOfEANS":38,
+        "trafoId":65043
+    }
+}

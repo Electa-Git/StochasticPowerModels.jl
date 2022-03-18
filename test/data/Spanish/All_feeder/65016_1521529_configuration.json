@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.25,
+        "basekV":0.4,
+        "branches_file":"POLA/65016_1521529_branches.json",
+        "buses_file":"POLA/65016_1521529_buses.json",
+        "cabineName":"CT SANTA ANA",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65016_1521529_devices.json",
+        "id":1521529,
+        "name":1,
+        "slack_voltage":1,
+        "totalNrOfEANS":116,
+        "trafoId":65016
+    }
+}

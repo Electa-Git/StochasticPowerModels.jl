@@ -23,14 +23,44 @@ aux  = true
 red  = false
 
 feeder = "POLA/65019_74478_configuration.json" 
-#feeder = "POLA/1136039_1465006_configuration.json"
+
+
+#feeder = "All_feeder/65025_80123_configuration.json"#1076069_1274125_configuration.json"
+
+
+feeder ="Pola/1076069_1274129_mod_configuration.json" #feeder with 11 consumer and HC 104
 # data
 file  = joinpath(BASE_DIR, "test/data/Spanish/")
 
 data  = SPM.build_mathematical_model_single_phase(file, feeder, t_s= 59)
-result_hc= SPM.run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
+
+result_hc= SPM.run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red, stochastic=false)
+
+
+s2 = Dict("output" => Dict("duals" => true))
+result_hc_2= SPM.run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red; setting=s2)
 e=1;
 m=1
+for i=1:length(data["bus"])
+    if -result_hc_2["solution"]["nw"]["1"]["bus"]["$i"]["dual_voltage_max"]>500
+        l_old=data["bus"]["$i"]["λvmax"]
+        m=sample(result_hc_2, "bus", i, "vm"; sample_size=100000)
+        if quantile(m,[0.95])[1]>1.001*data["bus"]["$i"]["vmax"]
+            data["bus"]["$i"]["λvmax"]=2*l_old-(data["bus"]["$i"]["vmax"]-mean(m))/std(m)+0.3
+        elseif quantile(m,[0.95])[1]>1.0001*data["bus"]["$i"]["vmax"]
+                data["bus"]["$i"]["λvmax"]=2*l_old-(data["bus"]["$i"]["vmax"]-mean(m))/std(m)+0.1
+        else
+            data["bus"]["$i"]["λvmax"]= 2*l_old-(data["bus"]["$i"]["vmax"]-mean(m))/std(m)
+        end
+    end
+end
+
+#[data["branch"]["$i"]["λcmax"]= 3 for i=1:18]
+#data["branch"]["13"]["λcmax"]= 2
+result_hc_1= SPM.run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red; setting=s2)
+
+
+
 while e>0.005
     mean_voltage=[result_hc["solution"]["nw"]["1"]["bus"]["$j"]["vm"] for j=1:length(data["bus"])]
     i=argmax(mean_voltage)

@@ -1,0 +1,274 @@
+[
+    {
+        "branchId":0,
+        "cableLength":61.66,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":1,
+        "type":"Cable",
+        "upBusId":0
+    },
+    {
+        "branchId":1,
+        "cableLength":27.42,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":2,
+        "type":"Cable",
+        "upBusId":1
+    },
+    {
+        "branchId":2,
+        "cableLength":3.5,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":3,
+        "type":"Cable",
+        "upBusId":2
+    },
+    {
+        "branchId":3,
+        "cableLength":30.18,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":4,
+        "type":"Cable",
+        "upBusId":1
+    },
+    {
+        "branchId":4,
+        "cableLength":1.06,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":5,
+        "type":"Cable",
+        "upBusId":4
+    },
+    {
+        "branchId":5,
+        "cableLength":8.39,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":6,
+        "type":"Cable",
+        "upBusId":5
+    },
+    {
+        "branchId":6,
+        "cableLength":1.05,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":7,
+        "type":"Cable",
+        "upBusId":6
+    },
+    {
+        "branchId":7,
+        "cableLength":23.75,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":8,
+        "type":"Cable",
+        "upBusId":6
+    },
+    {
+        "branchId":8,
+        "cableLength":4,
+        "cableType":"aansluitkabel",
+        "downBusId":9,
+        "type":"Cable",
+        "upBusId":8
+    },
+    {
+        "branchId":9,
+        "cableLength":44.79,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":10,
+        "type":"Cable",
+        "upBusId":5
+    },
+    {
+        "branchId":10,
+        "cableLength":5,
+        "cableType":"aansluitkabel",
+        "downBusId":11,
+        "type":"Cable",
+        "upBusId":10
+    },
+    {
+        "branchId":11,
+        "cableLength":1.4,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":12,
+        "type":"Cable",
+        "upBusId":10
+    },
+    {
+        "branchId":12,
+        "cableLength":29.35,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":13,
+        "type":"Cable",
+        "upBusId":12
+    },
+    {
+        "branchId":13,
+        "cableLength":6.13,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":14,
+        "type":"Cable",
+        "upBusId":13
+    },
+    {
+        "branchId":14,
+        "cableLength":12.65,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":15,
+        "type":"Cable",
+        "upBusId":14
+    },
+    {
+        "branchId":15,
+        "cableLength":4,
+        "cableType":"aansluitkabel",
+        "downBusId":16,
+        "type":"Cable",
+        "upBusId":15
+    },
+    {
+        "branchId":16,
+        "cableLength":10.67,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":17,
+        "type":"Cable",
+        "upBusId":15
+    },
+    {
+        "branchId":17,
+        "cableLength":13,
+        "cableType":"aansluitkabel",
+        "downBusId":18,
+        "type":"Cable",
+        "upBusId":17
+    },
+    {
+        "branchId":18,
+        "cableLength":4.19,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":19,
+        "type":"Cable",
+        "upBusId":17
+    },
+    {
+        "branchId":19,
+        "cableLength":14.91,
+        "cableType":"BT - RZ 0,6/1 KV 3*25 AL/54,6 ALM",
+        "downBusId":20,
+        "type":"Cable",
+        "upBusId":14
+    },
+    {
+        "branchId":20,
+        "cableLength":3,
+        "cableType":"aansluitkabel",
+        "downBusId":21,
+        "type":"Cable",
+        "upBusId":20
+    },
+    {
+        "branchId":21,
+        "cableLength":4.15,
+        "cableType":"BT - RZ 0,6/1 KV 3*25 AL/54,6 ALM",
+        "downBusId":22,
+        "type":"Cable",
+        "upBusId":20
+    },
+    {
+        "branchId":22,
+        "cableLength":2.54,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":23,
+        "type":"Cable",
+        "upBusId":14
+    },
+    {
+        "branchId":23,
+        "cableLength":11,
+        "cableType":"aansluitkabel",
+        "downBusId":24,
+        "type":"Cable",
+        "upBusId":23
+    },
+    {
+        "branchId":24,
+        "cableLength":1.54,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":25,
+        "type":"Cable",
+        "upBusId":23
+    },
+    {
+        "branchId":25,
+        "cableLength":13,
+        "cableType":"aansluitkabel",
+        "downBusId":26,
+        "type":"Cable",
+        "upBusId":25
+    },
+    {
+        "branchId":26,
+        "cableLength":2.17,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":27,
+        "type":"Cable",
+        "upBusId":25
+    },
+    {
+        "branchId":27,
+        "cableLength":19.92,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":28,
+        "type":"Cable",
+        "upBusId":13
+    },
+    {
+        "branchId":28,
+        "cableLength":6.01,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":29,
+        "type":"Cable",
+        "upBusId":28
+    },
+    {
+        "branchId":29,
+        "cableLength":1.05,
+        "cableType":"BT - MANGUERA",
+        "downBusId":30,
+        "type":"Cable",
+        "upBusId":29
+    },
+    {
+        "branchId":30,
+        "cableLength":2.1,
+        "cableType":"BT - MANGUERA",
+        "downBusId":31,
+        "type":"Cable",
+        "upBusId":30
+    },
+    {
+        "branchId":31,
+        "cableLength":2.09,
+        "cableType":"BT - MANGUERA",
+        "downBusId":32,
+        "type":"Cable",
+        "upBusId":30
+    },
+    {
+        "branchId":32,
+        "cableLength":2.56,
+        "cableType":"BT - MANGUERA",
+        "downBusId":33,
+        "type":"Cable",
+        "upBusId":32
+    },
+    {
+        "branchId":33,
+        "cableLength":4,
+        "cableType":"aansluitkabel",
+        "downBusId":34,
+        "type":"Cable",
+        "upBusId":33
+    }
+]

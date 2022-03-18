@@ -49,9 +49,24 @@ function variable_branch_current(pm::AbstractACRModel; nw::Int=nw_id_default, au
     end
 end
 
+
+
 # general constraints
 ""
 function constraint_bus_voltage_ref(pm::AbstractACRModel, n::Int, i::Int)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
+    if n==0
+        vn = 1.0
+    else
+        vn = ifelse(n == 1, 1.0, 0.0)
+    end
+
+    JuMP.@constraint(pm.model, vr == vn)
+    JuMP.@constraint(pm.model, vi == 0.0)
+end
+
+function constraint_bus_voltage_ref_det(pm::AbstractACRModel, n::Int, i::Int)
     vr = _PM.var(pm, n, :vr, i)
     vi = _PM.var(pm, n, :vi, i)
 
@@ -103,6 +118,18 @@ function constraint_branch_voltage(pm::AbstractACRModel, i::Int; nw::Int=nw_id_d
 
     JuMP.@constraint(pm.model,  vbdr == (vr_fr-vr_to))
     JuMP.@constraint(pm.model,  vbdi == (vi_fr-vi_to))         
+end
+
+""
+function constraint_bus_voltage_squared(pm::AbstractACRModel, n::Int, i)
+    vs  = _PM.var(pm, n, :vs, i)
+    vr  = _PM.var(pm, n, :vr, i)
+    vi  = _PM.var(pm, n, :vi, i)
+
+    JuMP.@constraint(pm.model,  vs 
+                                ==
+                                (vr * vr + vi* vi) 
+                    )
 end
 
 # galerkin projection
@@ -245,14 +272,19 @@ function constraint_bus_voltage_squared_cc_limit(pm::AbstractACRModel, i, vmin, 
     JuMP.@constraint(pm.model, vmin^2 <= _PCE.mean(vs, mop))
     JuMP.@constraint(pm.model, _PCE.mean(vs, mop) <= vmax^2)
     # chance constraint bounds
-    JuMP.@constraint(pm.model,  _PCE.var(vs, T2)
+    cstr_vmin=JuMP.@constraint(pm.model,  _PCE.var(vs, T2)
                                 <=
                                ((_PCE.mean(vs, mop) - vmin^2) / λmin)^2
                     )
-    JuMP.@constraint(pm.model,  _PCE.var(vs, T2)
+    cstr_vmax= JuMP.@constraint(pm.model,  _PCE.var(vs, T2)
                                <=
                                 ((vmax^2 - _PCE.mean(vs, mop)) / λmax)^2
                     )
+    
+    if _IM.report_duals(pm)
+        _PM.sol(pm, 1, :bus, i)[:dual_voltage_max] = cstr_vmax
+        _PM.sol(pm, 1, :bus, i)[:dual_voltage_min] = cstr_vmin
+    end
 end
 
 ""
@@ -330,10 +362,14 @@ function constraint_branch_series_current_squared_cc_limit(pm::AbstractACRModel,
     # bound on the expectation
     JuMP.@constraint(pm.model,  _PCE.mean(css, mop) <= 0.75*cmax^2)
     # chance constraint bounds
-    JuMP.@constraint(pm.model,  _PCE.var(css,T2)
+    cstr_imax= JuMP.@constraint(pm.model,  _PCE.var(css,T2)
                                 <=
                                 ((cmax^2 - _PCE.mean(css,mop)) / λcmax)^2
                     )
+
+        if _IM.report_duals(pm)
+            _PM.sol(pm, 1, :branch, b)[:dual_current_max] = cstr_imax
+        end
 end
 
 ""

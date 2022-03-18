@@ -68,6 +68,27 @@ function variable_bus_voltage_squared(pm::AbstractPowerModel; nw::Int=nw_id_defa
     report && _PM.sol_component_value(pm, nw, :bus, :vs, _PM.ids(pm, nw, :bus), vs)
 end
 
+
+"variable: `vs[i]` for `i` in `bus`es"
+function variable_bus_voltage_squared_det(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false)
+    vs = _PM.var(pm, nw)[:vs] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :bus)], base_name="$(nw)_vs",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :bus, i), "vs_start", 1.0)
+    )
+
+    if bounded
+        for (i, bus) in _PM.ref(pm, nw, :bus)
+            JuMP.set_upper_bound(vs[i], bus["vmax"]^2)
+            JuMP.set_lower_bound(vs[i], bus["vmin"]^2)
+        end
+    end
+    
+    if aux_fix 
+        JuMP.fix.(vs, 1.0; force=true)
+    end
+
+    report && _PM.sol_component_value(pm, nw, :bus, :vs, _PM.ids(pm, nw, :bus), vs)
+end
 # load current
 "variable: `crd[j]` for `j` in `load`"
 function variable_load_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
@@ -124,7 +145,7 @@ function variable_PV_size(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded
     if bounded
         for (i, PV) in _PM.ref(pm, nw, :PV)
             JuMP.set_lower_bound(p_size[i], 0)
-            #uMP.set_upper_bound(p_size[i], 15) #2*PV["conn_cap_kW"])
+            JuMP.set_upper_bound(p_size[i], 15) #2*PV["conn_cap_kW"])
         end
     end
     report && _PM.sol_component_value(pm, nw, :PV, :p_size, _PM.ids(pm, nw, :PV), p_size)
@@ -301,6 +322,52 @@ function variable_branch_series_current_squared(pm::AbstractPowerModel; nw::Int=
             if !isinf(ub)
                 JuMP.set_lower_bound(css[l], -2.0 * ub^2)
                 JuMP.set_upper_bound(css[l],  2.0 * ub^2)
+            end
+        end
+    end
+
+    if aux_fix
+        JuMP.fix.(css, 0.0; force=true)
+    end
+
+    report && _PM.sol_component_value(pm, nw, :branch, :css, _PM.ids(pm, nw, :branch), css)
+end
+
+
+
+"variable: `css[l,i,j]` for `(l,i,j)` in `arcs_from`"
+function variable_branch_series_current_squared_det(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, aux_fix::Bool=false, report::Bool=true)
+    css = _PM.var(pm, nw)[:css] = JuMP.@variable(pm.model,
+        [l in _PM.ids(pm, nw, :branch)], base_name="$(nw)_css",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :branch, l), "css_start", 0.0)
+    )
+
+    if bounded
+        bus = _PM.ref(pm, nw, :bus)
+        branch = _PM.ref(pm, nw, :branch)
+
+        for (l,i,j) in _PM.ref(pm, nw, :arcs_from)
+            b = branch[l]
+            ub = Inf
+            if haskey(b, "rate_a")
+                rate = b["rate_a"] * b["tap"]
+                y_fr = abs(b["g_fr"] + im * b["b_fr"])
+                y_to = abs(b["g_to"] + im * b["b_to"])
+                shunt_current = max(y_fr * bus[i]["vmax"]^2, y_to * bus[j]["vmax"]^2)
+                series_current = max(rate / bus[i]["vmin"], rate / bus[j]["vmin"])
+                ub = series_current + shunt_current
+            end
+            if haskey(b, "c_rating_a")
+                total_current = b["c_rating_a"]
+                y_fr = abs(b["g_fr"] + im * b["b_fr"])
+                y_to = abs(b["g_to"] + im * b["b_to"])
+                shunt_current = max(y_fr * bus[i]["vmax"]^2, y_to * bus[j]["vmax"]^2)
+                ub = total_current + shunt_current
+            end
+
+            if !isinf(ub)
+                #JuMP.set_lower_bound(css[l], -2.0 * ub^2)
+                JuMP.set_upper_bound(css[l],  1.0 * ub^2)
             end
         end
     end

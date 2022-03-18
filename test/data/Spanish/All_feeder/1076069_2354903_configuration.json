@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/1076069_2354903_branches.json",
+        "buses_file":"POLA/1076069_2354903_buses.json",
+        "cabineName":"CT SAN ANTONIO",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/1076069_2354903_devices.json",
+        "id":2354903,
+        "name":5,
+        "slack_voltage":1,
+        "totalNrOfEANS":3,
+        "trafoId":1076069
+    }
+}

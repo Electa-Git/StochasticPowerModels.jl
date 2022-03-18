@@ -1,0 +1,50 @@
+[
+    {
+        "branchId":0,
+        "cableLength":22.0,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":1,
+        "type":"Cable",
+        "upBusId":0
+    },
+    {
+        "branchId":1,
+        "cableLength":58.0,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":2,
+        "type":"Cable",
+        "upBusId":1
+    },
+    {
+        "branchId":2,
+        "cableLength":30.0,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":3,
+        "type":"Cable",
+        "upBusId":2
+    },
+    {
+        "branchId":3,
+        "cableLength":12,
+        "cableType":"aansluitkabel",
+        "downBusId":4,
+        "type":"Cable",
+        "upBusId":3
+    },
+    {
+        "branchId":4,
+        "cableLength":36.0,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":5,
+        "type":"Cable",
+        "upBusId":2
+    },
+    {
+        "branchId":5,
+        "cableLength":16,
+        "cableType":"aansluitkabel",
+        "downBusId":6,
+        "type":"Cable",
+        "upBusId":5
+    }
+]

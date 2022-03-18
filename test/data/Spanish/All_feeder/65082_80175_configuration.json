@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65082_80175_branches.json",
+        "buses_file":"POLA/65082_80175_buses.json",
+        "cabineName":"CT VALERIANO LEON",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65082_80175_devices.json",
+        "id":80175,
+        "name":2,
+        "slack_voltage":1,
+        "totalNrOfEANS":56,
+        "trafoId":65082
+    }
+}

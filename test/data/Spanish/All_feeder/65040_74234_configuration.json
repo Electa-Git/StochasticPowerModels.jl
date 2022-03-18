@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65040_74234_branches.json",
+        "buses_file":"POLA/65040_74234_buses.json",
+        "cabineName":"CT EDIFICIO EL MARQUES",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65040_74234_devices.json",
+        "id":74234,
+        "name":2,
+        "slack_voltage":1,
+        "totalNrOfEANS":102,
+        "trafoId":65040
+    }
+}

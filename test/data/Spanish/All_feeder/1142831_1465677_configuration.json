@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/1142831_1465677_branches.json",
+        "buses_file":"POLA/1142831_1465677_buses.json",
+        "cabineName":"CT EDIFICIO FUENTES",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/1142831_1465677_devices.json",
+        "id":1465677,
+        "name":3,
+        "slack_voltage":1,
+        "totalNrOfEANS":18,
+        "trafoId":1142831
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":1.0,
+        "basekV":0.4,
+        "branches_file":"POLA/65079_77889_branches.json",
+        "buses_file":"POLA/65079_77889_buses.json",
+        "cabineName":"CT PLAZA CUBIERTA",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65079_77889_devices.json",
+        "id":77889,
+        "name":4,
+        "slack_voltage":1,
+        "totalNrOfEANS":20,
+        "trafoId":65079
+    }
+}

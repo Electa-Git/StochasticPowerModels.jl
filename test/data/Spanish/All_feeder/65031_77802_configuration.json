@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65031_77802_branches.json",
+        "buses_file":"POLA/65031_77802_buses.json",
+        "cabineName":"CT CELLERUELO",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65031_77802_devices.json",
+        "id":77802,
+        "name":3,
+        "slack_voltage":1,
+        "totalNrOfEANS":31,
+        "trafoId":65031
+    }
+}

@@ -1,0 +1,106 @@
+[
+    {
+        "branchId":0,
+        "cableLength":12.99,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":1,
+        "type":"Cable",
+        "upBusId":0
+    },
+    {
+        "branchId":1,
+        "cableLength":64.46,
+        "cableType":"BT - RZ 0,6/1 KV 3*95 AL/54,6 ALM",
+        "downBusId":2,
+        "type":"Cable",
+        "upBusId":1
+    },
+    {
+        "branchId":2,
+        "cableLength":5.48,
+        "cableType":"BT - RZ 0,6/1 KV 3*95 AL/54,6 ALM",
+        "downBusId":3,
+        "type":"Cable",
+        "upBusId":2
+    },
+    {
+        "branchId":3,
+        "cableLength":25.68,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":4,
+        "type":"Cable",
+        "upBusId":3
+    },
+    {
+        "branchId":4,
+        "cableLength":2.0,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":5,
+        "type":"Cable",
+        "upBusId":4
+    },
+    {
+        "branchId":5,
+        "cableLength":6,
+        "cableType":"aansluitkabel",
+        "downBusId":6,
+        "type":"Cable",
+        "upBusId":5
+    },
+    {
+        "branchId":6,
+        "cableLength":17.45,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":7,
+        "type":"Cable",
+        "upBusId":4
+    },
+    {
+        "branchId":7,
+        "cableLength":2.46,
+        "cableType":"BT - RV 0,6/1 KV 3(1*150 KAL) + 1*95 KAL",
+        "downBusId":8,
+        "type":"Cable",
+        "upBusId":7
+    },
+    {
+        "branchId":8,
+        "cableLength":2.09,
+        "cableType":"BT - MANGUERA",
+        "downBusId":9,
+        "type":"Cable",
+        "upBusId":8
+    },
+    {
+        "branchId":9,
+        "cableLength":2.11,
+        "cableType":"BT - MANGUERA",
+        "downBusId":10,
+        "type":"Cable",
+        "upBusId":9
+    },
+    {
+        "branchId":10,
+        "cableLength":2.48,
+        "cableType":"BT - Desconocido BT",
+        "downBusId":11,
+        "type":"Cable",
+        "upBusId":10
+    },
+    {
+        "branchId":11,
+        "cableLength":12,
+        "cableType":"aansluitkabel",
+        "downBusId":12,
+        "type":"Cable",
+        "upBusId":11
+    },
+    {
+        "branchId":12,
+        "cableLength":1.06,
+        "cableType":"BT - MANGUERA",
+        "downBusId":13,
+        "type":"Cable",
+        "upBusId":9
+    }
+]

@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65034_82001_branches.json",
+        "buses_file":"POLA/65034_82001_buses.json",
+        "cabineName":"CT CALVO SOTELO ",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65034_82001_devices.json",
+        "id":82001,
+        "name":1,
+        "slack_voltage":1,
+        "totalNrOfEANS":80,
+        "trafoId":65034
+    }
+}

@@ -1,0 +1,106 @@
+[
+    {
+        "branchId":0,
+        "cableLength":17.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":1,
+        "type":"Cable",
+        "upBusId":0
+    },
+    {
+        "branchId":1,
+        "cableLength":6,
+        "cableType":"aansluitkabel",
+        "downBusId":2,
+        "type":"Cable",
+        "upBusId":1
+    },
+    {
+        "branchId":2,
+        "cableLength":18.41,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":3,
+        "type":"Cable",
+        "upBusId":1
+    },
+    {
+        "branchId":3,
+        "cableLength":12,
+        "cableType":"aansluitkabel",
+        "downBusId":4,
+        "type":"Cable",
+        "upBusId":3
+    },
+    {
+        "branchId":4,
+        "cableLength":16.12,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":5,
+        "type":"Cable",
+        "upBusId":3
+    },
+    {
+        "branchId":5,
+        "cableLength":3,
+        "cableType":"aansluitkabel",
+        "downBusId":6,
+        "type":"Cable",
+        "upBusId":5
+    },
+    {
+        "branchId":6,
+        "cableLength":24.67,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":7,
+        "type":"Cable",
+        "upBusId":5
+    },
+    {
+        "branchId":7,
+        "cableLength":5,
+        "cableType":"aansluitkabel",
+        "downBusId":8,
+        "type":"Cable",
+        "upBusId":7
+    },
+    {
+        "branchId":8,
+        "cableLength":20.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":9,
+        "type":"Cable",
+        "upBusId":7
+    },
+    {
+        "branchId":9,
+        "cableLength":2,
+        "cableType":"aansluitkabel",
+        "downBusId":10,
+        "type":"Cable",
+        "upBusId":9
+    },
+    {
+        "branchId":10,
+        "cableLength":7.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":11,
+        "type":"Cable",
+        "upBusId":9
+    },
+    {
+        "branchId":11,
+        "cableLength":14,
+        "cableType":"aansluitkabel",
+        "downBusId":12,
+        "type":"Cable",
+        "upBusId":11
+    },
+    {
+        "branchId":12,
+        "cableLength":66.0,
+        "cableType":"BT - RZ 0,6/1 KV 3*150 AL/95 ALM",
+        "downBusId":13,
+        "type":"Cable",
+        "upBusId":11
+    }
+]

@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/86315_785383_branches.json",
+        "buses_file":"POLA/86315_785383_buses.json",
+        "cabineName":"CT RAMON Y CAJAL",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/86315_785383_devices.json",
+        "id":785383,
+        "name":2,
+        "slack_voltage":1,
+        "totalNrOfEANS":22,
+        "trafoId":86315
+    }
+}

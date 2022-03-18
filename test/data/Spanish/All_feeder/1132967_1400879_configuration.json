@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/1132967_1400879_branches.json",
+        "buses_file":"POLA/1132967_1400879_buses.json",
+        "cabineName":"CT SOLEDAD 1-4",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/1132967_1400879_devices.json",
+        "id":1400879,
+        "name":8,
+        "slack_voltage":1,
+        "totalNrOfEANS":3,
+        "trafoId":1132967
+    }
+}

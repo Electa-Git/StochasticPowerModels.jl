@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65046_78243_branches.json",
+        "buses_file":"POLA/65046_78243_buses.json",
+        "cabineName":"CT LA ISLA",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65046_78243_devices.json",
+        "id":78243,
+        "name":1,
+        "slack_voltage":1,
+        "totalNrOfEANS":28,
+        "trafoId":65046
+    }
+}

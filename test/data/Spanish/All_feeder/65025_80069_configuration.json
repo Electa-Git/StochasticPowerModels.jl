@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65025_80069_branches.json",
+        "buses_file":"POLA/65025_80069_buses.json",
+        "cabineName":"CT PLAZA ARG\u00dcELLES",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65025_80069_devices.json",
+        "id":80069,
+        "name":3,
+        "slack_voltage":1,
+        "totalNrOfEANS":82,
+        "trafoId":65025
+    }
+}

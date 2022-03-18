@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/1136042_1440548_branches.json",
+        "buses_file":"POLA/1136042_1440548_buses.json",
+        "cabineName":"CT RESIDENCIAL SIERO ESTE 1",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/1136042_1440548_devices.json",
+        "id":1440548,
+        "name":7,
+        "slack_voltage":1,
+        "totalNrOfEANS":3,
+        "trafoId":1136042
+    }
+}

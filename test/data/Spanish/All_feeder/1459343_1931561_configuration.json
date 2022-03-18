@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/1459343_1931561_branches.json",
+        "buses_file":"POLA/1459343_1931561_buses.json",
+        "cabineName":"CT LA RIENDA",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/1459343_1931561_devices.json",
+        "id":1931561,
+        "name":3,
+        "slack_voltage":1,
+        "totalNrOfEANS":0,
+        "trafoId":1459343
+    }
+}

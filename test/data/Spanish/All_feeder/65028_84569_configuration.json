@@ -1,0 +1,17 @@
+{
+    "gridConfig":{
+        "baseMVA":0.63,
+        "basekV":0.4,
+        "branches_file":"POLA/65028_84569_branches.json",
+        "buses_file":"POLA/65028_84569_buses.json",
+        "cabineName":"CT LA SOLEDAD",
+        "city":"POLA",
+        "connection_configuration":"star",
+        "devices_file":"POLA/65028_84569_devices.json",
+        "id":84569,
+        "name":4,
+        "slack_voltage":1,
+        "totalNrOfEANS":117,
+        "trafoId":65028
+    }
+}

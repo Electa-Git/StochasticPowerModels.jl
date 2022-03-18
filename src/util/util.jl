@@ -229,10 +229,11 @@ configuration_json_dict = JSON.parse(io)
 end;
 #voltage_base = configuration_json_dict["gridConfig"]["basekV"]
 #power_base = configuration_json_dict["gridConfig"]["baseMVA"]
+sub_dir=splitpath(config_file_name)[1]
 configuration = configuration_json_dict["gridConfig"]["connection_configuration"]
-branches_file_name = configuration_json_dict["gridConfig"]["branches_file"]
-buses_file_name = configuration_json_dict["gridConfig"]["buses_file"]
-devices_file_name = configuration_json_dict["gridConfig"]["devices_file"]
+branches_file_name = sub_dir*"/"*splitpath(configuration_json_dict["gridConfig"]["branches_file"])[2]
+buses_file_name = sub_dir*"/"*splitpath(configuration_json_dict["gridConfig"]["buses_file"])[2]
+devices_file_name = sub_dir*"/"*splitpath(configuration_json_dict["gridConfig"]["devices_file"])[2]
 
 
 open(dir * buses_file_name,"r") do io
@@ -309,8 +310,8 @@ devices_json_dict = JSON.parse(io)
         "index"         => id,
         "yearlyNetConsumption" => cons,
         #"phases"        => device["phases"],
-        "pd"            => pd,
-        "qd"            => qd,
+        "pd"            => max(0.1, μ)/1e3/power_base/ 3,
+        "qd"            =>  max(0.01,μ)/1e3/ power_base/ 3/10,
         "p_inj"         => 0.0,
         "q_inj"         => 0.0,
         "conn_cap_kW"   => device["connectionCapacity"],
@@ -432,6 +433,7 @@ network_model["sdata"]= s_dict
 network_model["PV"]=deepcopy(network_model["load"]);
 [network_model["PV"][d]["μ"]=s_dict[string(length(s_dict))]["pc"] for d in   keys(network_model["PV"])]
 [network_model["PV"][d]["σ"]=s_dict[string(length(s_dict))]["pd"] for d in   keys(network_model["PV"])]
+[network_model["PV"][d]["pd"]=s_dict[string(length(s_dict))]["pd"]/1e6/ power_base / 3 for d in   keys(network_model["PV"])]
 return network_model
 end;
 

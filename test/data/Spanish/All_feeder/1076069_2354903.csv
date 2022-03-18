@@ -1,0 +1,4 @@
+consumer_id,dev_id,bus_id,phases,nphases,PA,PB,PC,P_CC,type,yearly_net_offtake,connection_power,ex_night,PV,PV_power,PVinverterpower,category,cat_index
+0,0,4,,3,0.3333333333333333,0.3333333333333333,0.3333333333333333,0,lv,6052.635107577127,24.25,False,False,0.0,0.0,2,0
+1,1,8,1.0,3,1.0,0.0,0.0,0,lv,830.6199256699157,4.6,False,False,0.0,0.0,1,1
+2,2,10,3.0,3,0.0,0.0,1.0,0,lv,1478.9076339973803,3.3,False,False,0.0,0.0,1,1
