@@ -268,7 +268,7 @@ function build_pf_deterministic(pm::AbstractPowerModel)
 
     for (n, network) in _PM.nws(pm)
         for i in _PM.ids(pm, :ref_buses, nw=n)
-            constraint_bus_voltage_ref(pm, i, nw=n)
+            _PM.constraint_theta_ref(pm, i, nw=n)
         end
 
         for i in _PM.ids(pm, :bus, nw=n)
@@ -281,6 +281,7 @@ function build_pf_deterministic(pm::AbstractPowerModel)
             _PM.constraint_current_to(pm, b, nw=n)
 
             _PM.constraint_voltage_drop(pm, b, nw=n)
+            _PM.constraint_voltage_angle_difference(pm, b,nw=n)
 
             _PM.constraint_thermal_limit_from(pm, b, nw=n)
             _PM.constraint_thermal_limit_to(pm, b, nw=n)

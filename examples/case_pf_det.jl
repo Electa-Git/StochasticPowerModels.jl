@@ -25,15 +25,40 @@ red  = false
 feeder = "POLA/1076069_1274129_mod_configuration.json" 
 
 
-#feeder = "All_feeder/65025_80123_configuration.json"#1076069_1274125_configuration.json"
+#feeder = "All_feeder/1076069_1274125_configuration.json" #65025_80123_configuration.json"#1076069_1274125_configuration.json"
 
 # data
 file  = joinpath(BASE_DIR, "test/data/Spanish/")
 
 data  = SPM.build_mathematical_model_single_phase(file, feeder, t_s= 59)
-[data["PV"]["$i"]["p_size"]=1 for  i=1:length(data["load"])] 
+
+
+
+
+[data["PV"]["$i"]["p_size"]=7 for  i=1:length(data["load"])] 
 result_pf= SPM.run_pf_deterministic(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red, stochastic=false)
 
+
+it = Iterators.product(ntuple(_ -> 0:15, length(data["load"]))...)
+p=collect(it);
+
+feasible=[]
+infeasible=[]
+for ind in p[700000:800000]
+    [data["PV"]["$i"]["p_size"]=ind[i] for  i=1:length(data["load"])] 
+    result_pf= SPM.run_pf_deterministic(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red, stochastic=false)
+    if result_pf["termination_status"]== PM.LOCALLY_SOLVED
+        push!(feasible,sum(ind))
+    else
+        push!(infeasible,sum(ind))
+    end
+end
+
+
+histogram(infeasible)
+histogram(feasible)
+
+vline!([result_hc["objective"]])
 """
 s2 = Dict("output" => Dict("duals" => true))
 result_hc_2= SPM.run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red; setting=s2)
