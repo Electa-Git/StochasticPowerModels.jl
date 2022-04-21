@@ -229,6 +229,7 @@ function build_sopf_hc_deterministic(pm::AbstractPowerModel)
     end
 
     objective_max_PV_det(pm)
+    #objective_min_PV_det(pm)
     #objective_max_PV_equal_for_all_consumer(pm)
 end
 

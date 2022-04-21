@@ -44,7 +44,7 @@ p=collect(it);
 
 feasible=[]
 infeasible=[]
-for ind in p[700000:800000]
+for ind in p[1200000:2000000]
     [data["PV"]["$i"]["p_size"]=ind[i] for  i=1:length(data["load"])] 
     result_pf= SPM.run_pf_deterministic(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red, stochastic=false)
     if result_pf["termination_status"]== PM.LOCALLY_SOLVED
@@ -56,7 +56,7 @@ end
 
 
 histogram(infeasible)
-histogram(feasible)
+histogram!(feasible)
 
 vline!([result_hc["objective"]])
 """

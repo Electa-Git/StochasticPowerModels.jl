@@ -63,6 +63,20 @@ function objective_max_PV_det(pm::AbstractPowerModel; kwargs...)
     )
 end
 
+"expected min PV generation"
+function objective_min_PV_det(pm::AbstractPowerModel; kwargs...)
+    p_size = Dict()
+
+
+    for (p, PV) in _PM.ref(pm, :PV)
+        p_size[p] = _PM.var(pm, :p_size,p)
+    end
+
+    return JuMP.@objective(pm.model, Min,
+            sum(p_size[p] for p in _PM.ids(pm, :PV))
+    )
+end
+
 "objective_max_PV_equal_for_all_consumer"
 function objective_max_PV_equal_for_all_consumer(pm::AbstractPowerModel; kwargs...)
     p_size = Dict()

@@ -22,25 +22,63 @@ deg  = 2
 aux  = true
 red  = false
 
-feeder = "POLA/65019_74478_configuration.json" 
+#feeder = "All_feeder/65019_74478_configuration.json" 
+
+#feeder = "All_feeder/86315_785381_configuration.json" #50)% error feeder
+
+#feeder = "All_feeder/1076069_1274125_configuration.json" #65025_80123_configuration.json"#1076069_1274125_configuration.json"
 
 
-#feeder = "All_feeder/65025_80123_configuration.json"#1076069_1274125_configuration.json"
-
-
-feeder ="Pola/1076069_1274129_mod_configuration.json" #feeder with 11 consumer and HC 104
+feeder ="Pola/1076069_1274129_mod_configuration.json" #feeder with 7 consumer for test
 # data
 file  = joinpath(BASE_DIR, "test/data/Spanish/")
 
 data  = SPM.build_mathematical_model_single_phase(file, feeder, t_s= 59)
+[data["PV"]["$i"]["p_min"]=0 for i=1:2]
+    
+[data["PV"]["$i"]["p_max"]=10 for i=1:2]
+
+[data["PV"]["$i"]["p_min"]=5 for i=3:3]
+    
+[data["PV"]["$i"]["p_max"]=5 for i=3:3]
 
 result_hc= SPM.run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red, stochastic=false)
 
 
 s2 = Dict("output" => Dict("duals" => true))
 result_hc_2= SPM.run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red; setting=s2)
-e=1;
-m=1
+
+
+#tO= TimerOutput()
+
+@timeit tO "outer" begin
+    s2 = Dict("output" => Dict("duals" => true))
+    
+    e=1;
+    m=1
+    for i=1:length(data["bus"])
+        if -result_hc_2["solution"]["nw"]["1"]["bus"]["$i"]["dual_voltage_max"]>500
+            l_old=data["bus"]["$i"]["λvmax"]
+            m=sample(result_hc_2, "bus", i, "vs"; sample_size=100000)
+            if quantile(m,[0.95])[1]>1.001*data["bus"]["$i"]["vmax"]^2
+                data["bus"]["$i"]["λvmax"]=2*l_old-(data["bus"]["$i"]["vmax"]^2-mean(m))/std(m)+0.3
+            elseif quantile(m,[0.95])[1]>1.0001*data["bus"]["$i"]["vmax"]^2
+                    data["bus"]["$i"]["λvmax"]=2*l_old-(data["bus"]["$i"]["vmax"]^2-mean(m))/std(m)+0.1
+            elseif quantile(m,[0.95])[1]< 0.99*data["bus"]["$i"]["vmax"]^2
+                data["bus"]["$i"]["λvmax"]= l_old-0.8
+            elseif quantile(m,[0.95])[1]< 1*data["bus"]["$i"]["vmax"]^2
+                data["bus"]["$i"]["λvmax"]= l_old-0.2
+            end
+        end
+    end
+
+    #[data["branch"]["$i"]["λcmax"]= 3 for i=1:18]
+    #data["branch"]["13"]["λcmax"]= 2
+    result_hc_1= SPM.run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red; setting=s2)
+
+
+end
+
 for i=1:length(data["bus"])
     if -result_hc_2["solution"]["nw"]["1"]["bus"]["$i"]["dual_voltage_max"]>500
         l_old=data["bus"]["$i"]["λvmax"]
@@ -54,11 +92,6 @@ for i=1:length(data["bus"])
         end
     end
 end
-
-#[data["branch"]["$i"]["λcmax"]= 3 for i=1:18]
-#data["branch"]["13"]["λcmax"]= 2
-result_hc_1= SPM.run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red; setting=s2)
-
 
 
 while e>0.005

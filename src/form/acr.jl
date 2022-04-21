@@ -76,6 +76,7 @@ function constraint_bus_voltage_ref_det(pm::AbstractACRModel, n::Int, i::Int)
     JuMP.@constraint(pm.model, vi == 0.0)
 end
 
+
 function constraint_power_balance(pm::AbstractACRModel, n::Int, i::Int, bus_arcs, bus_gens, bus_pd, bus_qd, bus_gs, bus_bs)
     vr = _PM.var(pm, n, :vr, i)
     vi = _PM.var(pm, n, :vi, i)

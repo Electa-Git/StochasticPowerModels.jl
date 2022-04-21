@@ -89,6 +89,27 @@ function variable_bus_voltage_squared_det(pm::AbstractPowerModel; nw::Int=nw_id_
 
     report && _PM.sol_component_value(pm, nw, :bus, :vs, _PM.ids(pm, nw, :bus), vs)
 end
+
+"variable: `vs[i]` for `i` in `bus`es but for minimum HC problem" 
+function variable_bus_voltage_squared_det_min_hc(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false)
+    vs = _PM.var(pm, nw)[:vs] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :bus)], base_name="$(nw)_vs",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :bus, i), "vs_start", 1.0)
+    )
+
+    if bounded
+        for (i, bus) in _PM.ref(pm, nw, :bus)
+            #JuMP.set_upper_bound(vs[i], bus["vmax"]^2)
+            JuMP.set_lower_bound(vs[i], bus["vmax"]^2)
+        end
+    end
+    
+    if aux_fix 
+        JuMP.fix.(vs, 1.0; force=true)
+    end
+
+    report && _PM.sol_component_value(pm, nw, :bus, :vs, _PM.ids(pm, nw, :bus), vs)
+end
 # load current
 "variable: `crd[j]` for `j` in `load`"
 function variable_load_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
@@ -144,8 +165,14 @@ function variable_PV_size(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded
     
     if bounded
         for (i, PV) in _PM.ref(pm, nw, :PV)
-            JuMP.set_lower_bound(p_size[i], 0)
-            JuMP.set_upper_bound(p_size[i], 15) #2*PV["conn_cap_kW"])
+            if haskey(PV, "p_max") & haskey(PV,"p_min")
+                print(PV)
+                JuMP.set_lower_bound(p_size[i], PV["p_min"])
+                JuMP.set_upper_bound(p_size[i], PV["p_max"]) #2*PV["conn_cap_kW"])
+            else
+                JuMP.set_lower_bound(p_size[i], 0)
+                JuMP.set_upper_bound(p_size[i], 15) #2*PV["conn_cap_kW"])
+            end
         end
     end
     report && _PM.sol_component_value(pm, nw, :PV, :p_size, _PM.ids(pm, nw, :PV), p_size)
