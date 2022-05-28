@@ -31,8 +31,12 @@ hc2=[]
 hc3=[]
 t_cc=[]
 t_opf=[]
+global i=0
 for b in eachrow(all_feeder)
     feeder="All_feeder/"*b.conf
+    i=i+1
+    print("Feeder no: $i \n")
+    #feeder="All_feeder/"*all_feeder[1,"conf"]
     file  = joinpath(BASE_DIR, "test/data/Spanish/")
     data  = SPM.build_mathematical_model_single_phase(file, feeder, t_s= 59)
 
@@ -66,6 +70,7 @@ for b in eachrow(all_feeder)
     else
         push!(hc1,-1)
         push!(hc2,-1)
+        push!(t_cc, result_hc_1["solve_time"])
     end
     result_hc= SPM.run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=r; setting=s2, stochastic=false)
     
@@ -74,14 +79,16 @@ for b in eachrow(all_feeder)
         push!(t_opf, result_hc["solve_time"])
     else
         push!(hc3,-1)
-        #push!(hc2,-1)
+        push!(t_opf, result_hc["solve_time"])
     end
 end
 all_feeder[!,"HC1"]=hc1
 all_feeder[!,"HC2"]=hc2
 all_feeder[!,"HC3"]=hc3
+all_feeder[!,"t_opf"]=t_opf
+all_feeder[!,"t_cc"]=t_cc
 
-
+"""
 #deterministic
 
 for b in eachrow(all_feeder)
@@ -102,3 +109,5 @@ for b in eachrow(all_feeder)
 end
 
 all_feeder[!,"HC3"]=hc3
+
+"""
