@@ -44,13 +44,13 @@ For the original networks, the line impedance is specified 4x4 matrice without m
 
 However, in this part the load and irradiance are defined as Beta distribution in folders `beta_lm_2016_8_6.csv` and `beta_pm_2016_8_6.csv` respectively for a high irradiance day in spring. 
 
-For each feeder there are 4 JSON file describing the feeder topology:
-	-*_configuration.json, 
-	-*_branches.json, 
-	-*_buses.json, and 
-	-*_devices.json 
+-For each feeder there are 4 JSON file describing the feeder topology:
+	- <feeder_name>_configuration.json, 
+	- <feeder_name>_branches.json, 
+	- <feeder_name>_buses.json, and 
+	- <feeder_name>_devices.json 
 and 1 csv file:
-  	_*.csv- which is the linking file between devices and the load uncertainty. 
+  	-<feeder_name>.csv- which is the linking file between devices and the load uncertainty. 
 
 - Matpower ".m" files, extended to include:
     - stochastic germ: `mpc.sdata`,
