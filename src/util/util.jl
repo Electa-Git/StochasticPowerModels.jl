@@ -118,7 +118,7 @@ end
 
 
 "Converts JSON file of three phase DN to single phase equivalent"
-function build_mathematical_model_single_phase(dir, config_file_name;t_s=52, pd = 0.0, qd = 0.0, scale_factor = 1.0)
+function build_mathematical_model_single_phase(dir, config_file_name;t_s=52, pd = 0.0, qd = 0.0, scale_factor = 1.0, curt=0.0, cross_area_fact=1.0)
 #configuration = "star"
 
 """
@@ -138,7 +138,8 @@ configuration_json_dict = Dict{Any,Any}()
 device_df=CSV.read(dir*config_file_name[1:length(config_file_name)-19]*".csv", DataFrame)
 
 dist_lv=CSV.read(dir*"beta_lm_2016_8_6"*".csv", DataFrame)
-dist_pv=CSV.read(dir*"beta_pm_2016_8_6"*".csv", DataFrame)
+# dist_pv=CSV.read(dir*"beta_pm_2016_8_6"*".csv", DataFrame)
+dist_pv=CSV.read(dir*"beta_pm_2022_181"*".csv", DataFrame)
 dist_pv_ts= dist_pv[in([t_s]).(dist_pv.timeslot),:]
 dist_lv_ts=dist_lv[in([t_s]).(dist_lv.timeslot),:]
 
@@ -412,13 +413,15 @@ currentmax_dict = Dict{String,Any}(
             )
 
         if haskey(impedance_dict,branch["cableType"])
-            network_model["branch"][id_s]["br_x"] = impedance_dict[branch["cableType"]][2] .* (branch["cableLength"]/1000+1E-6)./  Z_base 
-            network_model["branch"][id_s]["br_r"] = impedance_dict[branch["cableType"]][1] .* (branch["cableLength"]/1000+1E-6)./  Z_base 
+            # network_model["branch"][id_s]["br_x"] = (cross_area_fact^(1/4)).* impedance_dict[branch["cableType"]][2] .* (branch["cableLength"]/1000+1E-6)./  Z_base 
+            # network_model["branch"][id_s]["br_r"] = (1/cross_area_fact).* impedance_dict[branch["cableType"]][1] .* (branch["cableLength"]/1000+1E-6)./  Z_base
+            network_model["branch"][id_s]["br_x"] = (1/cross_area_fact).* impedance_dict[branch["cableType"]][2] .* (branch["cableLength"]/1000+1E-6)./  Z_base 
+            network_model["branch"][id_s]["br_r"] = (1/cross_area_fact).* impedance_dict[branch["cableType"]][1] .* (branch["cableLength"]/1000+1E-6)./  Z_base  
         end;
         
 
         if haskey(currentmax_dict,branch["cableType"])
-            network_model["branch"][id_s]["rate_a"] = ((currentmax_dict[branch["cableType"]]*voltage_base)/1e3)/power_base
+            network_model["branch"][id_s]["rate_a"] = cross_area_fact.*((currentmax_dict[branch["cableType"]]*voltage_base)/1e3)/power_base
             
             #network_model["branch"][id_s]["I_rating"] = currentmax_dict[branch["cableType"]]/current_base
 
@@ -429,6 +432,7 @@ end;
 
 
 network_model["sdata"]= s_dict 
+network_model["curt"]= curt
 
 network_model["PV"]=deepcopy(network_model["load"]);
 [network_model["PV"][d]["μ"]=s_dict[string(length(s_dict))]["pc"] for d in   keys(network_model["PV"])]
@@ -446,6 +450,7 @@ expansion of a single-network data dictionary for HC problem in DN.
 """
 function build_stochastic_data_hc(data::Dict{String,Any}, deg::Int, t_s=50)
     # add maximum current
+    curt=data["curt"]
     for (nb, branch) in data["branch"]
         f_bus = branch["f_bus"]
         branch["cmax"] = branch["rate_a"] / data["bus"]["$f_bus"]["vmin"]
@@ -497,6 +502,7 @@ function build_stochastic_data_hc(data::Dict{String,Any}, deg::Int, t_s=50)
     data["T3"] = _PCE.Tensor(3,mop)
     data["T4"] = _PCE.Tensor(4,mop)
     data["mop"] = mop
+    data["curt"]= curt
     for nw in 1:Npce, nd in 1:Nd
        
         data["nw"]["$nw"]["load"]["$nd"]["pd"] = pd[nd,nw]

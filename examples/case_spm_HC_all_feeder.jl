@@ -39,12 +39,13 @@ for b in eachrow(all_feeder)
     #feeder="All_feeder/"*all_feeder[1,"conf"]
     file  = joinpath(BASE_DIR, "test/data/Spanish/")
     data  = SPM.build_mathematical_model_single_phase(file, feeder, t_s= 59)
-
+    [data["bus"]["$i"]["vmin"]=0.9 for i=1:length(data["bus"])]
     s2 = Dict("output" => Dict("duals" => true))
     result_hc_2= SPM.run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=r; setting=s2)
     e=1;
     m=1
 
+    if result_hc_2["termination_status"]== PM.LOCALLY_SOLVED
     for i=1:length(data["bus"])
         if -result_hc_2["solution"]["nw"]["1"]["bus"]["$i"]["dual_voltage_max"]>500
             l_old=data["bus"]["$i"]["λvmax"]
@@ -63,14 +64,14 @@ for b in eachrow(all_feeder)
 
     result_hc_1= SPM.run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=r; setting=s2)
 
-    if result_hc_1["termination_status"]== PM.LOCALLY_SOLVED
+    
         push!(hc1,result_hc_2["objective"])
         push!(hc2,result_hc_1["objective"])
         push!(t_cc, result_hc_1["solve_time"])
     else
         push!(hc1,-1)
         push!(hc2,-1)
-        push!(t_cc, result_hc_1["solve_time"])
+        push!(t_cc, -1)
     end
     result_hc= SPM.run_sopf_hc(data, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=r; setting=s2, stochastic=false)
     
@@ -87,7 +88,7 @@ all_feeder[!,"HC2"]=hc2
 all_feeder[!,"HC3"]=hc3
 all_feeder[!,"t_opf"]=t_opf
 all_feeder[!,"t_cc"]=t_cc
-
+CSV.write("PV_HC_new_lower_vmin.csv",all_feeder)
 """
 #deterministic
 

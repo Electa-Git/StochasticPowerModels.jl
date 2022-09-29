@@ -226,9 +226,10 @@ function constraint_gp_pv_power_eq_PV(pm::AbstractPowerModel, p::Int; nw::Int=nw
 
     T2  = pm.data["T2"]
     T3  = pm.data["T3"]
+    curt=pm.data["curt"]
 
-    constraint_gp_pv_power_real(pm, nw, i, p, pd, T2, T3, p_size)
-    constraint_gp_pv_power_imaginary(pm, nw, i, p, qd, T2, T3, p_size)
+    constraint_gp_pv_power_real(pm, nw, i, p, pd, T2, T3, p_size; curt=curt)
+    constraint_gp_pv_power_imaginary(pm, nw, i, p, qd, T2, T3, p_size; curt=curt)
 end
 
 function constraint_gp_pv_power(pm::AbstractPowerModel, p::Int; nw::Int=nw_id_default)
@@ -241,9 +242,10 @@ function constraint_gp_pv_power(pm::AbstractPowerModel, p::Int; nw::Int=nw_id_de
 
     T2  = pm.data["T2"]
     T3  = pm.data["T3"]
+    c = pm.data["curt"]
 
-    constraint_gp_pv_power_real(pm, nw, i, p, pd, T2, T3, p_size)
-    constraint_gp_pv_power_imaginary(pm, nw, i, p, qd, T2, T3, p_size)
+    constraint_gp_pv_power_real(pm, nw, i, p, pd, T2, T3, p_size; curt=c)
+    constraint_gp_pv_power_imaginary(pm, nw, i, p, qd, T2, T3, p_size; curt=c)
 end
 
 
@@ -255,8 +257,10 @@ function constraint_det_pv_power(pm::AbstractPowerModel, p::Int; nw::Int=nw_id_d
 
     p_size= _PM.var(pm, nw, :p_size,p)
 
-    constraint_det_pv_power_real(pm, nw, i, p, pd, p_size)
-    constraint_det_pv_power_imaginary(pm, nw, i, p, qd, p_size)
+    c = pm.data["curt"]
+
+    constraint_det_pv_power_real(pm, nw, i, p, pd, p_size; curt=c)
+    constraint_det_pv_power_imaginary(pm, nw, i, p, qd, p_size; curt=c)
 end
 
 
@@ -268,9 +272,10 @@ function constraint_pf_pv_power(pm::AbstractPowerModel, p::Int; nw::Int=nw_id_de
     qd  = _PM.ref(pm, nw, :PV, p, "qd")
 
     p_size= _PM.ref(pm, nw, :PV, p, "p_size")
+    c = pm.data["curt"]
 
-    constraint_det_pv_power_real(pm, nw, i, p, pd, p_size)
-    constraint_det_pv_power_imaginary(pm, nw, i, p, qd, p_size)
+    constraint_det_pv_power_real(pm, nw, i, p, pd, p_size; curt=c)
+    constraint_det_pv_power_imaginary(pm, nw, i, p, qd, p_size; curt=c)
 end
 # chance constraint limit
 ""

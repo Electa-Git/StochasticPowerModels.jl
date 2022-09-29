@@ -269,14 +269,14 @@ function constraint_gp_load_power_real(pm::AbstractIVRModel, n::Int, i, l, pd, T
 end
 
 ""
-function constraint_gp_pv_power_real(pm::AbstractIVRModel, n::Int, i, p, pd, T2, T3, p_size)
+function constraint_gp_pv_power_real(pm::AbstractIVRModel, n::Int, i, p, pd, T2, T3, p_size; curt=0.0)
     vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _PM.nw_ids(pm))
     vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _PM.nw_ids(pm))
 
     crd_pv = Dict(nw => _PM.var(pm, nw, :crd_pv, p) for nw in _PM.nw_ids(pm))
     cid_pv = Dict(nw => _PM.var(pm, nw, :cid_pv, p) for nw in _PM.nw_ids(pm))
 
-    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * pd * p_size
+    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * pd * p_size *(1-curt)
                                 ==
                                 sum(T3.get([n1-1,n2-1,n-1]) *
                                     (vr[n1] * crd_pv[n2] + vi[n1] * cid_pv[n2])
@@ -285,14 +285,14 @@ function constraint_gp_pv_power_real(pm::AbstractIVRModel, n::Int, i, p, pd, T2,
 end
 
 ""
-function constraint_det_pv_power_real(pm::AbstractIVRModel, n::Int, i, p, pd, p_size)
+function constraint_det_pv_power_real(pm::AbstractIVRModel, n::Int, i, p, pd, p_size; curt=0.0)
     vr = _PM.var(pm, n, :vr, i)
     vi = _PM.var(pm, n, :vi, i)
 
     crd_pv = _PM.var(pm, n, :crd_pv,p)
     cid_pv = _PM.var(pm, n, :cid_pv,p)
 
-    JuMP.@constraint(pm.model,  pd * p_size ==   (vr * crd_pv + vi * cid_pv))
+    JuMP.@constraint(pm.model,  pd * p_size *(1-curt) ==   (vr * crd_pv + vi * cid_pv))
             
 end
 
@@ -336,14 +336,14 @@ function constraint_det_load_power_imaginary(pm::AbstractIVRModel, n::Int, i, l,
 end
 
 ""
-function constraint_gp_pv_power_imaginary(pm::AbstractIVRModel, n::Int, i, p, qd, T2, T3, p_size)
+function constraint_gp_pv_power_imaginary(pm::AbstractIVRModel, n::Int, i, p, qd, T2, T3, p_size; curt=0.0)
     vr  = Dict(n => _PM.var(pm, n, :vr, i) for n in _PM.nw_ids(pm))
     vi  = Dict(n => _PM.var(pm, n, :vi, i) for n in _PM.nw_ids(pm))
 
     crd_pv = Dict(n => _PM.var(pm, n, :crd_pv, p) for n in _PM.nw_ids(pm))
     cid_pv = Dict(n => _PM.var(pm, n, :cid_pv, p) for n in _PM.nw_ids(pm))
 
-    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * qd * p_size
+    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * qd * p_size * (1-curt)
                                 ==
                                 sum(T3.get([n1-1,n2-1,n-1]) *
                                     (vi[n1] * crd_pv[n2] - vr[n1] * cid_pv[n2])
@@ -353,14 +353,14 @@ end
 
 
 ""
-function constraint_det_pv_power_imaginary(pm::AbstractIVRModel, n::Int, i, p, qd, p_size)
+function constraint_det_pv_power_imaginary(pm::AbstractIVRModel, n::Int, i, p, qd, p_size; curt=0.0)
     vr = _PM.var(pm, n, :vr, i)
     vi = _PM.var(pm, n, :vi, i)
 
     crd_pv = _PM.var(pm, n, :crd_pv,p)
     cid_pv = _PM.var(pm, n, :cid_pv,p)
 
-    JuMP.@constraint(pm.model, qd * p_size ==   (vi * crd_pv - vr * cid_pv))
+    JuMP.@constraint(pm.model, qd * p_size * (1-curt)  ==   (vi * crd_pv - vr * cid_pv))
                 
 end
 # chance constraints

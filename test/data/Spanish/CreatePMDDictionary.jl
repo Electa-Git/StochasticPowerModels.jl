@@ -296,7 +296,7 @@ end;
 
 ##not required for Rickard for now
 ""
-function build_mathematical_model_single_phase(dir, config_file_name; pd = 0.0, qd = 0.0, scale_factor = 1.0)
+function build_mathematical_model_single_phase(dir, config_file_name; pd = 0.0, qd = 0.0, scale_factor = 1.0, )
 #configuration = "star"
 network_model = Dict{String,Any}()
 configuration_json_dict = Dict{Any,Any}()
