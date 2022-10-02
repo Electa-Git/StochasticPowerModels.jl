@@ -43,6 +43,7 @@ module StochasticPowerModels
     const BASE_DIR = dirname(@__DIR__)
 
     # include
+    include("core/constraint.jl")
     include("core/constraint_template.jl")
     include("core/objective.jl")
     include("core/variable.jl")
@@ -59,7 +60,7 @@ module StochasticPowerModels
     # export
     export BASE_DIR
 
-    export run_sopf_iv, run_sopf_acr
+    export solve_sopf_iv, solve_sopf_acr
 
     export build_stochastic_data
     export extend_matlab_file
