@@ -15,7 +15,7 @@ function variable_bus_voltage(pm::AbstractACRModel; nw::Int=nw_id_default, bound
     variable_bus_voltage_magnitude_squared(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 end
 "variable: `vms[i]` for `i` in `bus`"
-function variable_bus_voltage_magnitude_squared(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false)
+function variable_bus_voltage_magnitude_squared(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     vms = _PM.var(pm, nw)[:vms] = JuMP.@variable(pm.model,
         [i in _PM.ids(pm, nw, :bus)], base_name="$(nw)_vms",
         start = _PM.comp_start_value(_PM.ref(pm, nw, :bus, i), "vms_start", 1.0)
