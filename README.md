@@ -9,6 +9,8 @@ StochasticPowerModels.jl is an extension package of PowerModels.jl for
 Stochastic (Optimal) Power Flow. It is designed to enable inclusion of 
 uncertainty in Steady-State Power Network Optimization. 
 
+For additional background on the approach, please read our [PSCC paper](https://www.sciencedirect.com/science/article/pii/S0378779622006022)
+
 Note that development is ongoing, and changes can be breaking without notice. We plan to register the package once we feel comfortable with the state of the implementation.
 
 ## Core Problem Specification
