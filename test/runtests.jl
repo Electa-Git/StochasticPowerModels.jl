@@ -18,9 +18,12 @@ const _PM = PowerModels
 const _SPM = StochasticPowerModels
 
 # solvers
-ipopt_solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer,  "max_cpu_time"  => 600.0,
-                                                                "tol"           => 1e-8,
-                                                                "print_level"   => 0)
+# NB:   "obj_scaling_factor" is added to avoid convergence issues of Ipopt 1.1.0,
+#       this needs to be strictly maintained.
+ipopt_solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer,  "obj_scaling_factor"    => 1.0e-3,
+                                                                "max_cpu_time"          => 600.0,
+                                                                "tol"                   => 1e-8,
+                                                                "print_level"           => 0)
 
 @testset "StochasticPowerModels.jl" begin
 

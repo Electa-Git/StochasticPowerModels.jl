@@ -13,6 +13,7 @@ PolyChaos = "8d666b04-775d-5f6e-b778-5ac7c70f65a3"
 PowerModels = "c36e90e8-916a-50a6-bd94-075b64ef4655"
 
 [compat]
+Ipopt = "1.1.0"
 KernelDensity = "0.6.5"
 Memento = "1.4.0"
 PolyChaos = "0.2.7"
