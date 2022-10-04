@@ -1,7 +1,7 @@
 name = "StochasticPowerModels"
 uuid = "50afc394-810e-406f-916c-f931837647ce"
 authors = ["Tom Van Acker"]
-version = "0.1.2"
+version = "0.1.3"
 
 [deps]
 InfrastructureModels = "2030c09a-7f63-5d83-885d-db604e0e9cc0"

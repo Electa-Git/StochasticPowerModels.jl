@@ -265,7 +265,6 @@ function sol_data_model!(pm::AbstractIVRModel, solution::Dict)
     _PM.apply_pm!(_sol_data_model_ivr!, solution)
 end
 
-
 ""
 function _sol_data_model_ivr!(solution::Dict)
     if haskey(solution, "bus")
