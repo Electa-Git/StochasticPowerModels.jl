@@ -6,47 +6,140 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
-# variables
+# variable
+## branch 
 ""
-function variable_branch_current(pm::AbstractIVRModel; nw::Int=nw_id_default, aux::Bool=true, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false, kwargs...)   
-    _PM.variable_branch_series_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
-    _PM.variable_branch_series_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
-
-    _PM.variable_branch_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
-    _PM.variable_branch_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
-    
-    if aux
-        variable_branch_series_current_squared(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
-    else
-        if nw == nw_id_default
-            variable_branch_series_current_expectation(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
-            variable_branch_series_current_variance(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
-    end end
-end
-
-""
-function variable_branch_current_reduced(pm::AbstractIVRModel; nw::Int=nw_id_default, aux::Bool=true, bounded::Bool=true, report::Bool=true, aux_fix::Bool=false, kwargs...)
+function variable_branch_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
     _PM.variable_branch_series_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     _PM.variable_branch_series_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 
     expression_variable_branch_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     expression_variable_branch_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     
-    if aux
-        variable_branch_series_current_squared(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
-    else
-        if nw == nw_id_default
-            variable_branch_series_current_expectation(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
-            variable_branch_series_current_variance(pm, nw=nw, bounded=bounded, report=report, aux_fix=aux_fix; kwargs...)
-    end end
+    variable_branch_series_current_magnitude_squared(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+end
+"variable: `cr[l,i,j]` for `(l,i,j)` in `arcs`"
+function expression_variable_branch_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    cr = _PM.var(pm, nw)[:cr] = Dict()
+
+    bus = _PM.ref(pm, nw, :bus)
+    branch = _PM.ref(pm, nw, :branch)
+
+    for (l,i,j) in _PM.ref(pm, nw, :arcs_from)
+        b = branch[l]
+        tm = b["tap"]
+        tr, ti = _PM.calc_branch_t(b)
+        g_sh_fr, b_sh_fr = b["g_fr"], b["b_fr"]
+        g_sh_to, b_sh_to = b["g_to"], b["b_to"]
+
+        vr_fr = _PM.var(pm, nw, :vr, i)
+        vi_fr = _PM.var(pm, nw, :vi, i)
+    
+        vr_to = _PM.var(pm, nw, :vr, j)
+        vi_to = _PM.var(pm, nw, :vi, j)
+    
+        csr_fr = _PM.var(pm, nw, :csr, l)
+        csi_fr = _PM.var(pm, nw, :csi, l)
+
+        cr[(l,i,j)] = (tr * csr_fr - ti * csi_fr + g_sh_fr * vr_fr - b_sh_fr * vi_fr) / tm^2
+        cr[(l,j,i)] = -csr_fr + g_sh_to * vr_to - b_sh_to * vi_to
+
+        # ub = Inf
+        # if haskey(b, "rate_a")
+        #     rate_fr = b["rate_a"]*b["tap"]
+        #     rate_to = b["rate_a"]
+        #     ub = max(rate_fr/bus[i]["vmin"], rate_to/bus[j]["vmin"])
+        # end
+        # if haskey(b, "c_rating_a")
+        #     ub = b["c_rating_a"]
+        # end
+
+        # if !isinf(ub)
+        #     JuMP.@constraint(pm.model, cr[(l,i,j)] >= -ub)
+        #     JuMP.@constraint(pm.model, cr[(l,i,j)] <= ub)
+
+        #     JuMP.@constraint(pm.model, cr[(l,j,i)] >= -ub)
+        #     JuMP.@constraint(pm.model, cr[(l,j,i)] <= ub)
+        # end
+    end
+
+    report && _IM.sol_component_value_edge(pm, _PM.pm_it_sym, nw, :branch, :cr_fr, :cr_to, _PM.ref(pm, nw, :arcs_from), _PM.ref(pm, nw, :arcs_to), cr)
+end
+"variable: `ci[l,i,j]` for `(l,i,j)` in `arcs`"
+function expression_variable_branch_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    ci = _PM.var(pm, nw)[:ci] = Dict()
+
+    bus = _PM.ref(pm, nw, :bus)
+    branch = _PM.ref(pm, nw, :branch)
+
+    for (l,i,j) in _PM.ref(pm, nw, :arcs_from)
+        b = branch[l]
+        tm = b["tap"]
+        tr, ti = _PM.calc_branch_t(b)
+        g_sh_fr, b_sh_fr = b["g_fr"], b["b_fr"]
+        g_sh_to, b_sh_to = b["g_to"], b["b_to"]
+
+        vr_fr = _PM.var(pm, nw, :vr, i)
+        vi_fr = _PM.var(pm, nw, :vi, i)
+    
+        vr_to = _PM.var(pm, nw, :vr, j)
+        vi_to = _PM.var(pm, nw, :vi, j)
+    
+        csr_fr = _PM.var(pm, nw, :csr, l)
+        csi_fr = _PM.var(pm, nw, :csi, l)
+
+        ci[(l,i,j)] = (tr * csi_fr + ti * csr_fr + g_sh_fr * vi_fr + b_sh_fr * vr_fr) / tm^2
+        ci[(l,j,i)] = -csi_fr + g_sh_to * vi_to + b_sh_to * vr_to
+
+        # ub = Inf
+        # if haskey(b, "rate_a")
+        #     rate_fr = b["rate_a"]*b["tap"]
+        #     rate_to = b["rate_a"]
+        #     ub = max(rate_fr/bus[i]["vmin"], rate_to/bus[j]["vmin"])
+        # end
+        # if haskey(b, "c_rating_a")
+        #     ub = b["c_rating_a"]
+        # end
+
+        # if !isinf(ub)
+        #     JuMP.@constraint(pm.model, ci[(l,i,j)] >= -ub)
+        #     JuMP.@constraint(pm.model, ci[(l,i,j)] <= ub)
+
+        #     JuMP.@constraint(pm.model, ci[(l,j,i)] >= -ub)
+        #     JuMP.@constraint(pm.model, ci[(l,j,i)] <= ub)
+        # end
+    end
+
+    report && _IM.sol_component_value_edge(pm, _PM.pm_it_sym, nw, :branch, :ci_fr, :ci_to, _PM.ref(pm, nw, :arcs_from), _PM.ref(pm, nw, :arcs_to), ci)
 end
 
+## load
 ""
 function variable_load_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
     variable_load_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     variable_load_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 end
+"variable: `crd[j]` for `j` in `load`"
+function variable_load_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    crd = _PM.var(pm, nw)[:crd] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :load)], base_name="$(nw)_crd",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :load, i), "crd_start")
+    )
 
+    report && _PM.sol_component_value(pm, nw, :load, :crd, _PM.ids(pm, nw, :load), crd)
+end
+"variable: `cid[j]` for `j` in `load`"
+function variable_load_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    cid = _PM.var(pm, nw)[:cid] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :load)], base_name="$(nw)_cid",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :load, i), "cid_start")
+    )
+
+    report && _PM.sol_component_value(pm, nw, :load, :cid, _PM.ids(pm, nw, :load), cid)
+end
+
+
+## generator
 ""
 function variable_gen_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
     _PM.variable_gen_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
@@ -54,6 +147,7 @@ function variable_gen_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bound
 end
 
 # general constraints
+## bus
 ""
 function constraint_current_balance(pm::AbstractIVRModel, n::Int, i, bus_arcs, bus_gens, bus_loads, bus_gs, bus_bs)
     vr = _PM.var(pm, n, :vr, i)
@@ -81,14 +175,15 @@ function constraint_current_balance(pm::AbstractIVRModel, n::Int, i, bus_arcs, b
                                 )
 end
 
-# galerkin projection
+# galerkin projection constraint
+## branch
 ""
-function constraint_gp_branch_series_current_squared(pm::AbstractIVRModel, n::Int, i, T2, T3)
-    css  = _PM.var(pm, n, :css, i)
+function constraint_gp_branch_series_current_magnitude_squared(pm::AbstractIVRModel, n::Int, i, T2, T3)
+    cmss  = _PM.var(pm, n, :cmss, i)
     csr = Dict(nw => _PM.var(pm, nw, :csr, i) for nw in _PM.nw_ids(pm))
     csi = Dict(nw => _PM.var(pm, nw, :csi, i) for nw in _PM.nw_ids(pm))
 
-    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * css
+    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * cmss
                                 ==
                                 sum(T3.get([n1-1,n2-1,n-1]) * 
                                     (csr[n1] * csr[n2] + csi[n1] * csi[n2]) 
@@ -96,6 +191,7 @@ function constraint_gp_branch_series_current_squared(pm::AbstractIVRModel, n::In
                     )
 end
 
+## generator
 ""
 function constraint_gp_gen_power_real(pm::AbstractIVRModel, n::Int, i, g, T2, T3)
     vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _PM.nw_ids(pm))
@@ -113,7 +209,6 @@ function constraint_gp_gen_power_real(pm::AbstractIVRModel, n::Int, i, g, T2, T3
                                     for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
                     )
 end
-
 ""
 function constraint_gp_gen_power_imaginary(pm::AbstractIVRModel, n::Int, i, g, T2, T3)
     vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _PM.nw_ids(pm))
@@ -132,6 +227,7 @@ function constraint_gp_gen_power_imaginary(pm::AbstractIVRModel, n::Int, i, g, T
                     )
 end
 
+## load
 ""
 function constraint_gp_load_power_real(pm::AbstractIVRModel, n::Int, i, l, pd, T2, T3)
     vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _PM.nw_ids(pm))
@@ -147,7 +243,6 @@ function constraint_gp_load_power_real(pm::AbstractIVRModel, n::Int, i, l, pd, T
                                     for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
                     )
 end
-
 ""
 function constraint_gp_load_power_imaginary(pm::AbstractIVRModel, n::Int, i, l, qd, T2, T3)
     vr  = Dict(n => _PM.var(pm, n, :vr, i) for n in _PM.nw_ids(pm))
@@ -164,45 +259,11 @@ function constraint_gp_load_power_imaginary(pm::AbstractIVRModel, n::Int, i, l, 
                     )
 end
 
-# chance constraints
-""
-function constraint_branch_series_current_cc_limit(pm::AbstractIVRModel, b, cmax, λmax, T2, T4, gs, bs)
-    ntws = _PM.nw_ids(pm)
-
-    cse  = _PM.var(pm, nw_id_default, :cse, b)
-    csv  = _PM.var(pm, nw_id_default, :csv, b)
-
-    csr  = Dict(n => _PM.var(pm, n, :csr, b) for n in ntws)
-    csi  = Dict(n => _PM.var(pm, n, :csi, b) for n in ntws)
-    
-    T44 = Dict((n1,n2,n3,n4) => T4.get([n1-1,n2-1,n3-1,n4-1]) for n1 in ntws, n2 in ntws, n3 in ntws, n4 in ntws)
-
-    # expectation
-    JuMP.@constraint(pm.model, cse == sum((csr[n]^2 + csi[n]^2) * T2.get([n-1,n-1]) for n in ntws))
-    # 'variance'
-    JuMP.@NLconstraint(pm.model, cse^2 + csv^2 
-                                 ==
-                                 sum(
-                                    (csr[n1] * csr[n2] * csr[n3] * csr[n4] + 
-                                     2 * csr[n1] * csr[n2] * csi[n3] * csi[n4] +
-                                     csi[n1] * csi[n2] * csi[n3] * csi[n4]
-                                    ) *
-                                    T44[(n1,n2,n3,n4)]
-                                    for n1 in ntws, n2 in ntws, n3 in ntws, n4 in ntws
-                                 ) 
-                    )  
-    # chance constraint bounds
-    JuMP.@constraint(pm.model,  cse + λmax * csv
-                                <=
-                                cmax^2
-                    )
-end
-
+# solution
 ""
 function sol_data_model!(pm::AbstractIVRModel, solution::Dict)
     _PM.apply_pm!(_sol_data_model_ivr!, solution)
 end
-
 
 ""
 function _sol_data_model_ivr!(solution::Dict)

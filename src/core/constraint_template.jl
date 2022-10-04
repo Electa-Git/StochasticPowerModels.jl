@@ -6,13 +6,14 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
-# voltage constraints
+# general constraints
+## reference
 ""
 function constraint_bus_voltage_ref(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     constraint_bus_voltage_ref(pm, nw, i)
 end
 
-# current balance 
+## bus
 ""
 function constraint_current_balance(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     if !haskey(_PM.con(pm, nw), :kcl_cr)
@@ -33,8 +34,6 @@ function constraint_current_balance(pm::AbstractPowerModel, i::Int; nw::Int=nw_i
 
     constraint_current_balance(pm, nw, i, bus_arcs, bus_gens, bus_loads, bus_gs, bus_bs)
 end
-
-# power balance
 ""
 function constraint_power_balance(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     bus_arcs   = _PM.ref(pm, nw, :bus_arcs, i)
@@ -52,30 +51,23 @@ function constraint_power_balance(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_
 end
 
 # galerkin projection constraints
+## bus
 ""
-function constraint_gp_bus_voltage_squared(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+function constraint_gp_bus_voltage_magnitude_squared(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     T2  = pm.data["T2"]
     T3  = pm.data["T3"]
 
-    constraint_gp_bus_voltage_squared(pm, nw, i, T2, T3)
+    constraint_gp_bus_voltage_magnitude_squared(pm, nw, i, T2, T3)
 end
 
+## branch
 ""
-function constraint_gp_branch_series_current_squared(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
+function constraint_gp_branch_series_current_magnitude_squared(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
     T2  = pm.data["T2"]
     T3  = pm.data["T3"]
 
-    constraint_gp_branch_series_current_squared(pm, nw, b, T2, T3)
+    constraint_gp_branch_series_current_magnitude_squared(pm, nw, b, T2, T3)
 end
-
-""
-function constraint_gp_current_squared(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
-    T2  = pm.data["T2"]
-    T3  = pm.data["T3"]
-
-    constraint_gp_current_squared(pm, nw, b, T2, T3)
-end
-
 ""
 function constraint_gp_power_branch_to(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     branch = _PM.ref(pm, nw, :branch, i)
@@ -95,7 +87,6 @@ function constraint_gp_power_branch_to(pm::AbstractPowerModel, i::Int; nw::Int=n
 
     constraint_gp_power_branch_to(pm, nw, f_bus, t_bus, f_idx, t_idx, g, b, g_to, b_to, tr, ti, tm, T2, T3)
 end
-
 ""
 function constraint_gp_power_branch_from(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     
@@ -117,6 +108,7 @@ function constraint_gp_power_branch_from(pm::AbstractPowerModel, i::Int; nw::Int
     constraint_gp_power_branch_from(pm, nw, f_bus, t_bus, f_idx, t_idx, g, b, g_fr, b_fr, tr, ti, tm, T2, T3)
 end
 
+## generator
 ""
 function constraint_gp_gen_power(pm::AbstractPowerModel, g::Int; nw::Int=nw_id_default)
     i   = _PM.ref(pm, nw, :gen, g, "gen_bus")
@@ -128,6 +120,7 @@ function constraint_gp_gen_power(pm::AbstractPowerModel, g::Int; nw::Int=nw_id_d
     constraint_gp_gen_power_imaginary(pm, nw, i, g, T2, T3)
 end
 
+## load
 ""
 function constraint_gp_load_power(pm::AbstractPowerModel, l::Int; nw::Int=nw_id_default)
     i   = _PM.ref(pm, nw, :load, l, "load_bus") 
@@ -143,22 +136,9 @@ function constraint_gp_load_power(pm::AbstractPowerModel, l::Int; nw::Int=nw_id_
 end
 
 # chance constraint limit
+## bus
 ""
-function constraint_bus_voltage_cc_limit(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
-    vmin = _PM.ref(pm, nw, :bus, i, "vmin")
-    vmax = _PM.ref(pm, nw, :bus, i, "vmax")
-    
-    λmin = _PM.ref(pm, nw, :bus, i, "λvmin")
-    λmax = _PM.ref(pm, nw, :bus, i, "λvmax")
-    
-    T2 = pm.data["T2"]
-    T4 = pm.data["T4"]
-
-    constraint_bus_voltage_cc_limit(pm, i, vmin, vmax, λmin, λmax, T2, T4)
-end
-
-""
-function constraint_bus_voltage_squared_cc_limit(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+function constraint_cc_bus_voltage_magnitude_squared(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     vmin = _PM.ref(pm, nw, :bus, i, "vmin")
     vmax = _PM.ref(pm, nw, :bus, i, "vmax")
     
@@ -168,11 +148,24 @@ function constraint_bus_voltage_squared_cc_limit(pm::AbstractPowerModel, i::Int;
     T2  = pm.data["T2"]
     mop = pm.data["mop"]
 
-    constraint_bus_voltage_squared_cc_limit(pm, i, vmin, vmax, λmin, λmax, T2, mop)
+    constraint_cc_bus_voltage_magnitude_squared(pm, i, vmin, vmax, λmin, λmax, T2, mop)
 end
 
+## branch
 ""
-function constraint_gen_power_cc_limit(pm::AbstractPowerModel, g::Int; nw::Int=nw_id_default)
+function constraint_cc_branch_series_current_magnitude_squared(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
+    cmax = _PM.ref(pm, nw, :branch, b, "cmax")
+    λmax = _PM.ref(pm, nw, :branch, b, "λcmax")
+    
+    T2  = pm.data["T2"]
+    mop = pm.data["mop"]
+
+    constraint_cc_branch_series_current_magnitude_squared(pm, b, cmax, λmax, T2, mop)
+end
+
+## generator
+""
+function constraint_cc_gen_power(pm::AbstractPowerModel, g::Int; nw::Int=nw_id_default)
     pmin = _PM.ref(pm, nw, :gen, g, "pmin")
     pmax = _PM.ref(pm, nw, :gen, g, "pmax")
     qmin = _PM.ref(pm, nw, :gen, g, "qmin")
@@ -186,32 +179,6 @@ function constraint_gen_power_cc_limit(pm::AbstractPowerModel, g::Int; nw::Int=n
     T2  = pm.data["T2"]
     mop = pm.data["mop"]
     
-    constraint_gen_power_real_cc_limit(pm, g, pmin, pmax, λpmin, λpmax, T2, mop)
-    constraint_gen_power_imaginary_cc_limit(pm, g, qmin, qmax, λqmin, λqmax, T2, mop)
-end
-
-""
-function constraint_branch_series_current_cc_limit(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
-    cmax = _PM.ref(pm, nw, :branch, b, "cmax")
-    λmax = _PM.ref(pm, nw, :branch, b, "λcmax")
-
-    branch = _PM.ref(pm, nw, :branch, b)
-
-    gs, bs = _PM.calc_branch_y(branch)
-    
-    T2 = pm.data["T2"]
-    T4 = pm.data["T4"]
-
-    constraint_branch_series_current_cc_limit(pm, b, cmax, λmax, T2, T4,gs,bs)
-end
-
-""
-function constraint_branch_series_current_squared_cc_limit(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
-    cmax = _PM.ref(pm, nw, :branch, b, "cmax")
-    λmax = _PM.ref(pm, nw, :branch, b, "λcmax")
-    
-    T2  = pm.data["T2"]
-    mop = pm.data["mop"]
-
-    constraint_branch_series_current_squared_cc_limit(pm, b, cmax, λmax, T2, mop)
+    constraint_cc_gen_power_real(pm, g, pmin, pmax, λpmin, λpmax, T2, mop)
+    constraint_cc_gen_power_imaginary(pm, g, qmin, qmax, λqmin, λqmax, T2, mop)
 end

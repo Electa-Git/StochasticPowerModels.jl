@@ -11,9 +11,7 @@ const SPM = StochasticPowerModels
 ipopt_solver = Ipopt.Optimizer
 
 # input
-deg  = 2
-aux  = true
-red  = false
+deg  = 1
 case = "case5_spm.m"
 
 # data
@@ -21,8 +19,8 @@ file  = joinpath(BASE_DIR, "test/data/matpower", case)
 
 #-----------------------------------
 # run the convenience functions for stochastic OPF for IVR and ACR
-result_ivr = run_sopf_iv(file, PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
-result_acr = run_sopf_acr(file, PM.ACRPowerModel, ipopt_solver, aux=aux, deg=deg)
+result_ivr = solve_sopf_iv(file, PM.IVRPowerModel, ipopt_solver, deg=deg)
+result_acr = solve_sopf_acr(file, PM.ACRPowerModel, ipopt_solver, deg=deg)
 
 @assert result_ivr["termination_status"] == PM.LOCALLY_SOLVED
 @assert result_acr["termination_status"] == PM.LOCALLY_SOLVED
@@ -52,7 +50,7 @@ pg_density = density(result_ivr, "gen", 1, "pg"; sample_size=10)
 # from a file with stochastic data extensions:
 data  = PM.parse_file(file)
 
-result_ivr2 = run_sopf_iv(data, PM.IVRPowerModel, ipopt_solver; aux=aux, deg=deg)
+result_ivr2 = solve_sopf_iv(data, PM.IVRPowerModel, ipopt_solver; deg=deg)
 @assert result_ivr2["termination_status"] == PM.LOCALLY_SOLVED
 obj_ivr2 = result_ivr2["objective"]
 
@@ -62,7 +60,7 @@ obj_ivr2 = result_ivr2["objective"]
 sdata = SPM.build_stochastic_data(data, deg)
 
 # run the reduced IVR with auxiliary variables
-result_ivr3 = PM.run_model(sdata, PM.IVRPowerModel, ipopt_solver, SPM.build_sopf_iv_with_aux; multinetwork=true, solution_processors=[PM.sol_data_model!])
+result_ivr3 = PM.solve_model(sdata, PM.IVRPowerModel, ipopt_solver, SPM.build_sopf_iv; multinetwork=true, solution_processors=[PM.sol_data_model!])
 @assert result_ivr3["termination_status"] == PM.LOCALLY_SOLVED
 obj_ivr3 = result_ivr3["objective"]
 

@@ -1,14 +1,12 @@
 
 @testset "Utilities" begin
     deg  = 1
-    aux  = true
-    red  = false
     case = "case5_spm.m"
 
     file  = joinpath("../test/data/matpower", case)
 
     # solve problem
-    result = _SPM.run_sopf_iv(file, _PM.IVRPowerModel, ipopt_solver, aux=aux, deg=deg, red=red)
+    result = _SPM.solve_sopf_iv(file, _PM.IVRPowerModel, ipopt_solver, deg=deg)
     @test result["termination_status"] == LOCALLY_SOLVED
 
     pg_coeff = pce_coeff(result, "gen", 1, "pg") 
