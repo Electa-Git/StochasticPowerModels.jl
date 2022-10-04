@@ -24,9 +24,6 @@ Note that development is ongoing, and changes can be breaking without notice. We
 ## Core Stochastic Specification
 For now, we only support Polynomial Chaos Expansion. We may add alternative stochastic optimization methods at a later stage.
 
-- Polynomial Chaos Expansion
-    - with/without auxiliary variables/constraints
-
 ## Network Data with Stochastic Data Extension
 
 - Matpower ".m" files, extended to include:
