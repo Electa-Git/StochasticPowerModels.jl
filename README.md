@@ -2,7 +2,6 @@
 
 <a href="https://github.com/timmyfaraday/StochasticPowerModels.jl/actions?query=workflow%3ACI"><img src="https://github.com/timmyfaraday/StochasticPowerModels.jl/workflows/CI/badge.svg"></img></a>
 <a href="https://codecov.io/gh/timmyfaraday/StochasticPowerModels.jl"><img src="https://img.shields.io/codecov/c/github/timmyfaraday/StochasticPowerModels.jl?logo=Codecov"></img></a>
-<a href="https://timmyfaraday.github.io/StochasticPowerModels.jl/"><img src="https://github.com/timmyfaraday/StochasticPowerModels.jl/workflows/Documentation/badge.svg"></img></a>
 
 
 StochasticPowerModels.jl is an extension package of PowerModels.jl for 
