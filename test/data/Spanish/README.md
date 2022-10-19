@@ -31,7 +31,9 @@ For now, we only support Polynomial Chaos Expansion. We may add alternative stoc
     - with auxiliary variables/constraints
 
 ## Network Data with Stochastic Data Extension
-The Folder Spanish has Spanish network on folder All_feeder in JSON format. 
+
+- The Folder Spanish has Spanish network on folder All_feeder in JSON format.
+- The 7 bus test network is available in the folder POLA in JSON format.
 
 The file `CreatePMDDictionary` is the parser file to convert the JSON file into `PowerModels.jl` format.
 
@@ -44,7 +46,7 @@ For the original networks, the line impedance is specified 4x4 matrice without m
 
 However, in this part the load and irradiance are defined as Beta distribution in folders `beta_lm_2016_8_6.csv` and `beta_pm_2016_8_6.csv` respectively for a high irradiance day in spring. 
 
--For each feeder there are 4 JSON file describing the feeder topology:
+- For each feeder there are 4 JSON file describing the feeder topology:
 	- <feeder_name>_configuration.json, 
 	- <feeder_name>_branches.json, 
 	- <feeder_name>_buses.json, and 
