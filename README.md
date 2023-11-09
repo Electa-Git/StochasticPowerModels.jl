@@ -14,7 +14,7 @@ Note that development is ongoing, and changes can be breaking without notice. We
 
 ## Installation
 
-The latest stable release of PowerModelACDC can be installed using the Julia package manager with
+The latest version of StochasticPowerModels can be installed using the Julia package manager with
 
 ```
 ] add https://github.com/Electa-Git/StochasticPowerModels.jl.git
