@@ -22,7 +22,7 @@ The latest version of StochasticPowerModels can be installed using the Julia pac
 
 ## Core Problem Specification
 
-- Stochastic Optimal Power Flow (sOPF)
+* Stochastic Optimal Power Flow for AC and AC/DC grids
 
 ## Core Network Formulation
 
