@@ -12,14 +12,6 @@ For additional background on the approach, please read our [PSCC paper](https://
 
 Note that development is ongoing, and changes can be breaking without notice. We plan to register the package once we feel comfortable with the state of the implementation.
 
-## Installation
-
-The latest version of StochasticPowerModels can be installed using the Julia package manager with
-
-```
-] add https://github.com/Electa-Git/StochasticPowerModels.jl.git
-```
-
 ## Core Problem Specification
 
 * Stochastic Optimal Power Flow for AC and AC/DC grids
@@ -49,7 +41,7 @@ The latest stable release of StochasticPowerModels can be installed using the
 Julia package manager:
 
 ```
-] add https://github.com/timmyfaraday/StochasticPowerModels.jl.git
+] add https://github.com/Electa-Git/StochasticPowerModels.jl.git
 ```
 
 In order to test whether the package works, run:
