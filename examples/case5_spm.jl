@@ -11,7 +11,7 @@ const SPM = StochasticPowerModels
 ipopt_solver = Ipopt.Optimizer
 
 # input
-deg  = 1
+deg  = 2
 case = "case5_spm.m"
 
 # data
