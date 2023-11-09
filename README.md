@@ -12,6 +12,14 @@ For additional background on the approach, please read our [PSCC paper](https://
 
 Note that development is ongoing, and changes can be breaking without notice. We plan to register the package once we feel comfortable with the state of the implementation.
 
+## Installation
+
+The latest stable release of PowerModelACDC can be installed using the Julia package manager with
+
+```
+] add https://github.com/Electa-Git/StochasticPowerModels.jl.git
+```
+
 ## Core Problem Specification
 
 - Stochastic Optimal Power Flow (sOPF)
