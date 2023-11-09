@@ -5,7 +5,7 @@
 
 
 StochasticPowerModels.jl is an extension package of PowerModels.jl for 
-Stochastic (Optimal) Power Flow. It is designed to enable inclusion of 
+Stochastic (Optimal) Power Flow. It is designed to enable the inclusion of 
 uncertainty in Steady-State Power Network Optimization. 
 
 For additional background on the approach, please read our [PSCC paper](https://www.sciencedirect.com/science/article/pii/S0378779622006022).
@@ -54,8 +54,9 @@ In order to test whether the package works, run:
 
 The primary developer is Tom Van Acker ([@timmyfaraday](https://github.com/timmyfaraday)), 
 with support from the following contributors:
-- Arpan Koirala ([@arpkoirala](https://github.com/arpkoirala)), KU Leuven, ACR formulation
-- Frederik Geth ([@frederikgeth](https://github.com/frederikgeth)), CSIRO, reduced IVR formulation
+- Arpan Koirala ([@arpkoirala](https://github.com/arpkoirala)), KU Leuven, SOPF for AC Grids, ACR formulation
+- Frederik Geth ([@frederikgeth](https://github.com/frederikgeth)), CSIRO, SOPF for AC grids, reduced IVR formulation
+- Kaan Yurtseven ([@kaanyurtseven](https://github.com/kaanyurtseven)), KU Leuven, SOPF for AC/DC grids, IVR formulation
 
 ## License
 
