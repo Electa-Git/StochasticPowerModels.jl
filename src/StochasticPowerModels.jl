@@ -17,6 +17,8 @@ module StochasticPowerModels
     import Memento
     import PolyChaos
     import PowerModels
+    import PowerModelsACDC
+    import Random, Distributions
 
     # import types
     import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
@@ -27,6 +29,7 @@ module StochasticPowerModels
     const _PCE = PolyChaos
     const _PM = PowerModels
     const _SPM = StochasticPowerModels
+    const _PMACDC = PowerModelsACDC
 
     # memento logger
     function __init__()
@@ -43,6 +46,7 @@ module StochasticPowerModels
     const BASE_DIR = dirname(@__DIR__)
 
     # include
+    include("core/base.jl")
     include("core/constraint.jl")
     include("core/constraint_template.jl")
     include("core/objective.jl")
@@ -53,6 +57,7 @@ module StochasticPowerModels
 
     include("prob/sopf_acr.jl")
     include("prob/sopf_iv.jl")
+    include("prob/sopf_iv_acdc.jl")
 
     include("util/data.jl")
     include("util/util.jl")

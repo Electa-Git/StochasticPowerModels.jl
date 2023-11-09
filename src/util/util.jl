@@ -69,6 +69,107 @@ function build_stochastic_data(data::Dict{String,Any}, deg::Int)
     return data
 end
 
+
+function build_stochastic_data_ACDC_RES(data::Dict{String,Any}, deg::Int, p_size)
+
+    # add maximum current
+    for (nb, branch) in data["branch"]
+        f_bus = branch["f_bus"]
+        branch["cmax"] = branch["rate_a"] / data["bus"]["$f_bus"]["vmin"]
+    end
+
+    # build mop
+    opq = [parse_dst(ns[2]["dst"], ns[2]["pa"], ns[2]["pb"], deg) for ns in data["sdata"]]
+    mop = _PCE.MultiOrthoPoly(opq, deg)
+
+    # build load matrix
+    Nd, Npce = length(data["load"]), mop.dim
+    pd, qd = zeros(Nd, Npce), zeros(Nd, Npce)
+    for nd in 1:Nd 
+        # reactive power
+        qd[nd,1] = data["load"]["$nd"]["qd"]
+        # active power
+        nb = data["load"]["$nd"]["load_bus"]
+        ni = data["bus"]["$nb"]["dst_id"]
+        if ni == 0
+            pd[nd,1] = data["load"]["$nd"]["pd"]
+        else
+            base = data["baseMVA"]
+            μ, σ = data["bus"]["$nb"]["μ"] / base, data["bus"]["$nb"]["σ"] / base
+            if mop.uni[ni] isa _PCE.GaussOrthoPoly
+                pd[nd,[1,ni+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[ni])
+            else
+                pd[nd,[1,ni+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[ni], kind="μσ")
+            end
+        end
+       
+    end
+
+
+    # build RES matrix
+    Nd_g = length(data["RES"])
+    pd_g, qd_g = zeros(Nd_g, Npce), zeros(Nd_g, Npce)
+
+    # Take the last entry of sdata as the irradiance.
+    #data["sdata"]= s_dict 
+
+    # data["RES"]=deepcopy(data["load"]); #this is temporary. Fix it to add PV in matpower format
+    [data["RES"][d]["μ"]=0 for d in   keys(data["RES"])]
+    [data["RES"][d]["σ"]=1 for d in   keys(data["RES"])]
+    [data["RES"][d]["p_size"] = p_size for d in keys(data["RES"])]
+    [data["RES"][d]["q_size"] = p_size for d in keys(data["RES"])]        
+    [data["RES"][d]["qd"] = 0 for d in keys(data["RES"])]
+    
+
+
+    for nd_g in 1:Nd_g 
+        # reactive power
+        qd_g[nd_g,1] = data["RES"]["$nd_g"]["qd"]
+        # active power
+
+        # np = length(opq) #Last distribution is for irradiance
+        np_g = data["RES"]["$nd_g"]["dst_id"]
+
+        base = data["baseMVA"]
+        # μ, σ = data["RES"]["1"]["μ"] / base, data["RES"]["1"]["σ"] / base
+        μ, σ = data["RES"]["1"]["μ"], data["RES"]["1"]["σ"]
+        
+            if mop.uni[np_g] isa _PCE.GaussOrthoPoly
+                pd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g])
+                qd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g])
+            else
+                pd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g])
+                qd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g])
+            end
+       
+    end
+
+        # replicate the data
+        data = _PM.replicate(data, Npce)
+
+        # add the stochastic data 
+        data["T2"] = _PCE.Tensor(2,mop)
+        data["T3"] = _PCE.Tensor(3,mop)
+        data["T4"] = _PCE.Tensor(4,mop)
+        data["mop"] = mop
+        for nw in 1:Npce, nd in 1:Nd
+            data["nw"]["$nw"]["load"]["$nd"]["pd"] = pd[nd,nw]
+            data["nw"]["$nw"]["load"]["$nd"]["qd"] = qd[nd,nw]
+        end
+    
+        for nw in 1:Npce, nd_g in 1:Nd_g
+    
+            data["nw"]["$nw"]["RES"]["$nd_g"]["pd"] = pd_g[nd_g,nw]
+            data["nw"]["$nw"]["RES"]["$nd_g"]["qd"] = qd_g[nd_g,nw]
+        end
+    
+        return data
+
+
+end
+
+
+
 # output data
 """
     StochasticPowerModels.pce_coeff(result, element::String, id::Int, var::String)
