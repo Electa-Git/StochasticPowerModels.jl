@@ -56,7 +56,7 @@ The primary developer is Tom Van Acker ([@timmyfaraday](https://github.com/timmy
 with support from the following contributors:
 - Arpan Koirala ([@arpkoirala](https://github.com/arpkoirala)), KU Leuven, SOPF for AC Grids, ACR formulation
 - Frederik Geth ([@frederikgeth](https://github.com/frederikgeth)), CSIRO, SOPF for AC grids, reduced IVR formulation
-- Kaan Yurtseven ([@kaanyurtseven](https://github.com/kaanyurtseven)), KU Leuven, SOPF for AC/DC grids, IVR formulation
+- Kaan Yurtseven ([@kaanyurtseven](https://github.com/kaanyurtseven)), KU Leuven, SOPF for AC/DC grids with RES, IVR formulation
 
 ## License
 
