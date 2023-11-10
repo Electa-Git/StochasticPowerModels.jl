@@ -14,7 +14,7 @@ Note that development is ongoing, and changes can be breaking without notice. We
 
 ## Core Problem Specification
 
-* Stochastic Optimal Power Flow for AC and AC/DC grids
+* Stochastic Optimal Power Flow for AC and AC/DC grids with RES
 
 ## Core Network Formulation
 
