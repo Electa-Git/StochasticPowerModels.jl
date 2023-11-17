@@ -19,7 +19,7 @@ module StochasticPowerModels
     import PowerModels
     import PowerModelsACDC
     import Random, Distributions
-
+    import FlexPlan
     # import types
     import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
 
@@ -30,6 +30,7 @@ module StochasticPowerModels
     const _PM = PowerModels
     const _SPM = StochasticPowerModels
     const _PMACDC = PowerModelsACDC
+    const _FP = FlexPlan
 
     # memento logger
     function __init__()
@@ -58,6 +59,7 @@ module StochasticPowerModels
     include("prob/sopf_acr.jl")
     include("prob/sopf_iv.jl")
     include("prob/sopf_iv_acdc.jl")
+    include("prob/sopf_iv_ac.jl")
 
     include("util/data.jl")
     include("util/util.jl")
