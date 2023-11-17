@@ -117,7 +117,7 @@ function build_stochastic_data_ACDC_RES(data::Dict{String,Any}, deg::Int, p_size
     [data["RES"][d]["μ"]=0 for d in   keys(data["RES"])]
     [data["RES"][d]["σ"]=1 for d in   keys(data["RES"])]
     [data["RES"][d]["p_size"] = p_size for d in keys(data["RES"])]
-    [data["RES"][d]["q_size"] = p_size for d in keys(data["RES"])]        
+    [data["RES"][d]["q_size"] = p_size for d in keys(data["RES"])]   
     [data["RES"][d]["qd"] = 0 for d in keys(data["RES"])]
     
 
@@ -160,13 +160,15 @@ function build_stochastic_data_ACDC_RES(data::Dict{String,Any}, deg::Int, p_size
         for nw in 1:Npce, nd_g in 1:Nd_g
     
             data["nw"]["$nw"]["RES"]["$nd_g"]["pd"] = pd_g[nd_g,nw]
-            data["nw"]["$nw"]["RES"]["$nd_g"]["qd"] = qd_g[nd_g,nw]
+            # data["nw"]["$nw"]["RES"]["$nd_g"]["qd"] = qd_g[nd_g,nw]
+            data["nw"]["$nw"]["RES"]["$nd_g"]["qd"] = 0
         end
     
         return data
 
 
 end
+
 
 
 

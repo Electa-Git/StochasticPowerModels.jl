@@ -85,33 +85,33 @@ function extend_matlab_file_AC(path::String)
     #     end
     # end
     
-    # for (b,bus) in data["bus"]
+    for (b,bus) in data["bus"]
 
-    #     if parse(Int,b) == 3
+        if parse(Int,b) == 3
             
-    #         bus["dst_id"]   = 1
-    #         bus["μ"]        = μ[parse(Int,b)]
-    #         bus["σ"]        = σ[parse(Int,b)]
-    #         bus["λvmin"]    = λ_val
-    #         bus["λvmax"]    = λ_val
+            bus["dst_id"]   = 1
+            bus["μ"]        = μ[parse(Int,b)]
+            bus["σ"]        = σ[parse(Int,b)]
+            bus["λvmin"]    = λ_val
+            bus["λvmax"]    = λ_val
         
-    #     elseif parse(Int,b) == 4
+        elseif parse(Int,b) == 4
             
-    #         bus["dst_id"]   = 2
-    #         bus["μ"]        = μ[parse(Int,b)]
-    #         bus["σ"]        = σ[parse(Int,b)]
-    #         bus["λvmin"]    = λ_val
-    #         bus["λvmax"]    = λ_val
+            bus["dst_id"]   = 2
+            bus["μ"]        = μ[parse(Int,b)]
+            bus["σ"]        = σ[parse(Int,b)]
+            bus["λvmin"]    = λ_val
+            bus["λvmax"]    = λ_val
         
-    #     else
-    #         bus["dst_id"]   = 0
-    #         bus["μ"]        = μ[parse(Int,b)]
-    #         bus["σ"]        = σ[parse(Int,b)]
-    #         bus["λvmin"]    = λ_val
-    #         bus["λvmax"]    = λ_val
-    #     end
+        else
+            bus["dst_id"]   = 0
+            bus["μ"]        = μ[parse(Int,b)]
+            bus["σ"]        = σ[parse(Int,b)]
+            bus["λvmin"]    = λ_val
+            bus["λvmax"]    = λ_val
+        end
 
-    # end
+    end
 
     # for (b,bus) in data["bus"]
 
@@ -141,25 +141,25 @@ function extend_matlab_file_AC(path::String)
 
     # end
 
-    for (b,bus) in data["bus"]
+    # for (b,bus) in data["bus"]
 
-        if parse(Int,b) in 1:67
+    #     if parse(Int,b) in 1:67
             
-            bus["dst_id"]   = 1
-            bus["μ"]        = μ[parse(Int,b)]
-            bus["σ"]        = σ[parse(Int,b)]
-            bus["λvmin"]    = λ_val
-            bus["λvmax"]    = λ_val
+    #         bus["dst_id"]   = 1
+    #         bus["μ"]        = μ[parse(Int,b)]
+    #         bus["σ"]        = σ[parse(Int,b)]
+    #         bus["λvmin"]    = λ_val
+    #         bus["λvmax"]    = λ_val
         
-        else
-            bus["dst_id"]   = 0
-            bus["μ"]        = μ[parse(Int,b)]
-            bus["σ"]        = σ[parse(Int,b)]
-            bus["λvmin"]    = λ_val
-            bus["λvmax"]    = λ_val
-        end
+    #     else
+    #         bus["dst_id"]   = 0
+    #         bus["μ"]        = μ[parse(Int,b)]
+    #         bus["σ"]        = σ[parse(Int,b)]
+    #         bus["λvmin"]    = λ_val
+    #         bus["λvmax"]    = λ_val
+    #     end
 
-    end
+    # end
     
     
     # for (b,bus) in data["bus"]
