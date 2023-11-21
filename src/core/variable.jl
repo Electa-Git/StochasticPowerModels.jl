@@ -333,3 +333,119 @@ function variable_redispatch(pm::AbstractPowerModel; nw::Int=nw_id_default, boun
 
     report && _PM.sol_component_value(pm, nw, :gen, :re_pg, _PM.ids(pm, nw, :gen), re_pg)
 end
+
+function variable_load_curt_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
+    variable_load_curt_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    variable_load_curt_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+end
+"variable: `crd[j]` for `j` in `load`"
+function variable_load_curt_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    crd_curt = _PM.var(pm, nw)[:crd_curt] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :load)], base_name="$(nw)_crd_curt",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :load, i), "crd_curt_start")
+    )
+
+    report && _PM.sol_component_value(pm, nw, :load, :crd_curt, _PM.ids(pm, nw, :load), crd_curt)
+end
+"variable: `cid[j]` for `j` in `load`"
+function variable_load_curt_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    cid_curt = _PM.var(pm, nw)[:cid_curt] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :load)], base_name="$(nw)_cid_curt",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :load, i), "cid_curt_start")
+    )
+
+    report && _PM.sol_component_value(pm, nw, :load, :cid_curt, _PM.ids(pm, nw, :load), cid_curt)
+end
+
+function variable_load_curt_power(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
+    variable_load_curt_power_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    variable_load_curt_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+end
+"variable: `crd[j]` for `j` in `load`"
+function variable_load_curt_power_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    pd_curt = _PM.var(pm, nw)[:pd_curt] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :load)], base_name="$(nw)_pd_curt",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :load, i), "pd_curt_start")
+    )
+
+    report && _PM.sol_component_value(pm, nw, :load, :pd_curt, _PM.ids(pm, nw, :load), pd_curt)
+end
+"variable: `cid[j]` for `j` in `load`"
+function variable_load_curt_power_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    qd_curt = _PM.var(pm, nw)[:qd_curt] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :load)], base_name="$(nw)_qd_curt",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :load, i), "qd_curt_start")
+    )
+
+    report && _PM.sol_component_value(pm, nw, :load, :qd_curt, _PM.ids(pm, nw, :load), qd_curt)
+end
+
+function variable_RES_curt_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
+    variable_RES_curt_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    variable_RES_curt_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+end
+
+function variable_RES_curt_current_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    crd_RES_curt = _PM.var(pm, nw)[:crd_RES_curt] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :RES)], base_name="$(nw)_crd_RES_curt",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :RES, i), "crd_RES_curt_start")
+    )
+    
+    report && _PM.sol_component_value(pm, nw, :RES, :crd_RES_curt, _PM.ids(pm, nw, :RES), crd_RES_curt)
+end
+
+
+function variable_RES_curt_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    cid_RES_curt = _PM.var(pm, nw)[:cid_RES_curt] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :RES)], base_name="$(nw)_cid_RES_curt",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :RES, i), "cid_RES_curt_start")
+    )
+
+    report && _PM.sol_component_value(pm, nw, :RES, :cid_RES_curt, _PM.ids(pm, nw, :RES), cid_RES_curt)
+end
+
+function variable_RES_curt_power(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
+    variable_RES_curt_power_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)    
+    variable_RES_curt_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+end
+
+function variable_RES_curt_power_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    p_RES_curt = _PM.var(pm, nw)[:p_RES_curt] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :RES)], base_name="$(nw)_p_RES_curt",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :RES, i), "p_RES_curt_start")
+    )
+    
+    report && _PM.sol_component_value(pm, nw, :RES, :p_RES_curt, _PM.ids(pm, nw, :RES), p_RES_curt)
+end
+
+function variable_RES_curt_power_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    q_RES_curt = _PM.var(pm, nw)[:q_RES_curt] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :RES)], base_name="$(nw)_q_RES_curt",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :RES, i), "q_RES_curt_start")
+    )
+    
+    report && _PM.sol_component_value(pm, nw, :RES, :q_RES_curt, _PM.ids(pm, nw, :RES), q_RES_curt)
+end
+
+function variable_RES_power(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
+    variable_RES_power_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    variable_RES_power_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+end
+
+function variable_RES_power_real(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    p_RES = _PM.var(pm, nw)[:p_RES] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :RES)], base_name="$(nw)_p_RES",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :RES, i), "p_RES_start")
+    )
+    
+    report && _PM.sol_component_value(pm, nw, :RES, :p_RES, _PM.ids(pm, nw, :RES), p_RES)
+end
+
+function variable_RES_power_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    q_RES = _PM.var(pm, nw)[:q_RES] = JuMP.@variable(pm.model,
+        [i in _PM.ids(pm, nw, :RES)], base_name="$(nw)_q_RES",
+        start = _PM.comp_start_value(_PM.ref(pm, nw, :RES, i), "q_RES_start")
+    )
+    
+    report && _PM.sol_component_value(pm, nw, :RES, :q_RES, _PM.ids(pm, nw, :RES), q_RES)
+end

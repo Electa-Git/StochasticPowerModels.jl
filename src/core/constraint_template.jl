@@ -157,6 +157,19 @@ function constraint_gp_load_power(pm::AbstractPowerModel, l::Int; nw::Int=nw_id_
     constraint_gp_load_power_imaginary(pm, nw, i, l, qd, T2, T3)
 end
 
+function constraint_gp_load_curt_power(pm::AbstractPowerModel, l::Int; nw::Int=nw_id_default)
+    i   = _PM.ref(pm, nw, :load, l, "load_bus") 
+
+    pd_curt  = _PM.var(pm, nw, :pd_curt, l)
+    qd_curt  = _PM.var(pm, nw, :qd_curt, l)
+
+    T2 = _FP.dim_meta(pm, :PCE_coeff, "T2")
+    T3 = _FP.dim_meta(pm, :PCE_coeff, "T3")
+
+    constraint_gp_load_curt_power_real(pm, nw, i, l, pd_curt, T2, T3)
+    constraint_gp_load_curt_power_imaginary(pm, nw, i, l, qd_curt, T2, T3)
+end
+
 # chance constraint limit
 ## bus
 ""
@@ -225,6 +238,52 @@ function constraint_cc_gen_power(pm::AbstractPowerModel, g::Int; nw::Int=nw_id_d
     constraint_cc_gen_power_imaginary(pm, g, qmin, qmax, λqmin, λqmax, T2, mop, nw)
 end
 
+function constraint_cc_RES_curt_power(pm::AbstractPowerModel, p::Int; nw::Int=nw_id_default)
+    pmin = 0
+    λmin = 3
+    λmax = 3
+
+    RES = _PM.ref(pm, nw, :RES, p)
+    p_size = _PM.ref(pm, nw, :RES, p, "p_size")
+    σ = _PM.ref(pm, nw, :RES, p, "σ")
+    # pd  = _PM.ref(pm, nw, :RES, p, "pd")
+
+    if haskey(RES, "σ")
+        pmax = p_size * σ * 0.8 #* pd
+    else
+        pmax = p_size * 0.8 #* pd
+    end
+
+# display(pmax)
+    T2 = _FP.dim_meta(pm, :PCE_coeff, "T2")
+    mop = _FP.dim_meta(pm, :PCE_coeff, "mop")
+    
+    constraint_cc_RES_curt_power(pm, p, pmin, pmax, λmin, λmax, T2, mop, nw)
+end
+
+function constraint_cc_load_curt_power_real(pm::AbstractPowerModel, l::Int; nw::Int=nw_id_default)
+    pmin = 0
+
+    λmin = 3
+    λmax = λmin
+
+    T2 = _FP.dim_meta(pm, :PCE_coeff, "T2")
+    mop = _FP.dim_meta(pm, :PCE_coeff, "mop")
+
+    load = _PM.ref(pm, nw, :load, l)
+    load_bus = load["load_bus"]
+
+    bus = _PM.ref(pm, nw, :bus, load_bus)
+    base = _PM.ref(pm, nw, :baseMVA)
+
+    μ = bus["μ"]
+    σ = bus["σ"]
+
+    quantiles = Distributions.quantile.(Distributions.Normal(μ,σ), [1-0.99, 0.99])
+    pmax = quantiles[2] / base
+
+    constraint_cc_load_curt_power_real(pm, l, pmin, pmax, λmin, λmax, T2, mop, nw)
+end
 
 function constraint_current_balance_with_RES(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     if !haskey(_PM.con(pm, nw), :kcl_cr)
@@ -247,9 +306,19 @@ function constraint_current_balance_with_RES(pm::AbstractPowerModel, i::Int; nw:
  
      bus_gs = Dict(k => _PM.ref(pm, nw, :shunt, k, "gs") for k in bus_shunts)
      bus_bs = Dict(k => _PM.ref(pm, nw, :shunt, k, "bs") for k in bus_shunts)
- 
-     constraint_current_balance_with_RES(pm, nw, i, bus_arcs, bus_arcs_dc, bus_gens, bus_convs_ac, bus_loads, bus_gs, bus_bs, bus_RES)
- 
+
+
+
+
+    if (curt_status["Load Curtailment"] == true) && (curt_status["RES Curtailment"] == true)
+        constraint_current_balance_with_RES_curt_all(pm, nw, i, bus_arcs, bus_arcs_dc, bus_gens, bus_convs_ac, bus_loads, bus_gs, bus_bs, bus_RES)
+    elseif (curt_status["Load Curtailment"] == true) && (curt_status["RES Curtailment"] == false)
+        constraint_current_balance_with_RES_curt_load(pm, nw, i, bus_arcs, bus_arcs_dc, bus_gens, bus_convs_ac, bus_loads, bus_gs, bus_bs, bus_RES)
+    elseif (curt_status["Load Curtailment"] == false) && (curt_status["RES Curtailment"] == true)
+        constraint_current_balance_with_RES_curt_RES(pm, nw, i, bus_arcs, bus_arcs_dc, bus_gens, bus_convs_ac, bus_loads, bus_gs, bus_bs, bus_RES) 
+    elseif (curt_status["Load Curtailment"] == false) && (curt_status["RES Curtailment"] == false)
+        constraint_current_balance_with_RES(pm, nw, i, bus_arcs, bus_arcs_dc, bus_gens, bus_convs_ac, bus_loads, bus_gs, bus_bs, bus_RES)
+    end
  end
 
  function constraint_current_balance_with_RES_ac(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
@@ -482,6 +551,30 @@ function constraint_gp_RES_power(pm::AbstractPowerModel, p::Int; nw::Int=nw_id_d
 
     constraint_gp_RES_power_real(pm, nw, i, p, pd, T2, T3, p_size)
     constraint_gp_RES_power_imaginary(pm, nw, i, p, qd, T2, T3, q_size)
+end
+
+function constraint_gp_RES_curt_power(pm::AbstractPowerModel, p::Int; nw::Int=nw_id_default)
+    i   = _PM.ref(pm, nw, :RES, p, "RES_bus") 
+
+    pd  = _PM.ref(pm, nw, :RES, p, "pd")
+    qd  = _PM.ref(pm, nw, :RES, p, "qd")
+
+    # p_size= _PM.var(pm, 1, :p_size, p)
+    # q_size= _PM.var(pm, 1, :q_size, p)
+
+    p_size = _PM.ref(pm, nw, :RES, p, "p_size")
+    q_size = _PM.ref(pm, nw, :RES, p, "q_size")
+
+    # T2  = pm.data["T2"]
+    # T3  = pm.data["T3"]
+
+    T2 = _FP.dim_meta(pm, :PCE_coeff, "T2")
+    T3 = _FP.dim_meta(pm, :PCE_coeff, "T3")
+
+    # c = pm.data["curt"]
+
+    constraint_gp_RES_curt_power_real(pm, nw, i, p, pd, T2, T3, p_size)
+    constraint_gp_RES_curt_power_imaginary(pm, nw, i, p, qd, T2, T3, q_size)
 end
 
 function constraint_cc_filter_voltage_squared(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)

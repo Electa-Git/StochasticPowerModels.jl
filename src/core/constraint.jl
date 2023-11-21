@@ -116,6 +116,42 @@ function constraint_cc_gen_power_real(pm::AbstractACRModel, g, pmin, pmax, λmin
                    )
 end
 
+function constraint_cc_load_curt_power_real(pm::AbstractACRModel, l, pmin, pmax, λmin, λmax, T2, mop, nw)
+
+    pd_curt  = [_PM.var(pm, n, :pd_curt, l) for n in _FP.similar_ids(pm, nw; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff))]
+
+     # bounds on the expectation 
+     JuMP.@constraint(pm.model,  pmin <= _PCE.mean(pd_curt, mop))
+     JuMP.@constraint(pm.model,  _PCE.mean(pd_curt, mop) <= pmax)
+     # chance constraint bounds
+     JuMP.@constraint(pm.model,  _PCE.var(pd_curt, T2)
+                                 <=
+                                ((_PCE.mean(pd_curt, mop) - pmin) / λmin)^2
+                   )
+     JuMP.@constraint(pm.model,  _PCE.var(pd_curt, T2)
+                                 <=
+                                 ((pmax - _PCE.mean(pd_curt, mop)) / λmax)^2
+                   )
+end
+
+function constraint_cc_RES_curt_power(pm::AbstractACRModel, p, pmin, pmax, λmin, λmax, T2, mop, nw)
+
+    p_RES_curt  = [_PM.var(pm, n, :p_RES_curt, p) for n in _FP.similar_ids(pm, nw; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff))]
+
+     # bounds on the expectation 
+     JuMP.@constraint(pm.model,  pmin <= _PCE.mean(p_RES_curt, mop))
+     JuMP.@constraint(pm.model,  _PCE.mean(p_RES_curt, mop) <= pmax)
+     # chance constraint bounds
+     JuMP.@constraint(pm.model,  _PCE.var(p_RES_curt, T2)
+                                 <=
+                                ((_PCE.mean(p_RES_curt, mop) - pmin) / λmin)^2
+                   )
+     JuMP.@constraint(pm.model,  _PCE.var(p_RES_curt, T2)
+                                 <=
+                                 ((pmax - _PCE.mean(p_RES_curt, mop)) / λmax)^2
+                   )
+end
+
 ""
 function constraint_cc_gen_power_imaginary(pm::AbstractACRModel, g, qmin, qmax, λmin, λmax, T2, mop, nw)
     # qg  = [_PM.var(pm, nw, :qg, g) for nw in sorted_nw_ids(pm)]
@@ -156,6 +192,7 @@ function constraint_current_balance_with_RES(pm::AbstractIVRModel, n::Int, i, bu
     cid_RES = _PM.var(pm, n, :cid_RES)
     #p_size = _PM.var(pm, 1, :p_size)
 
+    
     JuMP.@constraint(pm.model,  sum(cr[a] for a in bus_arcs) + sum(iik_r[c] for c in bus_convs_ac)
                                 ==
                                 sum(crg[g] for g in bus_gens)
@@ -170,6 +207,133 @@ function constraint_current_balance_with_RES(pm::AbstractIVRModel, n::Int, i, bu
                                 sum(cig[g] for g in bus_gens)
                                 - sum(cid[d] for d in bus_loads)
                                 + sum(cid_RES[p] for p in bus_RES)
+                                - sum(gs for gs in values(bus_gs))*vi - sum(bs for bs in values(bus_bs))*vr
+                                )
+end
+
+function constraint_current_balance_with_RES_curt_load(pm::AbstractIVRModel, n::Int, i, bus_arcs, bus_arcs_dc, bus_gens, bus_convs_ac, bus_loads, bus_gs, bus_bs, bus_RES)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
+
+    cr = _PM.var(pm, n, :cr)
+    ci = _PM.var(pm, n, :ci)
+    cidc = _PM.var(pm, n, :cidc)
+
+    iik_r = _PM.var(pm, n, :iik_r)
+    iik_i = _PM.var(pm, n, :iik_i)
+
+    crd = _PM.var(pm, n, :crd)
+    cid = _PM.var(pm, n, :cid)
+    crg = _PM.var(pm, n, :crg)
+    cig = _PM.var(pm, n, :cig)
+
+    crd_RES = _PM.var(pm, n, :crd_RES)
+    cid_RES = _PM.var(pm, n, :cid_RES)
+    
+    crd_curt = _PM.var(pm, n, :crd_curt)
+    cid_curt = _PM.var(pm, n, :cid_curt)
+
+    
+    JuMP.@constraint(pm.model,  sum(cr[a] for a in bus_arcs) + sum(iik_r[c] for c in bus_convs_ac)
+                                ==
+                                sum(crg[g] for g in bus_gens)
+                                - sum(crd[d] for d in bus_loads) + sum(crd_curt[d] for d in bus_loads)
+                                + sum(crd_RES[p] for p in bus_RES)
+                                - sum(gs for gs in values(bus_gs))*vr + sum(bs for bs in values(bus_bs))*vi
+                                )
+    
+    JuMP.@constraint(pm.model,  sum(ci[a] for a in bus_arcs) + sum(iik_i[c] for c in bus_convs_ac)
+                                + sum(cidc[d] for d in bus_arcs_dc)
+                                ==
+                                sum(cig[g] for g in bus_gens)
+                                - sum(cid[d] for d in bus_loads) + sum(cid_curt[d] for d in bus_loads)
+                                + sum(cid_RES[p] for p in bus_RES)
+                                - sum(gs for gs in values(bus_gs))*vi - sum(bs for bs in values(bus_bs))*vr
+                                )
+end
+
+function constraint_current_balance_with_RES_curt_RES(pm::AbstractIVRModel, n::Int, i, bus_arcs, bus_arcs_dc, bus_gens, bus_convs_ac, bus_loads, bus_gs, bus_bs, bus_RES)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
+
+    cr = _PM.var(pm, n, :cr)
+    ci = _PM.var(pm, n, :ci)
+    cidc = _PM.var(pm, n, :cidc)
+
+    iik_r = _PM.var(pm, n, :iik_r)
+    iik_i = _PM.var(pm, n, :iik_i)
+
+    crd = _PM.var(pm, n, :crd)
+    cid = _PM.var(pm, n, :cid)
+    crg = _PM.var(pm, n, :crg)
+    cig = _PM.var(pm, n, :cig)
+
+    crd_RES = _PM.var(pm, n, :crd_RES)
+    cid_RES = _PM.var(pm, n, :cid_RES)
+    
+    crd_RES_curt = _PM.var(pm, n, :crd_RES_curt)
+    cid_RES_curt = _PM.var(pm, n, :cid_RES_curt)
+    
+
+    
+    JuMP.@constraint(pm.model,  sum(cr[a] for a in bus_arcs) + sum(iik_r[c] for c in bus_convs_ac)
+                                ==
+                                sum(crg[g] for g in bus_gens)
+                                - sum(crd[d] for d in bus_loads)
+                                + sum(crd_RES[p] for p in bus_RES) - sum(crd_RES_curt[p] for p in bus_RES)
+                                - sum(gs for gs in values(bus_gs))*vr + sum(bs for bs in values(bus_bs))*vi
+                                )
+    
+    JuMP.@constraint(pm.model,  sum(ci[a] for a in bus_arcs) + sum(iik_i[c] for c in bus_convs_ac)
+                                + sum(cidc[d] for d in bus_arcs_dc)
+                                ==
+                                sum(cig[g] for g in bus_gens)
+                                - sum(cid[d] for d in bus_loads)
+                                + sum(cid_RES[p] for p in bus_RES) - sum(cid_RES_curt[p] for p in bus_RES)
+                                - sum(gs for gs in values(bus_gs))*vi - sum(bs for bs in values(bus_bs))*vr
+                                )
+end
+
+function constraint_current_balance_with_RES_curt_all(pm::AbstractIVRModel, n::Int, i, bus_arcs, bus_arcs_dc, bus_gens, bus_convs_ac, bus_loads, bus_gs, bus_bs, bus_RES)
+    vr = _PM.var(pm, n, :vr, i)
+    vi = _PM.var(pm, n, :vi, i)
+
+    cr = _PM.var(pm, n, :cr)
+    ci = _PM.var(pm, n, :ci)
+    cidc = _PM.var(pm, n, :cidc)
+
+    iik_r = _PM.var(pm, n, :iik_r)
+    iik_i = _PM.var(pm, n, :iik_i)
+
+    crd = _PM.var(pm, n, :crd)
+    cid = _PM.var(pm, n, :cid)
+    crg = _PM.var(pm, n, :crg)
+    cig = _PM.var(pm, n, :cig)
+
+    crd_RES = _PM.var(pm, n, :crd_RES)
+    cid_RES = _PM.var(pm, n, :cid_RES)
+    
+    crd_RES_curt = _PM.var(pm, n, :crd_RES_curt)
+    cid_RES_curt = _PM.var(pm, n, :cid_RES_curt)
+    
+    crd_curt = _PM.var(pm, n, :crd_curt)
+    cid_curt = _PM.var(pm, n, :cid_curt)
+
+    
+    JuMP.@constraint(pm.model,  sum(cr[a] for a in bus_arcs) + sum(iik_r[c] for c in bus_convs_ac)
+                                ==
+                                sum(crg[g] for g in bus_gens)
+                                - sum(crd[d] for d in bus_loads) + sum(crd_curt[d] for d in bus_loads)
+                                + sum(crd_RES[p] for p in bus_RES) - sum(crd_RES_curt[p] for p in bus_RES)
+                                - sum(gs for gs in values(bus_gs))*vr + sum(bs for bs in values(bus_bs))*vi
+                                )
+    
+    JuMP.@constraint(pm.model,  sum(ci[a] for a in bus_arcs) + sum(iik_i[c] for c in bus_convs_ac)
+                                + sum(cidc[d] for d in bus_arcs_dc)
+                                ==
+                                sum(cig[g] for g in bus_gens)
+                                - sum(cid[d] for d in bus_loads) + sum(cid_curt[d] for d in bus_loads)
+                                + sum(cid_RES[p] for p in bus_RES) - sum(cid_RES_curt[p] for p in bus_RES)
                                 - sum(gs for gs in values(bus_gs))*vi - sum(bs for bs in values(bus_bs))*vr
                                 )
 end
@@ -496,12 +660,48 @@ function constraint_gp_RES_power_real(pm::AbstractIVRModel, n::Int, i, p, pd, T2
 
     coeff_idx = _FP.coord(pm, n, :PCE_coeff)
 
+    p_RES  = _PM.var(pm, n, :p_RES, p)
+
     JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * pd * p_size
                                 ==
                                 sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) *
                                 (vr[n1] * crd_RES[n2] + vi[n1] * cid_RES[n2])
                                 for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
                     )
+
+    JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * p_RES
+                                ==
+                                sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) *
+                                (vr[n1] * crd_RES[n2] + vi[n1] * cid_RES[n2])
+                                for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+                    )
+        
+end
+
+function constraint_gp_RES_curt_power_real(pm::AbstractIVRModel, n::Int, i, p, pd, T2, T3, p_size)
+        
+    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+
+    crd_RES_curt = Dict(nw => _PM.var(pm, nw, :crd_RES_curt, p) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    cid_RES_curt = Dict(nw => _PM.var(pm, nw, :cid_RES_curt, p) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+
+    coeff_idx = _FP.coord(pm, n, :PCE_coeff)
+
+    p_RES_curt  = _PM.var(pm, n, :p_RES_curt, p)
+    p_RES  = _PM.var(pm, n, :p_RES, p)
+
+    JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * p_RES_curt
+                                ==
+                                sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) *
+                                (vr[n1] * crd_RES_curt[n2] + vi[n1] * cid_RES_curt[n2])
+                                for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+                    )
+
+    # JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * p_RES_curt
+    #                             >=
+    #                             0
+    #                 )   
         
 end
 
@@ -515,11 +715,45 @@ function constraint_gp_RES_power_imaginary(pm::AbstractIVRModel, n::Int, i, p, q
 
     coeff_idx = _FP.coord(pm, n, :PCE_coeff)
 
+    q_RES  = _PM.var(pm, n, :q_RES, p)
+
     JuMP.@constraint(pm.model, T2.get([coeff_idx-1,coeff_idx-1]) * qd * q_size
                                 ==
                                 sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) *
                                 (vi[n1] * crd_RES[n2] - vr[n1] * cid_RES[n2])
                                 for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+                    )
+
+    JuMP.@constraint(pm.model, T2.get([coeff_idx-1,coeff_idx-1]) * q_RES
+                                ==
+                                sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) *
+                                (vi[n1] * crd_RES[n2] - vr[n1] * cid_RES[n2])
+                                for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+                    )
+end
+
+function constraint_gp_RES_curt_power_imaginary(pm::AbstractIVRModel, n::Int, i, p, qd, T2, T3, q_size)
+    
+    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+
+    crd_RES_curt = Dict(nw => _PM.var(pm, nw, :crd_RES_curt, p) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    cid_RES_curt = Dict(nw => _PM.var(pm, nw, :cid_RES_curt, p) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+
+    coeff_idx = _FP.coord(pm, n, :PCE_coeff)
+
+    q_RES_curt  = _PM.var(pm, n, :q_RES_curt, p)
+
+    JuMP.@constraint(pm.model, T2.get([coeff_idx-1,coeff_idx-1]) * q_RES_curt
+                                ==
+                                sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) *
+                                (vi[n1] * crd_RES_curt[n2] - vr[n1] * cid_RES_curt[n2])
+                                for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+                    )
+
+    JuMP.@constraint(pm.model, T2.get([coeff_idx-1,coeff_idx-1]) * q_RES_curt
+                                ==
+                                0
                     )
 end
 
