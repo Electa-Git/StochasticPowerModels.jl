@@ -1,5 +1,6 @@
 using Pkg
 Pkg.activate(".")
+# Pkg.instantiate()
 
 using JuMP
 using Ipopt
@@ -26,6 +27,7 @@ Memento.setlevel!(Memento.getlogger(PowerModelsACDC), "error")
 ipopt_solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer, "print_level"=>0, 
                                                                "max_iter"=>1000, 
                                                                "sb"=>"yes", 
+                                                               "tol" => 1e-4,
                                                                # "fixed_variable_treatment" => "relax_bounds",
                                                 )
 
@@ -33,13 +35,17 @@ ipopt_solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer, "print_level"=>0,
 deg  = 2
 
 #RES input
-pen_level = 0.4
+pen_level = 1.9
 
 #Case file and data reading
 case = "case5_ACDC_SPM_95cc_RES.m"
 file  = joinpath(BASE_DIR, "test/data/matpower", case)
 data = _PM.parse_file(file)
 _PMACDC.process_additional_data!(data)
+
+s = Dict("RES Curtailment" => true,
+         "Load Curtailment" => true,
+         )
 
 
 total_load = sum([data["load"]["$i"]["pd"] for i=1:length(data["load"])])
@@ -51,7 +57,7 @@ PCE_data = Dict(
       "T2" => sdata["T2"],
       "T3" => sdata["T3"],
       "T4" => sdata["T4"],
-      "mop" => sdata["mop"]
+      "mop" => sdata["mop"],
    )
 num_of_coeff = PCE_data["mop"].dim
 
@@ -62,11 +68,14 @@ delete!(sdata, "mop")
 
 _FP.add_dimension!(sdata, :PCE_coeff, num_of_coeff; metadata = PCE_data)
 
+sdata["curtailment"] = s
+
 
 println("\nPenetration Level = $pen_level")
 println("   Solution progress: Solving...")
 result_spm = _SPM.solve_sopf_iv_acdc(sdata, _PM.IVRPowerModel, ipopt_solver, deg=deg, p_size=p_size);
 println("   Solution progress: Solved! (", string(result_spm["primal_status"]), ")")
+
 
 
 # Show results on the terminal
@@ -77,3 +86,25 @@ print(result_spm["objective"])
 print("\nSolve Time: ")
 print(result_spm["solve_time"])
 
+bus = 3
+
+sample1 = _SPM.sample(result_spm, "load", bus, "pd_curt"; sample_size=100000); 
+sample2 = _SPM.sample(result_spm, "RES", bus, "p_RES_curt"; sample_size=100000); 
+
+
+Plots.histogram(sample1)
+# Plots.histogram!(sample2)
+
+Plots.histogram(sample2)
+Plots.histogram!(sample1)
+
+
+
+# for x in sample1
+#    if x>0 && x<1e-2
+#       print("\n$x")
+#    end
+# end
+
+minimum(sample1)
+minimum(sample2)

@@ -29,9 +29,6 @@ end
 
 ""
 function build_sopf_iv_acdc(pm::AbstractPowerModel)
-
-    global curt_status = pm.data["curtailment"]
-    
     for (n, network) in _PM.nws(pm) 
         
         if _FP.is_first_id(pm,n,:PCE_coeff)
@@ -60,23 +57,6 @@ function build_sopf_iv_acdc(pm::AbstractPowerModel)
         variable_dc_converter_squared(pm, nw=n, bounded=bounded)
 
         variable_RES_current(pm, nw=n)
-        variable_RES_power(pm, nw=n, bounded=bounded)
-
-        # curtailment variables
-
-        if curt_status["Load Curtailment"] == true
-            
-            variable_load_curt_current(pm, nw=n, bounded=bounded)        
-            variable_load_curt_power(pm, nw=n, bounded=bounded)
-
-        end
-
-        if curt_status["RES Curtailment"] == true
-            
-            variable_RES_curt_current(pm, nw=n, bounded=bounded)
-            variable_RES_curt_power(pm, nw=n, bounded=bounded)
-
-        end
 
     end
     
@@ -87,7 +67,7 @@ function build_sopf_iv_acdc(pm::AbstractPowerModel)
         end
     
         for i in _PM.ids(pm, :bus, nw=n)
-            constraint_current_balance_with_RES(pm, i, nw=n)
+            constraint_current_balance_with_RES(pm, i, nw=n) 
             constraint_gp_bus_voltage_magnitude_squared(pm, i, nw=n) 
         end
     
@@ -102,10 +82,6 @@ function build_sopf_iv_acdc(pm::AbstractPowerModel)
     
         for l in _PM.ids(pm, :load, nw=n)
             constraint_gp_load_power(pm, l, nw=n) 
-
-            if curt_status["Load Curtailment"] == true
-                constraint_gp_load_curt_power(pm, l, nw=n)
-            end
         end
     
     
@@ -143,11 +119,7 @@ function build_sopf_iv_acdc(pm::AbstractPowerModel)
         end
     
         for p in _PM.ids(pm, :RES, nw=n)
-            constraint_gp_RES_power(pm, p, nw=n)
-            
-            if curt_status["RES Curtailment"] == true 
-                constraint_gp_RES_curt_power(pm, p, nw=n) 
-            end
+            constraint_gp_RES_power(pm, p, nw=n) 
     
         end
     
@@ -166,12 +138,6 @@ function build_sopf_iv_acdc(pm::AbstractPowerModel)
         
             for g in _PM.ids(pm, :gen, nw=n)
                 constraint_cc_gen_power(pm, g, nw=n) 
-            end
-
-            for l in _PM.ids(pm, :load, nw=n)
-                if curt_status["Load Curtailment"] == true
-                    constraint_cc_load_curt_power_real(pm, l, nw=n)
-                end
             end
         
             for i in _PM.ids(pm, :busdc, nw=n)
@@ -201,12 +167,6 @@ function build_sopf_iv_acdc(pm::AbstractPowerModel)
                 constraint_cc_reactor_current_from_squared(pm, i, nw=n) 
                 constraint_cc_reactor_current_to_squared(pm, i, nw=n) 
         
-            end
-
-            for p in _PM.ids(pm, :RES, nw=n)
-                if curt_status["RES Curtailment"] == true
-                    constraint_cc_RES_curt_power(pm, p, nw=n)
-                end
             end
     
         end
