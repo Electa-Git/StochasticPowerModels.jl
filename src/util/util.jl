@@ -75,7 +75,7 @@ function build_stochastic_data_ACDC_RES(data::Dict{String,Any}, deg::Int, p_size
     # add maximum current
     for (nb, branch) in data["branch"]
         f_bus = branch["f_bus"]
-        branch["cmax"] = branch["rate_a"] / data["bus"]["$f_bus"]["vmin"]
+        branch["cmax"] = branch["rate_a"] #/ data["bus"]["$f_bus"]["vmin"]
     end
 
     # build mop
@@ -114,8 +114,12 @@ function build_stochastic_data_ACDC_RES(data::Dict{String,Any}, deg::Int, p_size
     #data["sdata"]= s_dict 
 
     # data["RES"]=deepcopy(data["load"]); #this is temporary. Fix it to add PV in matpower format
+    # [data["RES"][d]["μ"] = 0.8336 * 27.9230 for d in   keys(data["RES"])]
+    # # [data["RES"][d]["σ"] = 0.09 for d in   keys(data["RES"])]
+    # [data["RES"][d]["σ"] = 0.8336 * 27.9230 * 0.1079 for d in   keys(data["RES"])]
+    
     [data["RES"][d]["μ"]=0 for d in   keys(data["RES"])]
-    [data["RES"][d]["σ"]=1 for d in   keys(data["RES"])]
+    [data["RES"][d]["σ"]=1 for d in   keys(data["RES"])] # μ, σ parameters are support of Beta (a, b) not (α, β)
     [data["RES"][d]["p_size"] = p_size for d in keys(data["RES"])]
     [data["RES"][d]["q_size"] = p_size for d in keys(data["RES"])]   
     [data["RES"][d]["qd"] = 0 for d in keys(data["RES"])]
@@ -138,8 +142,8 @@ function build_stochastic_data_ACDC_RES(data::Dict{String,Any}, deg::Int, p_size
                 pd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g])
                 qd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g])
             else
-                pd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g])
-                qd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g])
+                pd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g]) #Beta parameters without 'kind="μσ"'
+                qd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g]) # μ, σ parameters are support of Beta (a, b) not (α, β)
             end
        
     end
