@@ -6,6 +6,11 @@
 # See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
 ################################################################################
 
+""
+function objective_load_flow(pm::_PM.AbstractPowerModel; kwargs...)
+    JuMP.@objective(pm.model, Min, 0.0)
+end
+
 "expected cost of active power generation"
 function objective_min_expected_generation_cost(pm::AbstractPowerModel; kwargs...)
     gen_cost = Dict()

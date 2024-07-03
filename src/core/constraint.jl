@@ -8,15 +8,24 @@
 
 # general constraints
 ## bus
+# ""
+# function constraint_bus_voltage_ref(pm::AbstractACRModel, n::Int, i::Int)
+#     vr = _PM.var(pm, n, :vr, i)
+#     vi = _PM.var(pm, n, :vi, i)
+
+#     vn = ifelse(n == 1, 1.0, 0.0)
+
+#     JuMP.@constraint(pm.model, vr == vn)
+#     JuMP.@constraint(pm.model, vi == 0.0)
+# end
+
 ""
-function constraint_bus_voltage_ref(pm::AbstractACRModel, n::Int, i::Int)
+function constraint_bus_voltage_ref(pm::AbstractIVRModel, n::Int, i::Int, vr_ref, vi_ref)
     vr = _PM.var(pm, n, :vr, i)
     vi = _PM.var(pm, n, :vi, i)
 
-    vn = ifelse(n == 1, 1.0, 0.0)
-
-    JuMP.@constraint(pm.model, vr == vn)
-    JuMP.@constraint(pm.model, vi == 0.0)
+    JuMP.@constraint(pm.model, vr == vr_ref)
+    JuMP.@constraint(pm.model, vi == vi_ref)
 end
 
 # galerkin projection constraints

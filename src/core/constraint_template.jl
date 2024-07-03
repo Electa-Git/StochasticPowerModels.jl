@@ -8,9 +8,17 @@
 
 # general constraints
 ## reference
+# ""
+# function constraint_bus_voltage_ref(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+#     constraint_bus_voltage_ref(pm, nw, i)
+# end
+
 ""
-function constraint_bus_voltage_ref(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
-    constraint_bus_voltage_ref(pm, nw, i)
+function constraint_bus_voltage_ref(pm::AbstractIVRModel, i::Int; nw::Int=nw_id_default)
+    vr_ref = _PM.ref(pm, nw, :bus, i, "vr_ref")
+    vi_ref = _PM.ref(pm, nw, :bus, i, "vi_ref")
+
+    constraint_bus_voltage_ref(pm, nw, i, vr_ref, vi_ref)
 end
 
 ## bus

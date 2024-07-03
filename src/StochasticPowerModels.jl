@@ -58,6 +58,7 @@ module StochasticPowerModels
     include("prob/sopf_acr.jl")
     include("prob/sopf_iv.jl")
     include("prob/sopf_iv_acdc.jl")
+    include("prob/spf_iv.jl")
 
     include("util/data.jl")
     include("util/util.jl")
@@ -65,7 +66,7 @@ module StochasticPowerModels
     # export
     export BASE_DIR
 
-    export solve_sopf_iv, solve_sopf_acr
+    export solve_sopf_iv, solve_sopf_acr, solve_spf_iv
 
     export build_stochastic_data
     export extend_matlab_file
