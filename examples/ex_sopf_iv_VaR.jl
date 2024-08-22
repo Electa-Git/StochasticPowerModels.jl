@@ -11,6 +11,8 @@ using StochasticPowerModels
 using PowerModelsACDC
 using FlexPlan
 
+# using HSL_jll
+
 
 #Constants
 const _PM = PowerModels
@@ -25,9 +27,11 @@ Memento.setlevel!(Memento.getlogger(PowerModelsACDC), "error")
 
 #Solver inputs
 ipopt_solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer, "print_level"=>0, 
-                                                               "max_iter"=>2000, 
+                                                               "max_iter"=>1000, 
                                                                "sb"=>"yes", 
-                                                               "tol" => 1e-6,
+                                                               "tol" => 1e-4,
+                                                               # "hsllib" => HSL_jll.libhsl_path,
+                                                               # "linear_solver" => "ma27",
                                                                # "fixed_variable_treatment" => "relax_bounds",
                                                 )
 
@@ -38,7 +42,7 @@ deg  = 2
 pen_level = 0.4
 
 #Case file and data reading
-case = "case5_ACDC_SPM_95cc_cost.m"
+case = "case5_ACDC_SPM_95cc.m"
 file  = joinpath(BASE_DIR, "test/data/matpower", case)
 data = _PM.parse_file(file)
 _PMACDC.process_additional_data!(data)

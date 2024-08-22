@@ -42,7 +42,7 @@ deg  = 2
 pen_level = 0.3
 
 #Case file and data reading
-case = "case5_ACDC_mod_SPMACDC_95cc.m"
+case = "case5_ACDC_SPM_95cc.m"
 file  = joinpath(BASE_DIR, "test/data/matpower", case)
 data = _PM.parse_file(file)
 _PMACDC.process_additional_data!(data)
