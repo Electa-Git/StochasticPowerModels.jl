@@ -15,9 +15,9 @@ For additional background on the approach, please read our [PSCC paper](https://
 
 ## Core Problem Specification
 
-* Stochastic Optimal Power Flow for AC and AC/DC grids with RES
-* Risk-based Stochastic Optimal Power Flow for AC and AC/DC grids with RES
-* Stochastic Optimal Transmission Switching for AC and AC/DC grids with RES
+* Stochastic Optimal Power Flow (SOPF) for AC and AC/DC grids with RES
+* Risk-based SOPF for AC and AC/DC grids with RES
+* Stochastic Optimal Transmission Switching (SOTS) for AC and AC/DC grids with RES
 
 ## Core Network Formulation
 
