@@ -1,3 +1,11 @@
+###################################################################################
+#  Copyright 2024, Kaan Yurtseven                                                 #
+###################################################################################
+# StochasticPowerModels.jl                                                        #
+# An extention package of PowerModels.jl for Stochastic Power System Optimization #
+# See http://github.com/Electa-Git/StochasticPowerModels.jl                       #
+###################################################################################
+
 function add_ref_RES!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
     for (n, nw_ref) in ref[:it][:pm][:nw]
         if haskey(nw_ref, :RES)
@@ -12,3 +20,4 @@ function add_ref_RES!(ref::Dict{Symbol,<:Any}, data::Dict{String,<:Any})
         end
     end
 end
+

@@ -1,11 +1,10 @@
-################################################################################
-#  Copyright 2020, Tom Van Acker                                               #
-################################################################################
-# StochasticPowerModels.jl                                                     #
-# An extention package of PowerModels(Distribution).jl for Stochastic (Optimal)#
-# Power Flow                                                                   #
-# See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
-################################################################################
+###################################################################################
+#  Copyright 2024, Kaan Yurtseven                                                 #
+###################################################################################
+# StochasticPowerModels.jl                                                        #
+# An extention package of PowerModels.jl for Stochastic Power System Optimization #
+# See http://github.com/Electa-Git/StochasticPowerModels.jl                       #
+###################################################################################
 
 module StochasticPowerModels
 
@@ -19,7 +18,7 @@ module StochasticPowerModels
     import PowerModels
     import PowerModelsACDC
     import Random, Distributions
-
+    import FlexPlan
     # import types
     import PowerModels: AbstractPowerModel, AbstractACRModel, AbstractIVRModel
 
@@ -30,6 +29,7 @@ module StochasticPowerModels
     const _PM = PowerModels
     const _SPM = StochasticPowerModels
     const _PMACDC = PowerModelsACDC
+    const _FP = FlexPlan
 
     # memento logger
     function __init__()
@@ -61,6 +61,10 @@ module StochasticPowerModels
 
     include("util/data.jl")
     include("util/util.jl")
+
+    include("prob/sots_iv_acdc.jl")
+    include("prob/sopf_iv_acdc_VaR.jl")
+
 
     # export
     export BASE_DIR

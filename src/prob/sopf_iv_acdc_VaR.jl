@@ -15,12 +15,12 @@
 # end
 
 ""
-function solve_sopf_iv_acdc(data::Dict, model_constructor, optimizer; deg::Int=1, p_size=0, solution_processors=[sol_data_model!], kwargs...)
+function solve_sopf_iv_acdc_VaR(data::Dict, model_constructor, optimizer; deg::Int=1, p_size=0, solution_processors=[sol_data_model!], kwargs...)
     # @assert _IM.ismultinetwork(data) == false "The data supplied is multinetwork, it should be single-network"
     @assert model_constructor <: _PM.AbstractIVRModel "This problem type only supports the IVRModel"
     
     # sdata = build_stochastic_data_ACDC_RES(data, deg, p_size)
-    result = _PM.solve_model(data, model_constructor, optimizer, build_sopf_iv_acdc; multinetwork=true, ref_extensions = [_PMACDC.add_ref_dcgrid!, _SPM.add_ref_RES!], solution_processors=solution_processors, kwargs...)
+    result = _PM.solve_model(data, model_constructor, optimizer, build_sopf_iv_acdc_VaR; multinetwork=true, ref_extensions = [_PMACDC.add_ref_dcgrid!, _SPM.add_ref_RES!], solution_processors=solution_processors, kwargs...)
     result["mop"] = _FP.dim_meta(data, :PCE_coeff, "mop")
     
     return result
@@ -28,7 +28,7 @@ end
 
 
 ""
-function build_sopf_iv_acdc(pm::AbstractPowerModel)
+function build_sopf_iv_acdc_VaR(pm::AbstractPowerModel)
 
     global curt_status = pm.data["curtailment"]
     
@@ -214,7 +214,7 @@ function build_sopf_iv_acdc(pm::AbstractPowerModel)
     end
 
     
-    objective_min_expected_generation_cost_dim(pm)
+    objective_min_expected_generation_cost_dim_VaR(pm)
 
 end
 

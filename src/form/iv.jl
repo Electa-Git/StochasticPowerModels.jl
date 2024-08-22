@@ -1,10 +1,10 @@
-################################################################################
-#  Copyright 2021, Tom Van Acker, Frederik Geth                                #
-################################################################################
-# StochasticPowerModels.jl                                                     #
-# An extention package of PowerModels.jl for Stochastic (Optimal) Power Flow   #
-# See http://github.com/timmyfaraday/StochasticPowerModels.jl                  #
-################################################################################
+###################################################################################
+#  Copyright 2024, Kaan Yurtseven                                                 #
+###################################################################################
+# StochasticPowerModels.jl                                                        #
+# An extention package of PowerModels.jl for Stochastic Power System Optimization #
+# See http://github.com/Electa-Git/StochasticPowerModels.jl                       #
+###################################################################################
 
 # variable
 ## branch 
@@ -15,6 +15,16 @@ function variable_branch_current(pm::AbstractIVRModel; nw::Int=nw_id_default, bo
 
     expression_variable_branch_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     expression_variable_branch_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    
+    variable_branch_series_current_magnitude_squared(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+end
+
+function variable_branch_current_on_off(pm::AbstractIVRModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true, kwargs...)
+    _PM.variable_branch_series_current_real(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    _PM.variable_branch_series_current_imaginary(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+
+    expression_variable_branch_current_real_on_off(pm, nw=nw, bounded=bounded, report=report; kwargs...)
+    expression_variable_branch_current_imaginary_on_off(pm, nw=nw, bounded=bounded, report=report; kwargs...)
     
     variable_branch_series_current_magnitude_squared(pm, nw=nw, bounded=bounded, report=report; kwargs...)
 end
@@ -65,7 +75,88 @@ function expression_variable_branch_current_real(pm::AbstractPowerModel; nw::Int
 
     report && _IM.sol_component_value_edge(pm, _PM.pm_it_sym, nw, :branch, :cr_fr, :cr_to, _PM.ref(pm, nw, :arcs_from), _PM.ref(pm, nw, :arcs_to), cr)
 end
+
+function expression_variable_branch_current_real_on_off(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    cr = _PM.var(pm, nw)[:cr] = Dict()
+
+    bus = _PM.ref(pm, nw, :bus)
+    branch = _PM.ref(pm, nw, :branch)
+
+    for (l,i,j) in _PM.ref(pm, nw, :arcs_from)
+        b = branch[l]
+        tm = b["tap"]
+        tr, ti = _PM.calc_branch_t(b)
+        g_sh_fr, b_sh_fr = b["g_fr"], b["b_fr"]
+        g_sh_to, b_sh_to = b["g_to"], b["b_to"]
+
+        vr_fr = _PM.var(pm, nw, :vr, i)
+        vi_fr = _PM.var(pm, nw, :vi, i)
+    
+        vr_to = _PM.var(pm, nw, :vr, j)
+        vi_to = _PM.var(pm, nw, :vi, j)
+    
+        csr_fr = _PM.var(pm, nw, :csr, l)
+        csi_fr = _PM.var(pm, nw, :csi, l)
+
+        z_branch = _PM.var(pm, _FP.first_id(pm,nw,:PCE_coeff), :z_branch, l)
+
+        cr[(l,i,j)] = z_branch * ((tr * csr_fr - ti * csi_fr + g_sh_fr * vr_fr - b_sh_fr * vi_fr)) / tm^2
+        cr[(l,j,i)] = z_branch * (-csr_fr + g_sh_to * vr_to - b_sh_to * vi_to)
+
+    end
+
+    report && _IM.sol_component_value_edge(pm, _PM.pm_it_sym, nw, :branch, :cr_fr, :cr_to, _PM.ref(pm, nw, :arcs_from), _PM.ref(pm, nw, :arcs_to), cr)
+end
 "variable: `ci[l,i,j]` for `(l,i,j)` in `arcs`"
+function expression_variable_branch_current_imaginary_on_off(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
+    ci = _PM.var(pm, nw)[:ci] = Dict()
+
+    bus = _PM.ref(pm, nw, :bus)
+    branch = _PM.ref(pm, nw, :branch)
+
+    for (l,i,j) in _PM.ref(pm, nw, :arcs_from)
+        b = branch[l]
+        tm = b["tap"]
+        tr, ti = _PM.calc_branch_t(b)
+        g_sh_fr, b_sh_fr = b["g_fr"], b["b_fr"]
+        g_sh_to, b_sh_to = b["g_to"], b["b_to"]
+
+        vr_fr = _PM.var(pm, nw, :vr, i)
+        vi_fr = _PM.var(pm, nw, :vi, i)
+    
+        vr_to = _PM.var(pm, nw, :vr, j)
+        vi_to = _PM.var(pm, nw, :vi, j)
+    
+        csr_fr = _PM.var(pm, nw, :csr, l)
+        csi_fr = _PM.var(pm, nw, :csi, l)
+        
+        z_branch = _PM.var(pm, _FP.first_id(pm,nw,:PCE_coeff), :z_branch, l)
+
+        ci[(l,i,j)] = z_branch * ((tr * csi_fr + ti * csr_fr + g_sh_fr * vi_fr + b_sh_fr * vr_fr)) / tm^2
+        ci[(l,j,i)] = z_branch * (-csi_fr + g_sh_to * vi_to + b_sh_to * vr_to)
+
+        # ub = Inf
+        # if haskey(b, "rate_a")
+        #     rate_fr = b["rate_a"]*b["tap"]
+        #     rate_to = b["rate_a"]
+        #     ub = max(rate_fr/bus[i]["vmin"], rate_to/bus[j]["vmin"])
+        # end
+        # if haskey(b, "c_rating_a")
+        #     ub = b["c_rating_a"]
+        # end
+
+        # if !isinf(ub)
+        #     JuMP.@constraint(pm.model, ci[(l,i,j)] >= -ub)
+        #     JuMP.@constraint(pm.model, ci[(l,i,j)] <= ub)
+
+        #     JuMP.@constraint(pm.model, ci[(l,j,i)] >= -ub)
+        #     JuMP.@constraint(pm.model, ci[(l,j,i)] <= ub)
+        # end
+    end
+
+    report && _IM.sol_component_value_edge(pm, _PM.pm_it_sym, nw, :branch, :ci_fr, :ci_to, _PM.ref(pm, nw, :arcs_from), _PM.ref(pm, nw, :arcs_to), ci)
+end
+
 function expression_variable_branch_current_imaginary(pm::AbstractPowerModel; nw::Int=nw_id_default, bounded::Bool=true, report::Bool=true)
     ci = _PM.var(pm, nw)[:ci] = Dict()
 
@@ -90,24 +181,6 @@ function expression_variable_branch_current_imaginary(pm::AbstractPowerModel; nw
 
         ci[(l,i,j)] = (tr * csi_fr + ti * csr_fr + g_sh_fr * vi_fr + b_sh_fr * vr_fr) / tm^2
         ci[(l,j,i)] = -csi_fr + g_sh_to * vi_to + b_sh_to * vr_to
-
-        # ub = Inf
-        # if haskey(b, "rate_a")
-        #     rate_fr = b["rate_a"]*b["tap"]
-        #     rate_to = b["rate_a"]
-        #     ub = max(rate_fr/bus[i]["vmin"], rate_to/bus[j]["vmin"])
-        # end
-        # if haskey(b, "c_rating_a")
-        #     ub = b["c_rating_a"]
-        # end
-
-        # if !isinf(ub)
-        #     JuMP.@constraint(pm.model, ci[(l,i,j)] >= -ub)
-        #     JuMP.@constraint(pm.model, ci[(l,i,j)] <= ub)
-
-        #     JuMP.@constraint(pm.model, ci[(l,j,i)] >= -ub)
-        #     JuMP.@constraint(pm.model, ci[(l,j,i)] <= ub)
-        # end
     end
 
     report && _IM.sol_component_value_edge(pm, _PM.pm_it_sym, nw, :branch, :ci_fr, :ci_to, _PM.ref(pm, nw, :arcs_from), _PM.ref(pm, nw, :arcs_to), ci)
@@ -180,82 +253,202 @@ end
 ""
 function constraint_gp_branch_series_current_magnitude_squared(pm::AbstractIVRModel, n::Int, i, T2, T3)
     cmss  = _PM.var(pm, n, :cmss, i)
-    csr = Dict(nw => _PM.var(pm, nw, :csr, i) for nw in _PM.nw_ids(pm))
-    csi = Dict(nw => _PM.var(pm, nw, :csi, i) for nw in _PM.nw_ids(pm))
+    csr = Dict(nw => _PM.var(pm, nw, :csr, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    csi = Dict(nw => _PM.var(pm, nw, :csi, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
 
-    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * cmss
+    coeff_idx = _FP.coord(pm, n, :PCE_coeff)
+
+    JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * cmss
                                 ==
-                                sum(T3.get([n1-1,n2-1,n-1]) * 
+                                sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) * 
                                     (csr[n1] * csr[n2] + csi[n1] * csi[n2]) 
-                                    for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
+                                    for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+                    )
+end
+
+function constraint_gp_branch_series_current_magnitude_squared_contingency(pm::AbstractIVRModel, n::Int, i, T2, T3)
+    cmss  = _PM.var(pm, n, :cmss, i)
+    csr  = _PM.var(pm, n, :csr, i)
+    csi  = _PM.var(pm, n, :csi, i)
+
+
+    coeff_idx = _FP.coord(pm, n, :PCE_coeff)
+
+    JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * cmss
+                                ==
+                                sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) * 
+                                    (csr[n1] * csr[n2] + csi[n1] * csi[n2]) 
+                                    for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+                    )
+
+    JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * csr
+                                ==
+                                0
+                    )
+
+    JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * csi
+                                ==
+                                0
                     )
 end
 
 ## generator
 ""
 function constraint_gp_gen_power_real(pm::AbstractIVRModel, n::Int, i, g, T2, T3)
-    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _PM.nw_ids(pm))
-    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _PM.nw_ids(pm))
+    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
     
-    crg = Dict(nw => _PM.var(pm, nw, :crg, g) for nw in _PM.nw_ids(pm))
-    cig = Dict(nw => _PM.var(pm, nw, :cig, g) for nw in _PM.nw_ids(pm))
+    crg = Dict(nw => _PM.var(pm, nw, :crg, g) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    cig = Dict(nw => _PM.var(pm, nw, :cig, g) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
 
     pg  = _PM.var(pm, n, :pg, g)
+
+    coeff_idx = _FP.coord(pm, n, :PCE_coeff)
     
-    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * pg
+    JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * pg
                                 ==
-                                sum(T3.get([n1-1,n2-1,n-1]) * 
-                                    (vr[n1] * crg[n2] + vi[n1] * cig[n2])
-                                    for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
+                                sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) * 
+                                (vr[n1] * crg[n2] + vi[n1] * cig[n2])
+                                for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
                     )
+end
+
+function constraint_gp_gen_power_real_redispatch(pm::AbstractIVRModel, n::Int, i, g, T2, T3)
+
+    pg  = _PM.var(pm, n, :pg, g)
+
+    coeff_idx = _FP.coord(pm, n, :PCE_coeff)
+
+    pg_base = _PM.var(pm, coeff_idx, :pg, g)
+
+    relax_param = 0.01
+    
+    # JuMP.@constraint(pm.model,  pg == pg_base)
+
+    JuMP.@constraint(pm.model,  pg >= pg_base * (1 - relax_param))
+    JuMP.@constraint(pm.model,  pg <= pg_base * (1 + relax_param))
+
+
+
+                    
+end
+
+function constraint_gen_redispatch(pm::AbstractIVRModel, g::Int; nw::Int=nw_id_default)
+    # display(nw)
+    pg  = _PM.var(pm, nw, :pg, g)
+    re_pg  = _PM.var(pm, nw, :re_pg, g)
+
+    coeff_idx = _FP.coord(pm, nw, :PCE_coeff)
+
+    pg_base = _PM.var(pm, coeff_idx, :pg, g)
+
+    JuMP.@constraint(pm.model, re_pg >= pg - pg_base) 
+    
+end
+
+function constraint_voltage_square_redispatch(pm::AbstractIVRModel, i::Int; nw::Int=nw_id_default)
+    # display(nw)
+    vms  = _PM.var(pm, nw, :vms, i)
+    
+    coeff_idx = _FP.coord(pm, nw, :PCE_coeff)
+
+    vms_base = _PM.var(pm, coeff_idx, :vms, i)
+
+
+    JuMP.@constraint(pm.model, vms == vms_base) 
+    
 end
 ""
 function constraint_gp_gen_power_imaginary(pm::AbstractIVRModel, n::Int, i, g, T2, T3)
-    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _PM.nw_ids(pm))
-    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _PM.nw_ids(pm))
+    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
     
-    crg = Dict(nw => _PM.var(pm, nw, :crg, g) for nw in _PM.nw_ids(pm))
-    cig = Dict(nw => _PM.var(pm, nw, :cig, g) for nw in _PM.nw_ids(pm))
+    crg = Dict(nw => _PM.var(pm, nw, :crg, g) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    cig = Dict(nw => _PM.var(pm, nw, :cig, g) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
 
     qg  = _PM.var(pm, n, :qg, g)
+
+    coeff_idx = _FP.coord(pm, n, :PCE_coeff)
     
-    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * qg
+    JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * qg
                                 ==
-                                sum(T3.get([n1-1,n2-1,n-1]) *
-                                    (vi[n1] * crg[n2] - vr[n1] * cig[n2])
-                                    for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
+                                sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) *
+                                (vi[n1] * crg[n2] - vr[n1] * cig[n2])
+                                for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
                     )
 end
 
 ## load
 ""
 function constraint_gp_load_power_real(pm::AbstractIVRModel, n::Int, i, l, pd, T2, T3)
-    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _PM.nw_ids(pm))
-    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _PM.nw_ids(pm))
+    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
 
-    crd = Dict(nw => _PM.var(pm, nw, :crd, l) for nw in _PM.nw_ids(pm))
-    cid = Dict(nw => _PM.var(pm, nw, :cid, l) for nw in _PM.nw_ids(pm))
+    crd = Dict(nw => _PM.var(pm, nw, :crd, l) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    cid = Dict(nw => _PM.var(pm, nw, :cid, l) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
 
-    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * pd
+    coeff_idx = _FP.coord(pm, n, :PCE_coeff)
+
+    JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * pd
                                 ==
-                                sum(T3.get([n1-1,n2-1,n-1]) *
-                                    (vr[n1] * crd[n2] + vi[n1] * cid[n2])
-                                    for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
+                                sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) *
+                                (vr[n1] * crd[n2] + vi[n1] * cid[n2])
+                                for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+                    )
+end
+
+function constraint_gp_load_curt_power_real(pm::AbstractIVRModel, n::Int, i, l, pd_curt, T2, T3)
+    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+
+    crd_curt = Dict(nw => _PM.var(pm, nw, :crd_curt, l) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    cid_curt = Dict(nw => _PM.var(pm, nw, :cid_curt, l) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+
+    coeff_idx = _FP.coord(pm, n, :PCE_coeff)
+
+    JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * pd_curt
+                                ==
+                                sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) *
+                                (vr[n1] * crd_curt[n2] + vi[n1] * cid_curt[n2])
+                                for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
                     )
 end
 ""
 function constraint_gp_load_power_imaginary(pm::AbstractIVRModel, n::Int, i, l, qd, T2, T3)
-    vr  = Dict(n => _PM.var(pm, n, :vr, i) for n in _PM.nw_ids(pm))
-    vi  = Dict(n => _PM.var(pm, n, :vi, i) for n in _PM.nw_ids(pm))
+    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
 
-    crd = Dict(n => _PM.var(pm, n, :crd, l) for n in _PM.nw_ids(pm))
-    cid = Dict(n => _PM.var(pm, n, :cid, l) for n in _PM.nw_ids(pm))
+    crd = Dict(nw => _PM.var(pm, nw, :crd, l) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    cid = Dict(nw => _PM.var(pm, nw, :cid, l) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
 
-    JuMP.@constraint(pm.model,  T2.get([n-1,n-1]) * qd
+    coeff_idx = _FP.coord(pm, n, :PCE_coeff)
+
+    JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * qd
                                 ==
-                                sum(T3.get([n1-1,n2-1,n-1]) *
-                                    (vi[n1] * crd[n2] - vr[n1] * cid[n2])
-                                    for n1 in _PM.nw_ids(pm), n2 in _PM.nw_ids(pm))
+                                sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) *
+                                (vi[n1] * crd[n2] - vr[n1] * cid[n2])
+                                for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+                    )
+end
+
+function constraint_gp_load_curt_power_imaginary(pm::AbstractIVRModel, n::Int, i, l, qd_curt, T2, T3)
+    vr  = Dict(nw => _PM.var(pm, nw, :vr, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    vi  = Dict(nw => _PM.var(pm, nw, :vi, i) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+
+    crd_curt = Dict(nw => _PM.var(pm, nw, :crd_curt, l) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+    cid_curt = Dict(nw => _PM.var(pm, nw, :cid_curt, l) for nw in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+
+    coeff_idx = _FP.coord(pm, n, :PCE_coeff)
+
+    JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * qd_curt
+                                ==
+                                sum(T3.get([_FP.coord(pm, n1, :PCE_coeff)-1, _FP.coord(pm, n2, :PCE_coeff)-1, coeff_idx-1]) *
+                                (vi[n1] * crd_curt[n2] - vr[n1] * cid_curt[n2])
+                                for n1 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)), n2 in _FP.similar_ids(pm, n; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff)))
+                    )
+    JuMP.@constraint(pm.model,  T2.get([coeff_idx-1,coeff_idx-1]) * qd_curt
+                                == 
+                                0                                
                     )
 end
 

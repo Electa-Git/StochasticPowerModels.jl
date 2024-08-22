@@ -1,3 +1,11 @@
+###################################################################################
+#  Copyright 2024, Kaan Yurtseven                                                 #
+###################################################################################
+# StochasticPowerModels.jl                                                        #
+# An extention package of PowerModels.jl for Stochastic Power System Optimization #
+# See http://github.com/Electa-Git/StochasticPowerModels.jl                       #
+###################################################################################
+
 """
     StochasticPowerModels.extend_matlab_file(path::String)
 """
@@ -141,37 +149,37 @@ function extend_matlab_file_AC(path::String)
 
     # end
 
-    for (b,bus) in data["bus"]
-
-        if parse(Int,b) in 1:67
-            
-            bus["dst_id"]   = 1
-            bus["μ"]        = μ[parse(Int,b)]
-            bus["σ"]        = σ[parse(Int,b)]
-            bus["λvmin"]    = λ_val
-            bus["λvmax"]    = λ_val
-        
-        else
-            bus["dst_id"]   = 0
-            bus["μ"]        = μ[parse(Int,b)]
-            bus["σ"]        = σ[parse(Int,b)]
-            bus["λvmin"]    = λ_val
-            bus["λvmax"]    = λ_val
-        end
-
-    end
-    
-    
     # for (b,bus) in data["bus"]
 
-    #     bus["dst_id"]   = 1
-    #     bus["μ"]        = μ[parse(Int,b)]
-    #     bus["σ"]        = σ[parse(Int,b)]
-    #     bus["λvmin"]    = λ_val
-    #     bus["λvmax"]    = λ_val
-
+    #     if parse(Int,b) in 1:67
+            
+    #         bus["dst_id"]   = 1
+    #         bus["μ"]        = μ[parse(Int,b)]
+    #         bus["σ"]        = σ[parse(Int,b)]
+    #         bus["λvmin"]    = λ_val
+    #         bus["λvmax"]    = λ_val
+        
+    #     else
+    #         bus["dst_id"]   = 0
+    #         bus["μ"]        = μ[parse(Int,b)]
+    #         bus["σ"]        = σ[parse(Int,b)]
+    #         bus["λvmin"]    = λ_val
+    #         bus["λvmax"]    = λ_val
+    #     end
 
     # end
+    
+    
+    for (b,bus) in data["bus"]
+
+        bus["dst_id"]   = 1
+        bus["μ"]        = μ[parse(Int,b)]
+        bus["σ"]        = σ[parse(Int,b)]
+        bus["λvmin"]    = λ_val
+        bus["λvmax"]    = λ_val
+
+
+    end
     
     # generator data
     for (g,gen) in data["gen"]
@@ -187,7 +195,7 @@ function extend_matlab_file_AC(path::String)
     end
 
     # export file
-    _PM.export_file(path[1:end-2] * "_SPM_$(round(Int,(100*α)))" * "cc_alpha.m", data)
+    _PM.export_file(path[1:end-2] * "_SPM_$(round(Int,(100*α)))" * "cc.m", data)
 end
 
 function extend_matlab_file_ACDC(path::String)
@@ -234,33 +242,33 @@ function extend_matlab_file_ACDC(path::String)
     #     end
     # end
     
-    for (b,bus) in data["bus"]
+    # for (b,bus) in data["bus"]
 
-        if parse(Int,b) == 3
+    #     if parse(Int,b) == 3
             
-            bus["dst_id"]   = 1
-            bus["μ"]        = μ[parse(Int,b)]
-            bus["σ"]        = σ[parse(Int,b)]
-            bus["λvmin"]    = λ_val
-            bus["λvmax"]    = λ_val
+    #         bus["dst_id"]   = 1
+    #         bus["μ"]        = μ[parse(Int,b)]
+    #         bus["σ"]        = σ[parse(Int,b)]
+    #         bus["λvmin"]    = λ_val
+    #         bus["λvmax"]    = λ_val
         
-        elseif parse(Int,b) == 4
+    #     elseif parse(Int,b) == 4
             
-            bus["dst_id"]   = 2
-            bus["μ"]        = μ[parse(Int,b)]
-            bus["σ"]        = σ[parse(Int,b)]
-            bus["λvmin"]    = λ_val
-            bus["λvmax"]    = λ_val
+    #         bus["dst_id"]   = 2
+    #         bus["μ"]        = μ[parse(Int,b)]
+    #         bus["σ"]        = σ[parse(Int,b)]
+    #         bus["λvmin"]    = λ_val
+    #         bus["λvmax"]    = λ_val
         
-        else
-            bus["dst_id"]   = 0
-            bus["μ"]        = μ[parse(Int,b)]
-            bus["σ"]        = σ[parse(Int,b)]
-            bus["λvmin"]    = λ_val
-            bus["λvmax"]    = λ_val
-        end
+    #     else
+    #         bus["dst_id"]   = 0
+    #         bus["μ"]        = μ[parse(Int,b)]
+    #         bus["σ"]        = σ[parse(Int,b)]
+    #         bus["λvmin"]    = λ_val
+    #         bus["λvmax"]    = λ_val
+    #     end
 
-    end
+    # end
 
     # for (b,bus) in data["bus"]
 
@@ -310,16 +318,16 @@ function extend_matlab_file_ACDC(path::String)
 
     # end
         
-    # for (b,bus) in data["bus"]
+    for (b,bus) in data["bus"]
 
-    #     bus["dst_id"]   = 1
-    #     bus["μ"]        = μ[parse(Int,b)]
-    #     bus["σ"]        = σ[parse(Int,b)]
-    #     bus["λvmin"]    = λ_val
-    #     bus["λvmax"]    = λ_val
+        bus["dst_id"]   = 1
+        bus["μ"]        = μ[parse(Int,b)]
+        bus["σ"]        = σ[parse(Int,b)]
+        bus["λvmin"]    = λ_val
+        bus["λvmax"]    = λ_val
 
 
-    # end
+    end
 
     # dcbus data 
     for (b,busdc) in data["busdc"]
@@ -353,5 +361,5 @@ function extend_matlab_file_ACDC(path::String)
     end
 
     # export file
-    _PM.export_file(path[1:end-2] * "_SPM_$(round(Int,(100*α)))" * "cc_alpha.m", data)
+    _PM.export_file(path[1:end-2] * "_SPM_$(round(Int,(100*α)))" * "cc.m", data)
 end

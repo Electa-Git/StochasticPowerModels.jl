@@ -75,7 +75,7 @@ function build_stochastic_data_ACDC_RES(data::Dict{String,Any}, deg::Int, p_size
     # add maximum current
     for (nb, branch) in data["branch"]
         f_bus = branch["f_bus"]
-        branch["cmax"] = branch["rate_a"] / data["bus"]["$f_bus"]["vmin"]
+        branch["cmax"] = branch["rate_a"] #/ data["bus"]["$f_bus"]["vmin"]
     end
 
     # build mop
@@ -114,10 +114,14 @@ function build_stochastic_data_ACDC_RES(data::Dict{String,Any}, deg::Int, p_size
     #data["sdata"]= s_dict 
 
     # data["RES"]=deepcopy(data["load"]); #this is temporary. Fix it to add PV in matpower format
+    # [data["RES"][d]["μ"] = 0.8336 * 27.9230 for d in   keys(data["RES"])]
+    # # [data["RES"][d]["σ"] = 0.09 for d in   keys(data["RES"])]
+    # [data["RES"][d]["σ"] = 0.8336 * 27.9230 * 0.1079 for d in   keys(data["RES"])]
+    
     [data["RES"][d]["μ"]=0 for d in   keys(data["RES"])]
-    [data["RES"][d]["σ"]=1 for d in   keys(data["RES"])]
+    [data["RES"][d]["σ"]=1 for d in   keys(data["RES"])] # μ, σ parameters are support of Beta (a, b) not (α, β)
     [data["RES"][d]["p_size"] = p_size for d in keys(data["RES"])]
-    [data["RES"][d]["q_size"] = p_size for d in keys(data["RES"])]        
+    [data["RES"][d]["q_size"] = p_size for d in keys(data["RES"])]   
     [data["RES"][d]["qd"] = 0 for d in keys(data["RES"])]
     
 
@@ -138,8 +142,8 @@ function build_stochastic_data_ACDC_RES(data::Dict{String,Any}, deg::Int, p_size
                 pd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g])
                 qd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g])
             else
-                pd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g])
-                qd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g])
+                pd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g]) #Beta parameters without 'kind="μσ"'
+                qd_g[nd_g,[1,np_g+1]] = _PCE.convert2affinePCE(μ, σ, mop.uni[np_g]) # μ, σ parameters are support of Beta (a, b) not (α, β)
             end
        
     end
@@ -160,13 +164,15 @@ function build_stochastic_data_ACDC_RES(data::Dict{String,Any}, deg::Int, p_size
         for nw in 1:Npce, nd_g in 1:Nd_g
     
             data["nw"]["$nw"]["RES"]["$nd_g"]["pd"] = pd_g[nd_g,nw]
-            data["nw"]["$nw"]["RES"]["$nd_g"]["qd"] = qd_g[nd_g,nw]
+            # data["nw"]["$nw"]["RES"]["$nd_g"]["qd"] = qd_g[nd_g,nw]
+            data["nw"]["$nw"]["RES"]["$nd_g"]["qd"] = 0
         end
     
         return data
 
 
 end
+
 
 
 
@@ -207,3 +213,29 @@ function print_summary(obj::Dict{String,<:Any}; kwargs...)
         end
     end
 end
+
+
+
+
+function dimension_management_PCE(sdata::Dict{String,Any})
+
+    PCE_data = Dict(
+        "T2" => sdata["T2"],
+        "T3" => sdata["T3"],
+        "T4" => sdata["T4"],
+        "mop" => sdata["mop"],
+    )
+    num_of_coeff = PCE_data["mop"].dim
+
+    delete!(sdata, "T2")
+    delete!(sdata, "T3")
+    delete!(sdata, "T4")
+    delete!(sdata, "mop")
+
+    _FP.add_dimension!(sdata, :PCE_coeff, num_of_coeff; metadata = PCE_data)
+
+    return sdata
+end
+
+
+
