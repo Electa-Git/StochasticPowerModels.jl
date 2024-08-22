@@ -1,7 +1,7 @@
 name = "StochasticPowerModels"
 uuid = "50afc394-810e-406f-916c-f931837647ce"
 authors = ["Kaan Yurtseven"]
-version = "0.3.0"
+version = "0.3.1"
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
