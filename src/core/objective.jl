@@ -1,3 +1,11 @@
+###################################################################################
+#  Copyright 2024, Kaan Yurtseven                                                 #
+###################################################################################
+# StochasticPowerModels.jl                                                        #
+# An extention package of PowerModels.jl for Stochastic Power System Optimization #
+# See http://github.com/Electa-Git/StochasticPowerModels.jl                       #
+###################################################################################
+
 
 "expected cost of active power generation"
 function objective_min_expected_generation_cost(pm::AbstractPowerModel; kwargs...)

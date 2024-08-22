@@ -1,10 +1,10 @@
-################################################################################
-#  Copyright 2023, Kaan Yurtseven                                              #
-################################################################################
-# StochasticPowerModels.jl                                                     #
-# An extention package of PowerModels.jl for Stochastic (Optimal) Power Flow   #
-# See http://github.com/Electa-Git/StochasticPowerModels.jl                    #
-################################################################################
+###################################################################################
+#  Copyright 2024, Kaan Yurtseven                                                 #
+###################################################################################
+# StochasticPowerModels.jl                                                        #
+# An extention package of PowerModels.jl for Stochastic Power System Optimization #
+# See http://github.com/Electa-Git/StochasticPowerModels.jl                       #
+###################################################################################
 
 ""
 # function solve_sopf_iv_acdc_dim(file::String, model_constructor, optimizer; deg::Int=1, p_size=0, solution_processors=[sol_data_model!], kwargs...)
