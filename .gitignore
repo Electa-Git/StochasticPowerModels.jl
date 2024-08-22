@@ -3,5 +3,3 @@
 *.jl.mem
 .DS_Store
 Manifest.toml
-Results/
-Case Studies/Sonuclar.txt
