@@ -95,6 +95,24 @@ function constraint_cc_branch_series_current_magnitude_squared(pm::AbstractACRMo
                     )
 end
 
+function constraint_cc_branch_series_current_magnitude_squared_on_off(pm::AbstractACRModel, b, cmax, λcmax, T2, mop, nw)
+    # cmss = [_PM.var(pm, nw, :cmss, b) for nw in sorted_nw_ids(pm)]
+
+    cmss = [_PM.var(pm, n, :cmss, b) for n in _FP.similar_ids(pm, nw; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff))]
+
+    z_branch = _PM.var(pm, _FP.first_id(pm, nw, :PCE_coeff), :z_branch, b)
+    
+
+    # bound on the expectation
+    JuMP.@constraint(pm.model,  _PCE.mean(cmss, mop) <= (z_branch*cmax^2))
+    # chance constraint bounds
+    JuMP.@constraint(pm.model,  _PCE.var(cmss,T2)
+                                <=
+                                (((z_branch * cmax^2) - _PCE.mean(cmss,mop)) / λcmax)^2
+                    )
+end
+
+
 ## generator
 ""
 function constraint_cc_gen_power_real(pm::AbstractACRModel, g, pmin, pmax, λmin, λmax, T2, mop, nw)
@@ -1017,6 +1035,55 @@ function constraint_cc_dc_branch_current(pm::AbstractACRModel, i, Imax, Imin, λ
     end
 end
 
+function constraint_cc_dc_branch_current_on_off(pm::AbstractACRModel, i, Imax, Imin, λmax, λmin, f_idx, t_idx, T2, mop, nw)
+    # i_dc_fr = [_PM.var(pm, n, :igrid_dc, f_idx) for n in sorted_nw_ids(pm)]
+    # i_dc_to = [_PM.var(pm, n, :igrid_dc, t_idx) for n in sorted_nw_ids(pm)]
+
+    i_dc_fr = [_PM.var(pm, n, :igrid_dc, f_idx) for n in _FP.similar_ids(pm, nw; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff))]
+    i_dc_to = [_PM.var(pm, n, :igrid_dc, t_idx) for n in _FP.similar_ids(pm, nw; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff))]
+
+    z_branch_dc = _PM.var(pm, _FP.first_id(pm, nw, :PCE_coeff), :igrid_dc, t_idx)
+
+    # bounds on the expectation
+    JuMP.@constraint(pm.model, _PCE.mean(i_dc_fr, mop) <= z_branch_dc*Imax)
+
+    JuMP.@constraint(pm.model, z_branch_dc*Imin <= _PCE.mean(i_dc_fr, mop))
+
+    # chance constraint bounds
+    i_dc_fr_max_cc = JuMP.@constraint(pm.model,  _PCE.var(i_dc_fr, T2)
+                               <=
+                                ((z_branch_dc*Imax - _PCE.mean(i_dc_fr, mop)) / λmax)^2
+                    )
+
+    
+    i_dc_fr_min_cc = JuMP.@constraint(pm.model,  _PCE.var(i_dc_fr, T2)
+                                <=
+                               ((_PCE.mean(i_dc_fr, mop) - z_branch_dc*Imin) / λmin)^2
+    )
+    
+
+    # bounds on the expectation
+    JuMP.@constraint(pm.model, _PCE.mean(i_dc_to, mop) <= z_branch_dc*Imax)
+    JuMP.@constraint(pm.model, z_branch_dc*Imin <= _PCE.mean(i_dc_to, mop))
+
+    # chance constraint bounds
+    i_dc_to_max_cc = JuMP.@constraint(pm.model,  _PCE.var(i_dc_to, T2)
+                               <=
+                                ((z_branch_dc*Imax - _PCE.mean(i_dc_to, mop)) / λmax)^2
+                    )
+    
+    i_dc_to_min_cc = JuMP.@constraint(pm.model,  _PCE.var(i_dc_to, T2)
+                                <=
+                               ((_PCE.mean(i_dc_to, mop) - z_branch_dc*Imin) / λmin)^2
+    )
+    if _IM.report_duals(pm)
+        _PM.sol(pm, 1, :branchdc, i)[:dual_dc_brach_current_from_min] = i_dc_fr_min_cc
+        _PM.sol(pm, 1, :branchdc, i)[:dual_dc_brach_current_from_max] = i_dc_fr_max_cc
+        _PM.sol(pm, 1, :branchdc, i)[:dual_dc_brach_current_to_min] = i_dc_to_min_cc
+        _PM.sol(pm, 1, :branchdc, i)[:dual_dc_brach_current_to_max] = i_dc_to_max_cc
+    end
+end
+
 function constraint_cc_iconv_lin_squared(pm::AbstractACRModel, i, Imax, λmax, T2, mop, nw)
     # iconv_lin_s  = [_PM.var(pm, n, :iconv_lin_s, i) for n in sorted_nw_ids(pm)]
 
@@ -1206,46 +1273,81 @@ end
 
 
 
-function constraint_cc_dc_branch_current_on_off(pm::AbstractACRModel, i, Imax, Imin, λmax, λmin, f_idx, t_idx, T2, mop)
-    i_dc_fr_on_off = [_PM.var(pm, n, :igrid_dc_on_off, f_idx) for n in sorted_nw_ids(pm)]
-    i_dc_to_on_off = [_PM.var(pm, n, :igrid_dc_on_off, t_idx) for n in sorted_nw_ids(pm)]
+function constraint_gp_dc_branch_indicator(pm::AbstractIVRModel, i::Int; nw::Int=nw_id_default)
+    err = 1e-6
 
-    # bounds on the expectation
-    JuMP.@constraint(pm.model, _PCE.mean(i_dc_fr_on_off, mop) <= Imax)
+    z_branch_dc = _PM.var(pm, _FP.first_id(pm, nw, :PCE_coeff), :z_branch_dc, i)
 
-    JuMP.@constraint(pm.model, Imin <= _PCE.mean(i_dc_fr_on_off, mop))
+    JuMP.@constraint(pm.model, z_branch_dc * (1 - z_branch_dc) <= err)
 
-    # chance constraint bounds
-    i_dc_fr_max_cc = JuMP.@constraint(pm.model,  _PCE.var(i_dc_fr_on_off, T2)
-                               <=
-                                ((Imax - _PCE.mean(i_dc_fr_on_off, mop)) / λmax)^2
-                    )
+    # JuMP.fix(z_branch_dc[1], 1; force=true)
 
+end
+
+function constraint_gp_ac_branch_indicator(pm::AbstractIVRModel, i::Int; nw::Int=nw_id_default)
+    err = 1e-6
+
+    z_branch = _PM.var(pm, _FP.first_id(pm, nw, :PCE_coeff), :z_branch, i)
+
+    JuMP.@constraint(pm.model, z_branch * (1 - z_branch) <= err)
+
+    # JuMP.fix(z_branch_dc[1], 1; force=true)
+
+end
+
+function constraint_voltage_drop_on_off(pm::AbstractIVRModel, n::Int, i, f_bus, t_bus, f_idx, r, x, tr, ti, tm)
+    vr_fr = _PM.var(pm, n, :vr, f_bus)
+    vi_fr = _PM.var(pm, n, :vi, f_bus)
+
+    vr_to = _PM.var(pm, n, :vr, t_bus)
+    vi_to = _PM.var(pm, n, :vi, t_bus)
+
+    csr_fr =  _PM.var(pm, n, :csr, f_idx[1])
+    csi_fr =  _PM.var(pm, n, :csi, f_idx[1])
+
+    z_branch = _PM.var(pm, _FP.first_id(pm, n, :PCE_coeff), :z_branch, f_idx[1])
+
+    JuMP.@constraint(pm.model, (z_branch*vr_to - ((z_branch*vr_fr*tr + z_branch*vi_fr*ti)/tm^2 - r*csr_fr + x*csi_fr)) == 0)
+    JuMP.@constraint(pm.model, (z_branch*vi_to - ((z_branch*vi_fr*tr - z_branch*vr_fr*ti)/tm^2 - r*csi_fr - x*csr_fr)) == 0)
+
+end
+
+function constraint_ohms_dc_branch_on_off(pm::AbstractACRModel, n::Int, i, f_bus, t_bus, f_idx, t_idx, r, p)
+
+    vmdc_fr = _PM.var(pm, n,  :vdcm, f_bus)
+    vmdc_to = _PM.var(pm, n,  :vdcm, t_bus)
     
-    i_dc_fr_min_cc = JuMP.@constraint(pm.model,  _PCE.var(i_dc_fr_on_off, T2)
-                                <=
-                               ((_PCE.mean(i_dc_fr_on_off, mop) - Imin) / λmin)^2
-    )
-    
+    i_dc_fr = _PM.var(pm, n,  :igrid_dc, f_idx)
+    i_dc_to = _PM.var(pm, n,  :igrid_dc, t_idx)
 
-    # bounds on the expectation
-    JuMP.@constraint(pm.model, _PCE.mean(i_dc_to_on_off, mop) <= Imax)
-    JuMP.@constraint(pm.model, Imin <= _PCE.mean(i_dc_to_on_off, mop))
+    z_branch_dc  = _PM.var(pm, _FP.first_id(pm, n, :PCE_coeff), :z_branch_dc, i)
 
-    # chance constraint bounds
-    i_dc_to_max_cc = JuMP.@constraint(pm.model,  _PCE.var(i_dc_to_on_off, T2)
-                               <=
-                                ((Imax - _PCE.mean(i_dc_to_on_off, mop)) / λmax)^2
-                    )
-    
-    i_dc_to_min_cc = JuMP.@constraint(pm.model,  _PCE.var(i_dc_to_on_off, T2)
-                                <=
-                               ((_PCE.mean(i_dc_to_on_off, mop) - Imin) / λmin)^2
-    )
-    if _IM.report_duals(pm)
-        _PM.sol(pm, 1, :branchdc, i)[:dual_dc_brach_current_from_min] = i_dc_fr_min_cc
-        _PM.sol(pm, 1, :branchdc, i)[:dual_dc_brach_current_from_max] = i_dc_fr_max_cc
-        _PM.sol(pm, 1, :branchdc, i)[:dual_dc_brach_current_to_min] = i_dc_to_min_cc
-        _PM.sol(pm, 1, :branchdc, i)[:dual_dc_brach_current_to_max] = i_dc_to_max_cc
+    if r == 0
+        JuMP.@constraint(pm.model, z_branch_dc * (i_dc_fr + i_dc_fr) == 0)
+    else
+        JuMP.@constraint(pm.model, z_branch_dc * vmdc_to ==  z_branch_dc * vmdc_fr - 1/p * r * i_dc_fr)
+        JuMP.@constraint(pm.model, z_branch_dc * vmdc_fr ==  z_branch_dc * vmdc_to - 1/p * r * i_dc_to)
     end
 end
+
+
+function constraint_cc_branch_currents_on_off(pm::AbstractACRModel, b, cmax, λcmax, T2, mop, nw)
+
+    cmss = [_PM.var(pm, n, :cmss, b) for n in _FP.similar_ids(pm, nw; PCE_coeff=1:_FP.dim_length(pm, :PCE_coeff))]
+
+    z_branch = _PM.var(pm, _FP.first_id(pm, nw, :PCE_coeff), :z_branch, b)
+    
+
+    # bound on the expectation
+    JuMP.@constraint(pm.model,  _PCE.mean(cmss, mop) <= (z_branch*cmax^2))
+    # chance constraint bounds
+    JuMP.@constraint(pm.model,  _PCE.var(cmss,T2)
+                                <=
+                                (((z_branch * cmax^2) - _PCE.mean(cmss,mop)) / λcmax)^2
+                    )
+
+
+end
+
+
+

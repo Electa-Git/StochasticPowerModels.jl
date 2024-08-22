@@ -157,6 +157,7 @@ function constraint_gp_load_power(pm::AbstractPowerModel, l::Int; nw::Int=nw_id_
     constraint_gp_load_power_imaginary(pm, nw, i, l, qd, T2, T3)
 end
 
+
 function constraint_gp_load_curt_power(pm::AbstractPowerModel, l::Int; nw::Int=nw_id_default)
     i   = _PM.ref(pm, nw, :load, l, "load_bus") 
 
@@ -177,11 +178,11 @@ function constraint_cc_bus_voltage_magnitude_squared(pm::AbstractPowerModel, i::
     vmin = _PM.ref(pm, nw, :bus, i, "vmin")
     vmax = _PM.ref(pm, nw, :bus, i, "vmax")
     
-    λmin = _PM.ref(pm, nw, :bus, i, "λvmin")
-    λmax = _PM.ref(pm, nw, :bus, i, "λvmax")
+    # λmin = _PM.ref(pm, nw, :bus, i, "λvmin")
+    # λmax = _PM.ref(pm, nw, :bus, i, "λvmax")
 
-    # λmin = 3
-    # λmax = 3
+    λmin = 3
+    λmax = 3
     
     # T2  = pm.data["T2"]
     # mop = pm.data["mop"]
@@ -198,6 +199,9 @@ function constraint_cc_branch_series_current_magnitude_squared(pm::AbstractPower
     cmax = _PM.ref(pm, nw, :branch, b, "cmax")
     λmax = _PM.ref(pm, nw, :branch, b, "λcmax")
 
+    # display(b)
+    # display(cmax^2)
+
     # λmax = 1.282
 
     
@@ -208,6 +212,25 @@ function constraint_cc_branch_series_current_magnitude_squared(pm::AbstractPower
     mop = _FP.dim_meta(pm, :PCE_coeff, "mop")
 
     constraint_cc_branch_series_current_magnitude_squared(pm, b, cmax, λmax, T2, mop, nw)
+end
+
+function constraint_cc_branch_series_current_magnitude_squared_on_off(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
+    cmax = _PM.ref(pm, nw, :branch, b, "cmax")
+    λmax = _PM.ref(pm, nw, :branch, b, "λcmax")
+
+    # display(b)
+    # display(cmax^2)
+
+    # λmax = 1.282
+
+    
+    # T2  = pm.data["T2"]
+    # mop = pm.data["mop"]
+
+    T2 = _FP.dim_meta(pm, :PCE_coeff, "T2")
+    mop = _FP.dim_meta(pm, :PCE_coeff, "mop")
+
+    constraint_cc_branch_series_current_magnitude_squared_on_off(pm, b, cmax, λmax, T2, mop, nw)
 end
 
 ## generator
@@ -224,9 +247,9 @@ function constraint_cc_gen_power(pm::AbstractPowerModel, g::Int; nw::Int=nw_id_d
     λqmax = _PM.ref(pm, nw, :gen, g, "λqmax")
 
     λpmin = 3
-    # λpmax = 3
-    # λqmin = 3
-    # λqmax = 2
+    λpmax = 3
+    # λqmin = 4
+    # λqmax = 4
 
     # T2  = pm.data["T2"]
     # mop = pm.data["mop"]
@@ -249,9 +272,9 @@ function constraint_cc_RES_curt_power(pm::AbstractPowerModel, p::Int; nw::Int=nw
     # pd  = _PM.ref(pm, nw, :RES, p, "pd")
 
     if haskey(RES, "σ")
-        pmax = p_size * σ * 0.8 #* pd
+        pmax = p_size * σ * 1 #* pd
     else
-        pmax = p_size * 0.8 #* pd
+        pmax = p_size * 1  #* pd
     end
 
 # display(pmax)
@@ -264,7 +287,7 @@ end
 function constraint_cc_load_curt_power_real(pm::AbstractPowerModel, l::Int; nw::Int=nw_id_default)
     pmin = 0
 
-    λmin = 3
+    λmin = 4
     λmax = λmin
 
     T2 = _FP.dim_meta(pm, :PCE_coeff, "T2")
@@ -581,8 +604,11 @@ function constraint_cc_filter_voltage_squared(pm::AbstractPowerModel, i::Int; nw
     vmin = _PM.ref(pm, nw, :convdc, i, "Vmmin")
     vmax = _PM.ref(pm, nw, :convdc, i, "Vmmax")
     
-    λmin = _PM.ref(pm, nw, :convdc, i, "λvmin")
-    λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+    # λmin = _PM.ref(pm, nw, :convdc, i, "λvmin")
+    # λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+
+    λmax = 4
+    λmin = 4
     
     # T2  = pm.data["T2"]
     # mop = pm.data["mop"]
@@ -597,8 +623,11 @@ function constraint_cc_converter_voltage_squared(pm::AbstractPowerModel, i::Int;
     vmin = _PM.ref(pm, nw, :convdc, i, "Vmmin")
     vmax = _PM.ref(pm, nw, :convdc, i, "Vmmax")
     
-    λmin = _PM.ref(pm, nw, :convdc, i, "λvmin")
-    λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+    # λmin = _PM.ref(pm, nw, :convdc, i, "λvmin")
+    # λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+
+    λmax = 4
+    λmin = 4
     
     # T2  = pm.data["T2"]
     # mop = pm.data["mop"]
@@ -615,7 +644,9 @@ function constraint_cc_transformer_current_from_squared(pm::AbstractPowerModel, 
     
     Imax = conv["Pacrated"]/vpu
     
-    λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+    # λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+
+    λmax = 4
     
     # T2  = pm.data["T2"]
     # mop = pm.data["mop"]
@@ -632,7 +663,8 @@ function constraint_cc_transformer_current_to_squared(pm::AbstractPowerModel, i:
     
     Imax = conv["Pacrated"]/vpu
     
-    λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+    # λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+    λmax = 4
     
     # T2  = pm.data["T2"]
     # mop = pm.data["mop"]
@@ -649,7 +681,9 @@ function constraint_cc_reactor_current_from_squared(pm::AbstractPowerModel, i::I
     
     Imax = conv["Pacrated"]/vpu
     
-    λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+    # λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+
+    λmax = 4
     
     # T2  = pm.data["T2"]
     # mop = pm.data["mop"]
@@ -666,7 +700,9 @@ function constraint_cc_reactor_current_to_squared(pm::AbstractPowerModel, i::Int
     
     Imax = conv["Pacrated"]/vpu
     
-    λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+    # λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+
+    λmax = 4
     
     # T2  = pm.data["T2"]
     # mop = pm.data["mop"]
@@ -717,13 +753,39 @@ function constraint_cc_dc_branch_current(pm::AbstractPowerModel, i::Int; nw::Int
     constraint_cc_dc_branch_current(pm, i, Imax, Imin, λmax, λmin, f_idx, t_idx, T2, mop, nw)
 end
 
+function constraint_cc_dc_branch_current_on_off(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+    
+    vpu = 1;
+    branch = _PM.ref(pm, nw, :branchdc, i)
+    f_bus = branch["fbusdc"]
+    t_bus = branch["tbusdc"]
+    f_idx = (i, f_bus, t_bus)
+    t_idx = (i, t_bus, f_bus)
+    
+    Imax = branch["rateA"]/vpu
+    Imin = - branch["rateA"]/vpu
+   
+       
+    λmax = _PM.ref(pm, nw, :branchdc, i, "λcmax")
+    λmin = _PM.ref(pm, nw, :branchdc, i, "λcmax")
+    
+    # T2  = pm.data["T2"]
+    # mop = pm.data["mop"]
+
+    T2 = _FP.dim_meta(pm, :PCE_coeff, "T2")
+    mop = _FP.dim_meta(pm, :PCE_coeff, "mop")
+
+    constraint_cc_dc_branch_current_on_off(pm, i, Imax, Imin, λmax, λmin, f_idx, t_idx, T2, mop, nw)
+end
+
 function constraint_cc_iconv_lin_squared(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
     vpu = 1;
     conv = _PM.ref(pm, nw, :convdc, i)
     
     Imax = conv["Imax"]
     
-    λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+    # λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+    λmax = 4
     
     # T2  = pm.data["T2"]
     # mop = pm.data["mop"]
@@ -741,8 +803,11 @@ function constraint_cc_iconv_lin(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_d
     Imax = conv["Imax"]
     Imin = 0
     
-    λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
-    λmin = _PM.ref(pm, nw, :convdc, i, "λvmax") # All λ values are equal.
+    # λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+    # λmin = _PM.ref(pm, nw, :convdc, i, "λvmax") # All λ values are equal.
+
+    λmax = 4
+    λmin = 4
     
     # T2  = pm.data["T2"]
     # mop = pm.data["mop"]
@@ -759,8 +824,11 @@ function constraint_cc_conv_ac_power(pm::AbstractPowerModel, i::Int; nw::Int=nw_
     Qacmin = _PM.ref(pm, nw, :convdc, i, "Qacmin")
     Qacmax = _PM.ref(pm, nw, :convdc, i, "Qacmax")
 
-    λmin = _PM.ref(pm, nw, :convdc, i, "λvmin")
-    λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+    # λmin = _PM.ref(pm, nw, :convdc, i, "λvmin")
+    # λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+
+    λmax = 4
+    λmin = 4
 
     #λqmin = _PM.ref(pm, nw, :convdc, g, "λqmin")
     #λqmax = _PM.ref(pm, nw, :convdc, g, "λqmax")
@@ -779,8 +847,11 @@ function constraint_cc_conv_dc_power(pm::AbstractPowerModel, i::Int; nw::Int=nw_
     Pdcmin = - _PM.ref(pm, nw, :convdc, i, "Pacrated")
     Pdcmax = _PM.ref(pm, nw, :convdc, i, "Pacrated")
     
-    λmin = _PM.ref(pm, nw, :convdc, i, "λvmin")
-    λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+    # λmin = _PM.ref(pm, nw, :convdc, i, "λvmin")
+    # λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+
+    λmax = 4
+    λmin = 4
 
     # T2  = pm.data["T2"]
     # mop = pm.data["mop"]
@@ -800,8 +871,11 @@ function constraint_cc_converter_dc_current(pm::AbstractPowerModel, i::Int; nw::
     Imax = conv["Pacrated"]/vpu * bigM
     Imin = - conv["Pacrated"]/vpu * bigM
     
-    λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
-    λmin = _PM.ref(pm, nw, :convdc, i, "λvmin")
+    # λmax = _PM.ref(pm, nw, :convdc, i, "λvmax")
+    # λmin = _PM.ref(pm, nw, :convdc, i, "λvmin")
+
+    λmax = 4
+    λmin = 4
 
     # T2  = pm.data["T2"]
     # mop = pm.data["mop"]
@@ -818,8 +892,11 @@ function constraint_cc_conv_voltage_magnitude(pm::AbstractPowerModel, i::Int; nw
     vmin = _PM.ref(pm, nw, :busdc, i, "Vdcmin")
     vmax = _PM.ref(pm, nw, :busdc, i, "Vdcmax")
     
-    λmin = _PM.ref(pm, nw, :busdc, i, "λvmin")
-    λmax = _PM.ref(pm, nw, :busdc, i, "λvmax")
+    # λmin = _PM.ref(pm, nw, :busdc, i, "λvmin")
+    # λmax = _PM.ref(pm, nw, :busdc, i, "λvmax")
+
+    λmin = 4
+    λmax = 4
     
     # T2  = pm.data["T2"]
     # mop = pm.data["mop"]
@@ -830,24 +907,46 @@ function constraint_cc_conv_voltage_magnitude(pm::AbstractPowerModel, i::Int; nw
     constraint_cc_conv_voltage_magnitude(pm, i, vmin, vmax, λmin, λmax, T2, mop, nw)
 end
 
-function constraint_cc_dc_branch_current_on_off(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
-    
-    vpu = 1;
-    branch = _PM.ref(pm, nw, :branchdc, i)
+function constraint_voltage_drop_on_off(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+    branch = _PM.ref(pm, nw, :branch, i)
+    f_bus = branch["f_bus"]
+    t_bus = branch["t_bus"]
+    f_idx = (i, f_bus, t_bus)
+
+    tr, ti = _PM.calc_branch_t(branch)
+    r = branch["br_r"]
+    x = branch["br_x"]
+    tm = branch["tap"]
+
+    constraint_voltage_drop_on_off(pm, nw, i, f_bus, t_bus, f_idx, r, x, tr, ti, tm)
+end
+
+function constraint_ohms_dc_branch_on_off(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
+
+    branch = _PM.ref(pm, nw, :branchdc, b)
     f_bus = branch["fbusdc"]
     t_bus = branch["tbusdc"]
-    f_idx = (i, f_bus, t_bus)
-    t_idx = (i, t_bus, f_bus)
-    
-    Imax = branch["rateA"]/vpu
-    Imin = - branch["rateA"]/vpu
-   
-       
-    λmax = _PM.ref(pm, nw, :branchdc, i, "λcmax")
-    λmin = _PM.ref(pm, nw, :branchdc, i, "λcmax")
-    
-    T2  = pm.data["T2"]
-    mop = pm.data["mop"]
+    f_idx = (b, f_bus, t_bus)
+    t_idx = (b, t_bus, f_bus)
 
-    constraint_cc_dc_branch_current_on_off(pm, i, Imax, Imin, λmax, λmin, f_idx, t_idx, T2, mop)
+    p = _PM.ref(pm, nw, :dcpol)
+
+    constraint_ohms_dc_branch_on_off(pm, nw, b, f_bus, t_bus, f_idx, t_idx, branch["r"], p)
+end
+
+
+function constraint_cc_branch_currents_on_off(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
+    cmax = _PM.ref(pm, nw, :branch, b, "cmax")
+    λmax = _PM.ref(pm, nw, :branch, b, "λcmax")
+
+    # display(b)
+    # display(cmax^2)
+    
+    # T2  = pm.data["T2"]
+    # mop = pm.data["mop"]
+
+    T2 = _FP.dim_meta(pm, :PCE_coeff, "T2")
+    mop = _FP.dim_meta(pm, :PCE_coeff, "mop")
+
+    constraint_cc_branch_currents_on_off(pm, b, cmax, λmax, T2, mop, nw)
 end
