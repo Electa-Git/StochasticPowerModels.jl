@@ -85,9 +85,9 @@ data_ots = _PM.deepcopy(data)
 
 for (b, branch) in data_ots["branch"]
 
-   if parse(Int,b) == 8
+   if parse(Int,b) == 2
 
-      data_ots["branch"][b]["br_status_initial"] = 0
+      data_ots["branch"][b]["br_status_initial"] = 1
 
    else
 

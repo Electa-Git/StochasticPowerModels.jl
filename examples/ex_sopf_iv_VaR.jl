@@ -78,10 +78,10 @@ result_spm = _SPM.solve_sopf_iv_acdc(sdata, _PM.IVRPowerModel, ipopt_solver, deg
 println("   Solution progress: Solved! (", string(result_spm["primal_status"]), ")")
 
 
-println("\nPenetration Level = $pen_level")
-println("   Solution progress: Solving...")
-result_spm_variance = _SPM.solve_sopf_iv_acdc_variance(sdata, _PM.IVRPowerModel, ipopt_solver, deg=deg, p_size=p_size);
-println("   Solution progress: Solved! (", string(result_spm_variance["primal_status"]), ")")
+# println("\nPenetration Level = $pen_level")
+# println("   Solution progress: Solving...")
+# result_spm_variance = _SPM.solve_sopf_iv_acdc_variance(sdata, _PM.IVRPowerModel, ipopt_solver, deg=deg, p_size=p_size);
+# println("   Solution progress: Solved! (", string(result_spm_variance["primal_status"]), ")")
 
 println("\nPenetration Level = $pen_level")
 println("   Solution progress: Solving...")
@@ -163,7 +163,7 @@ Statistics.mean(sample3)
 Statistics.var(sample3)
 
 Plots.histogram(sample1, bin = 100)
-Plots.histogram!(sample2, bin = 100)
+# Plots.histogram!(sample2, bin = 100)
 Plots.histogram!(sample3, bin = 100)
 
 

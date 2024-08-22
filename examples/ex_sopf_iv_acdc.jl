@@ -85,26 +85,3 @@ print("Objective: ")
 print(result_spm["objective"])
 print("\nSolve Time: ")
 print(result_spm["solve_time"])
-
-# bus = 5
-
-# sample1 = _SPM.sample(result_spm, "gen", bus, "pg"; sample_size=100000); 
-# sample2 = _SPM.sample(result_spm, "RES", bus, "p_RES_curt"; sample_size=100000); 
-
-
-# Plots.histogram(sample1)
-# # Plots.histogram!(sample2)
-
-# Plots.histogram(sample2)
-# Plots.histogram!(sample1)
-
-
-
-# # for x in sample1
-# #    if x>0 && x<1e-2
-# #       print("\n$x")
-# #    end
-# # end
-
-# minimum(sample1)
-# minimum(sample2)
