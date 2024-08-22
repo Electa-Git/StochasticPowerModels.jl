@@ -66,7 +66,6 @@ module StochasticPowerModels
 
     include("prob/sots_iv_acdc.jl")
     include("prob/sopf_iv_acdc_VaR.jl")
-    include("prob/sopf_iv_acdc_variance.jl")
 
 
     # export

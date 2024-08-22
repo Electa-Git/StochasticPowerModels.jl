@@ -213,3 +213,29 @@ function print_summary(obj::Dict{String,<:Any}; kwargs...)
         end
     end
 end
+
+
+
+
+function dimension_management_PCE(sdata::Dict{String,Any})
+
+    PCE_data = Dict(
+        "T2" => sdata["T2"],
+        "T3" => sdata["T3"],
+        "T4" => sdata["T4"],
+        "mop" => sdata["mop"],
+    )
+    num_of_coeff = PCE_data["mop"].dim
+
+    delete!(sdata, "T2")
+    delete!(sdata, "T3")
+    delete!(sdata, "T4")
+    delete!(sdata, "mop")
+
+    _FP.add_dimension!(sdata, :PCE_coeff, num_of_coeff; metadata = PCE_data)
+
+    return sdata
+end
+
+
+

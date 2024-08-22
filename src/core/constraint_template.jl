@@ -907,24 +907,46 @@ function constraint_cc_conv_voltage_magnitude(pm::AbstractPowerModel, i::Int; nw
     constraint_cc_conv_voltage_magnitude(pm, i, vmin, vmax, λmin, λmax, T2, mop, nw)
 end
 
-# function constraint_cc_dc_branch_current_on_off(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
-    
-#     vpu = 1;
-#     branch = _PM.ref(pm, nw, :branchdc, i)
-#     f_bus = branch["fbusdc"]
-#     t_bus = branch["tbusdc"]
-#     f_idx = (i, f_bus, t_bus)
-#     t_idx = (i, t_bus, f_bus)
-    
-#     Imax = branch["rateA"]/vpu
-#     Imin = - branch["rateA"]/vpu
-   
-       
-#     λmax = _PM.ref(pm, nw, :branchdc, i, "λcmax")
-#     λmin = _PM.ref(pm, nw, :branchdc, i, "λcmax")
-    
-#     T2  = pm.data["T2"]
-#     mop = pm.data["mop"]
+function constraint_voltage_drop_on_off(pm::AbstractPowerModel, i::Int; nw::Int=nw_id_default)
+    branch = _PM.ref(pm, nw, :branch, i)
+    f_bus = branch["f_bus"]
+    t_bus = branch["t_bus"]
+    f_idx = (i, f_bus, t_bus)
 
-#     constraint_cc_dc_branch_current_on_off(pm, i, Imax, Imin, λmax, λmin, f_idx, t_idx, T2, mop)
-# end
+    tr, ti = _PM.calc_branch_t(branch)
+    r = branch["br_r"]
+    x = branch["br_x"]
+    tm = branch["tap"]
+
+    constraint_voltage_drop_on_off(pm, nw, i, f_bus, t_bus, f_idx, r, x, tr, ti, tm)
+end
+
+function constraint_ohms_dc_branch_on_off(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
+
+    branch = _PM.ref(pm, nw, :branchdc, b)
+    f_bus = branch["fbusdc"]
+    t_bus = branch["tbusdc"]
+    f_idx = (b, f_bus, t_bus)
+    t_idx = (b, t_bus, f_bus)
+
+    p = _PM.ref(pm, nw, :dcpol)
+
+    constraint_ohms_dc_branch_on_off(pm, nw, b, f_bus, t_bus, f_idx, t_idx, branch["r"], p)
+end
+
+
+function constraint_cc_branch_currents_on_off(pm::AbstractPowerModel, b::Int; nw::Int=nw_id_default)
+    cmax = _PM.ref(pm, nw, :branch, b, "cmax")
+    λmax = _PM.ref(pm, nw, :branch, b, "λcmax")
+
+    # display(b)
+    # display(cmax^2)
+    
+    # T2  = pm.data["T2"]
+    # mop = pm.data["mop"]
+
+    T2 = _FP.dim_meta(pm, :PCE_coeff, "T2")
+    mop = _FP.dim_meta(pm, :PCE_coeff, "mop")
+
+    constraint_cc_branch_currents_on_off(pm, b, cmax, λmax, T2, mop, nw)
+end

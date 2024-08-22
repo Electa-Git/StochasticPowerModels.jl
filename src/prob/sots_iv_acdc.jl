@@ -7,14 +7,6 @@
 ################################################################################
 
 ""
-# function solve_sopf_iv_acdc_dim(file::String, model_constructor, optimizer; deg::Int=1, p_size=0, solution_processors=[sol_data_model!], kwargs...)
-#     data = _PM.parse_file(file)
-#     _PMACDC.process_additional_data!(data)
-    
-#     return solve_sopf_iv_acdc_dim(data, model_constructor, optimizer; deg=deg, p_size=p_size, ref_extensions = [_PMACDC.add_ref_dcgrid!, _SPM.add_ref_RES!], solution_processors=solution_processors, kwargs...)
-# end
-
-""
 function solve_sots_iv_acdc(data::Dict, model_constructor, optimizer; deg::Int=1, p_size=0, solution_processors=[sol_data_model!], kwargs...)
     # @assert _IM.ismultinetwork(data) == false "The data supplied is multinetwork, it should be single-network"
     @assert model_constructor <: _PM.AbstractIVRModel "This problem type only supports the IVRModel"
@@ -85,6 +77,8 @@ function build_sots_iv_acdc(pm::AbstractPowerModel)
     end
 
 
+
+
     for (n, network) in _PM.nws(pm) 
         if _FP.is_first_id(pm,n,:PCE_coeff)
             bounded = true
@@ -94,6 +88,11 @@ function build_sots_iv_acdc(pm::AbstractPowerModel)
  
         variable_branch_current_on_off(pm, nw=n, bounded=bounded)
     end
+
+
+
+
+
     
     for (n, network) in _PM.nws(pm)
 
@@ -107,7 +106,8 @@ function build_sots_iv_acdc(pm::AbstractPowerModel)
         end
     
         for b in _PM.ids(pm, :branch, nw=n)
-            _PM.constraint_voltage_drop(pm, b, nw=n)
+            constraint_voltage_drop_on_off(pm, b, nw=n)
+
             constraint_gp_branch_series_current_magnitude_squared(pm, b, nw=n) 
 
             constraint_gp_ac_branch_indicator(pm, b, nw=n)
@@ -132,8 +132,9 @@ function build_sots_iv_acdc(pm::AbstractPowerModel)
         end
     
         for i in _PM.ids(pm, :branchdc, nw=n)
-            constraint_gp_ohms_dc_branch(pm, i, nw=n) 
-            constraint_ohms_dc_branch(pm, i, nw=n)
+            constraint_gp_ohms_dc_branch(pm, i, nw=n)
+
+            constraint_ohms_dc_branch_on_off(pm, i, nw=n)
 
             constraint_gp_dc_branch_indicator(pm, i, nw=n)
         end
@@ -180,7 +181,7 @@ function build_sots_iv_acdc(pm::AbstractPowerModel)
             end
         
             for b in _PM.ids(pm, :branch, nw=n)
-                constraint_cc_branch_series_current_magnitude_squared_on_off(pm, b, nw=n) 
+                constraint_cc_branch_currents_on_off(pm, b, nw=n) 
             end
         
             for g in _PM.ids(pm, :gen, nw=n)
@@ -199,6 +200,7 @@ function build_sots_iv_acdc(pm::AbstractPowerModel)
         
             for i in _PM.ids(pm, :branchdc, nw=n)
                 constraint_cc_dc_branch_current_on_off(pm, i, nw=n) 
+                # constraint_cc_dc_branch_current(pm, i, nw=n) 
             end
         
             for i in _PM.ids(pm, :convdc, nw=n)

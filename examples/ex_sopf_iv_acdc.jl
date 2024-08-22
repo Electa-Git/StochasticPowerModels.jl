@@ -10,7 +10,9 @@ using InfrastructureModels
 using StochasticPowerModels
 using PowerModelsACDC
 using FlexPlan
-using Plots
+
+# using HSL_jll
+
 
 #Constants
 const _PM = PowerModels
@@ -28,12 +30,13 @@ ipopt_solver = JuMP.optimizer_with_attributes(Ipopt.Optimizer, "print_level"=>0,
                                                                "max_iter"=>1000, 
                                                                "sb"=>"yes", 
                                                                "tol" => 1e-4,
+                                                            #    "hsllib" => HSL_jll.libhsl_path,
+                                                            #    "linear_solver" => "ma27",
                                                                # "fixed_variable_treatment" => "relax_bounds",
                                                 )
 
-#gPC degree input
+#PCE degree input
 deg  = 2
-
 #RES input
 pen_level = 0.3
 
@@ -43,6 +46,7 @@ file  = joinpath(BASE_DIR, "test/data/matpower", case)
 data = _PM.parse_file(file)
 _PMACDC.process_additional_data!(data)
 
+
 s = Dict("RES Curtailment" => true,
          "Load Curtailment" => false,
          )
@@ -51,24 +55,11 @@ s = Dict("RES Curtailment" => true,
 total_load = sum([data["load"]["$i"]["pd"] for i=1:length(data["load"])])
 p_size = pen_level * total_load / length(data["RES"]) #Calculate RES size for each RES bus
 
+
 sdata = _SPM.build_stochastic_data_ACDC_RES(data, deg, p_size)
-
-PCE_data = Dict(
-      "T2" => sdata["T2"],
-      "T3" => sdata["T3"],
-      "T4" => sdata["T4"],
-      "mop" => sdata["mop"],
-   )
-num_of_coeff = PCE_data["mop"].dim
-
-delete!(sdata, "T2")
-delete!(sdata, "T3")
-delete!(sdata, "T4")
-delete!(sdata, "mop")
-
-_FP.add_dimension!(sdata, :PCE_coeff, num_of_coeff; metadata = PCE_data)
-
+_SPM.dimension_management_PCE(sdata)
 sdata["curtailment"] = s
+
 
 
 println("\nPenetration Level = $pen_level")
