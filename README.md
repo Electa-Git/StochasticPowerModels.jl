@@ -5,16 +5,19 @@
 
 
 StochasticPowerModels.jl is an extension package of PowerModels.jl for 
-Stochastic Optimal Power Flow (SOPF). It is designed to enable the inclusion of 
-uncertainty in Steady-State Power Network Optimization. 
+Stochastic Power System Optimization.
+
+Note that development is ongoing, and changes can be breaking without notice. We plan to register the package once we feel comfortable with the state of the implementation.
 
 For additional background on the approach, please read our [PSCC paper](https://www.sciencedirect.com/science/article/pii/S0378779622006022).
 
-Note that development is ongoing, and changes can be breaking without notice. We plan to register the package once we feel comfortable with the state of the implementation.
+
 
 ## Core Problem Specification
 
 * Stochastic Optimal Power Flow for AC and AC/DC grids with RES
+* Risk-based Stochastic Optimal Power Flow for AC and AC/DC grids with RES
+* Stochastic Optimal Transmission Switching for AC and AC/DC grids with RES
 
 ## Core Network Formulation
 
@@ -44,7 +47,7 @@ Julia package manager:
 ] add https://github.com/Electa-Git/StochasticPowerModels.jl.git
 ```
 
-In order to test whether the package works, run:
+To test whether the package works, run:
 
 ```
 ] test StochasticPowerModels
@@ -52,11 +55,17 @@ In order to test whether the package works, run:
 
 ## Acknowledgements
 
-The primary developer is Tom Van Acker ([@timmyfaraday](https://github.com/timmyfaraday)), 
-with support from the following contributors:
-- Arpan Koirala ([@arpkoirala](https://github.com/arpkoirala)), KU Leuven, SOPF for AC Grids, ACR formulation
-- Frederik Geth ([@frederikgeth](https://github.com/frederikgeth)), CSIRO, SOPF for AC grids, reduced IVR formulation
-- Kaan Yurtseven ([@kaanyurtseven](https://github.com/kaanyurtseven)), KU Leuven, SOPF for AC/DC grids with RES, IVR formulation
+- Tom Van Acker ([@timmyfaraday](https://github.com/timmyfaraday)) _(Main Developer)_ , KU Leuven
+    - SOPF for AC grids, IVR formulation   
+- Kaan Yurtseven ([@kaanyurtseven](https://github.com/kaanyurtseven)), KU Leuven  
+  - SOPF for AC/DC grids with RES, IVR formulation  
+  - Risk-based SOPF for AC/DC grids with RES, IVR formulation  
+  - SOTS for AC/DC grids with RES, IVR formulation
+- Arpan Koirala ([@arpkoirala](https://github.com/arpkoirala)), KU Leuven  
+  - SOPF for AC Grids, ACR formulation
+- Frederik Geth ([@frederikgeth](https://github.com/frederikgeth)), CSIRO  
+  - SOPF for AC grids, reduced IVR formulation
+
 
 ## License
 
