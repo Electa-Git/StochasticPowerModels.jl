@@ -9,10 +9,6 @@ Stochastic Power System Optimization.
 
 Note that development is ongoing, and changes can be breaking without notice. We plan to register the package once we feel comfortable with the state of the implementation.
 
-For additional background on the approach, please read our [PSCC paper](https://www.sciencedirect.com/science/article/pii/S0378779622006022).
-
-
-
 ## Core Problem Specification
 
 * Stochastic Optimal Power Flow (SOPF) for AC and AC/DC grids with RES
@@ -66,6 +62,22 @@ To test whether the package works, run:
 - Frederik Geth ([@frederikgeth](https://github.com/frederikgeth)), CSIRO  
   - SOPF for AC grids, reduced IVR formulation
 
+## Citing StochasticPowerModels
+
+If you find StochasticPowerModels useful in your work, we kindly request that you cite the following publications:
+
+#### SOPF for hybrid AC/DC Grids with RES:
+- [Stochastic optimal power flow for hybrid AC/DC grids considering continuous non-Gaussian uncertainty](https://doi.org/10.1016/j.ijepes.2025.110828) 
+
+#### SOPF for AC Grids:
+- [General polynomial chaos in the current–voltage formulation of the optimal power flow problem](https://doi.org/10.1016/j.epsr.2022.108472)
+
+#### Risk-based SOPF for hybrid AC/DC Grids with RES:
+- [Risk-based Stochastic Optimal Power Flow for AC/DC Grids Using Polynomial Chaos Expansion](https://doi.org/10.1109/ISGTEUROPE62998.2024.10863605)
+
+#### Security-constrained SOPF for hybrid AC/DC Grids with RES: 
+- Yurtseven, K., Ergun, H., & Van Hertem, D (2025, June). Security-Constrained Stochastic Optimal Power Flow For Hybrid AC/DC Grids Considering Non-Gaussian Uncertainty. In 2025 IEEE PowerTech. IEEE.
+- _Presented on 30th June, 2025_
 
 ## License
 
