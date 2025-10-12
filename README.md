@@ -76,8 +76,7 @@ If you find StochasticPowerModels useful in your work, we kindly request that yo
 - [Risk-based Stochastic Optimal Power Flow for AC/DC Grids Using Polynomial Chaos Expansion](https://doi.org/10.1109/ISGTEUROPE62998.2024.10863605)
 
 #### Security-constrained SOPF for hybrid AC/DC Grids with RES _(DC Formulation)_: 
-- Yurtseven, K., Ergun, H., & Van Hertem, D (2025, June). Security-Constrained Stochastic Optimal Power Flow For Hybrid AC/DC Grids Considering Non-Gaussian Uncertainty. In 2025 IEEE PowerTech. IEEE. \
-_Presented on 30th June, 2025_
+- [Security-Constrained Stochastic Optimal Power Flow For Hybrid AC/DC Grids Considering Non-Gaussian Uncertainty](https://doi.org/10.1109/PowerTech59965.2025.11180443)
 
 ## License
 
